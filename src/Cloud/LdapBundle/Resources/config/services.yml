@@ -1,0 +1,6 @@
+
+
+services:
+    cloud.ldap:
+        class: Cloud\LdapBundle\Services\LdapService
+        arguments: ['@service_container']

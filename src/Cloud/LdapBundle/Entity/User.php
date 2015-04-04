@@ -10,8 +10,24 @@ class User {
   private $username;
   
   /**
-   * @var Array<Password> $passwords
+   * main password
+   * @var Password $password
    */
-  private $passwords;
+  private $password;
   
+  
+  /**
+   * assoziativ array with service info
+   * @var AssoziativArray<Service>
+   */
+  private $services;
+  
+  
+  public getServices() {
+    
+  }
+  
+  public getService($servicename) {
+    
+  }
 }
