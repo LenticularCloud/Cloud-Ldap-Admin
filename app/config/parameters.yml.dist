@@ -12,7 +12,11 @@ parameters:
     
     services: [git_gogs,mail,seafile]
 
-    ldap_server:  localhost
+    ldap_server:    localhost
+    ldap_port:      389
+    ldap_bind_rdn:  root
+    ldap_bind_pw:   password
+    
     ldap_domain:  example.com
 
     mailer_transport:  smtp

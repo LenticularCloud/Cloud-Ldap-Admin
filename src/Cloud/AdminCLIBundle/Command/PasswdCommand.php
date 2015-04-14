@@ -6,6 +6,8 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Symfony\Component\Console\Question\Question;
 
 use Cloud\CLIBundle\Exception\UserNotFound;
 
@@ -16,27 +18,43 @@ class PasswdCommand extends ContainerAwareCommand
   protected function configure()
   {
     $this
-        ->setName('user:passwd:master')
+        ->setName('user:passwd')
         ->setDescription('change the master password from a user')
-        //parameter: [username [password]]
+        ->addArgument('username',InputArgument::OPTIONAL,null)
+        ->addArgument('password',InputArgument::OPTIONAL,null)
+        ->setHelp('')
     ;
   }
 
   protected function execute(InputInterface $input, OutputInterface $output)
   {
+    $helper = $this->getHelper('question');
     
-    //read username into $username
-    
-    try {
-      $user=$this->get('cloud.ldap')->getUserByUsername($username);
-    }catch (UserNotFound $e) {
-      //print error
-      return 1;
+    //read username
+    if($input->getArgument('username')) {
+      $username=$input->getArgument('username');
+    } else {
+      $question = new Question('Please enter the name of the User:');
+      $question->setAutocompleterValues($this->getContainer()->get('cloud.ldap')->getAllUsernames());
+      $username= $helper->ask($input, $output, $question);
     }
     
+    try {
+      $user=$this->getContainer()->get('cloud.ldap')->getUserByUsername($username);
+    }catch (UserNotFound $e) {
+      $output->writeln('User not found');
+      return 1;
+    }
+
     //read password
-    
-    $user->setPassword($password);
+    if($input->getArgument('password')) {
+      $password=$input->getArgument('password');
+    } else {
+      $question = new Question('Please enter password:');
+      $question->setHidden(true);
+      $password=$helper->ask($input, $output, $question);
+    }
+    $user->setPassword(new Password($password,null));
     
     $this->get('cloud.ldap')->updateUser($user);
 	}

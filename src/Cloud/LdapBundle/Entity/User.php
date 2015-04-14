@@ -1,5 +1,5 @@
 <?php
-namespace Cloud\LdapBundle\Entity
+namespace Cloud\LdapBundle\Entity;
 
 
 class User {
@@ -21,13 +21,36 @@ class User {
    * @var AssoziativArray<Service>
    */
   private $services;
+
+  public function getUsername(){
+    return $this->username;
+  }
+
+  public function setUsername($username){
+    $this->username=$username;
+    return $this;
+  }
+
+  public function getPassword(){
+    return $this->password;
+  }
   
+  public function setPassword(Password $password){
+    $this->password=$password;
+    return $this;
+  }
   
-  public getServices() {
+  /**
+   * @return Array<Service>
+   */
+  public function getServices() {
     
   }
   
-  public getService($servicename) {
+  /**
+   * @return Service
+   */
+  public function getService($servicename) {
     
   }
 }

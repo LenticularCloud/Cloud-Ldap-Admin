@@ -28,11 +28,10 @@ class LdapService
   {
     $this->container = $container;
     
-    //@TODO get parameters
-    $bind_rdn=null;
-    $bind_pw=null;
-    $ldap_host=null;
-    $ldap_port=null;
+    $ldap_host  =$this->container->getParameter('ldap_server');
+    $ldap_port  =$this->container->getParameter('ldap_port');
+    $bind_rdn   =$this->container->getParameter('ldap_bind_rdn');
+    $bind_pw    =$this->container->getParameter('ldap_bind_pw');
     
     $this->ldap_resource=ldap_connect($ldap_host,$ldap_port);
     
@@ -55,6 +54,22 @@ class LdapService
    * @throws LdapQueryException
    */
   public function getAllUsers(){
+    
+    $users=array();
+    foreach(getAllUsernames() as $result){
+      $users[]=getUserByUsername($user["uid"][0]);
+    }
+    
+    
+    return $users;
+  }
+  
+  /**
+   * get an array of all users
+   * @return Array<User>
+   * @throws LdapQueryException
+   */
+  public function getAllUsernames(){
     $results = ldap_search($this->ldap_resource,$ldap['base_dn'], "(cn=*)");
     
     if($result===false) {
@@ -63,7 +78,7 @@ class LdapService
     
     $users=array();
     foreach($results as $result){
-      $users[]=getUserByUsername($user["uid"][0]);
+      $users[]=$user["uid"][0];
     }
     
     

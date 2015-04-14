@@ -22,34 +22,66 @@ class PasswdServiceAddCommand extends ContainerAwareCommand
         ->addArgument('service',InputArgument::OPTIONAL,null)
         ->addArgument('password',InputArgument::OPTIONAL,null)
         ->addArgument('id',InputArgument::OPTIONAL,null)
-        //parameter: [username [service [password id]]]
+        ->setHelp("parameter: [username [service [password id]]]")
     ;
   }
 
   protected function execute(InputInterface $input, OutputInterface $output)
   {
+    $helper = $this->getHelper('question');
     
-    //read username into $username
+    //read username
+    if($input->getArgument('username')) {
+      $username=$input->getArgument('username');
+    } else {
+      $question = new Question('Please enter the name of the User:');
+      $question->setAutocompleterValues($this->getContainer()->get('cloud.ldap')->getAllUsernames());
+      $username= $helper->ask($input, $output, $question);
+    }
     
     try {
-      $user=$this->get('cloud.ldap')->getUserByUsername($username);
+      $user=$this->getContainer()->get('cloud.ldap')->getUserByUsername($username);
     }catch (UserNotFound $e) {
-      //print error
+      $output->writeln('User not found');
+      return 1;
+    }
+
+    //read service
+    if($input->getArgument('service')) {
+      $password=$input->getArgument('password');
+    } else {
+      $question = new Question('Please enter password:');
+      $question->setHidden(true);
+      $password=$helper->ask($input, $output, $question);
+    }
+
+    //read password
+    if($input->getArgument('password')) {
+      $password=$input->getArgument('password');
+    } else {
+      $question = new Question('Please enter password:');
+      $question->setHidden(true);
+      $password=$helper->ask($input, $output, $question);
+    }
+    
+    //read id
+    if($input->getArgument('id')) {
+      $passwordId=$input->getArgument('id');
+    } else {
+      $question = new Question('Please enter password id:');
+      $passwordId=$helper->ask($input, $output, $question);
+    }
+    
+    if(preg_match("/^[a-zA-Z0-9_.-]{2,}$/",$passwordId)!=0) {
+      $output->writeln('Invalide id.');
       return 1;
     }
     
-    //print/read service into $servicename
-    while(!isset($service)) {
-      foreach($user->getServices() as $service) {
-        $output->writeln("service");
-        //print
-      }
-      //read name into $servicename
-      
-      $service=$user->getService($servicename);
+    if($user->getService($service)==null) {
+      $output->writeln('service not found')
     }
     
-    //read new password/comment
+    $user->getService($service)->setPassword(new Password($password,null));
     
     $service->addPassword(new Password($password,$comment));
     

@@ -18,7 +18,9 @@ class PasswdServiceListCommand extends ContainerAwareCommand
     $this
         ->setName('user:passwd:service:list')
         ->setDescription('lists all the passwords of the given user')
-        //parameter: [username [service]]
+        ->addArgument('username',InputArgument::OPTIONAL,null)
+        ->addArgument('service',InputArgument::OPTIONAL,null)
+        ->setHelp("parameter: [username [service]]")
     ;
   }
 
@@ -28,7 +30,7 @@ class PasswdServiceListCommand extends ContainerAwareCommand
     //read username into $username
     
     try {
-      $user=$this->get('cloud.ldap')->getUserByUsername($username);
+      $user=$this->getContainer()->get('cloud.ldap')->getUserByUsername($username);
     }catch (UserNotFound $e) {
       //print error
       return 1;

@@ -1,5 +1,5 @@
 <?php
-namespace Cloud\LdapBundle\Entity
+namespace Cloud\LdapBundle\Entity;
 
 class Password {
 
@@ -21,5 +21,10 @@ class Password {
    * @var String $password_plain
    */
   private $password_plain=null;
+  
+  public function __construct($password_plain=null,$id=null) {
+    $this->password_plain=$password_plain;
+    $this->id=$id;
+  }
 
 } 
