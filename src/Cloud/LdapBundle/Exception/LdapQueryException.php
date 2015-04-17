@@ -1,5 +1,5 @@
 <?php
-namespace Cloud\LdapBundle\Exception
+namespace Cloud\LdapBundle\Exception;
 
 class LdapQueryException extends \Exception {
   

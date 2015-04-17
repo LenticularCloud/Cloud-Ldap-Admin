@@ -6,9 +6,11 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use Cloud\LdapBundle\Entity\User;
+use Cloud\LdapBundle\Entity\Password;
 use Cloud\LdapBundle\Exception\UserNotFoundException;
 use Cloud\LdapBundle\Exception\ConnectionErrorException;
 use Cloud\LdapBundle\Exception\LdapQueryException;
+use Cloud\LdapBundle\Entity\Service;
 
 
 class LdapService
@@ -24,14 +26,33 @@ class LdapService
    */
   private $container;
   
+  /**
+   * 
+   * @var String
+   */
+  private $base_dn;
+  
+  /**
+   * @var array 
+   */
+  private $services;
+  
+  /**
+   * 
+   * @param ContainerInterface $container
+   * @throws ConnectionErrorException
+   */
   public function __construct(ContainerInterface $container)
   {
     $this->container = $container;
     
-    $ldap_host  =$this->container->getParameter('ldap_server');
-    $ldap_port  =$this->container->getParameter('ldap_port');
-    $bind_rdn   =$this->container->getParameter('ldap_bind_rdn');
-    $bind_pw    =$this->container->getParameter('ldap_bind_pw');
+    $ldap_host  		= $this->container->getParameter('ldap_server');
+    $ldap_port  		= $this->container->getParameter('ldap_port');
+    $bind_rdn   		= $this->container->getParameter('ldap_bind_rdn');
+    $bind_pw    		= $this->container->getParameter('ldap_bind_pw');
+    $this->base_dn 	= $this->container->getParameter('ldap_base_dn');
+    $this->services 	= $this->container->getParameter('services');
+    
     
     $this->ldap_resource=ldap_connect($ldap_host,$ldap_port);
     
@@ -43,8 +64,7 @@ class LdapService
     $bind = ldap_bind($this->ldap_resource,$bind_rdn, $bind_pw);
     
     if($bind===false) {
-      throw new ConnectionErrorException();
-        die('can\'t bind to ldap: '.ldap_error ($ldapconn));
+      throw new ConnectionErrorException('can\'t bind to ldap: '.ldap_error ($this->ldap_resource));
     }
   }
 
@@ -54,12 +74,10 @@ class LdapService
    * @throws LdapQueryException
    */
   public function getAllUsers(){
-    
     $users=array();
-    foreach(getAllUsernames() as $result){
-      $users[]=getUserByUsername($user["uid"][0]);
+    foreach(getAllUsernames() as $username){
+      $users[]=getUserByUsername($username);
     }
-    
     
     return $users;
   }
@@ -70,15 +88,20 @@ class LdapService
    * @throws LdapQueryException
    */
   public function getAllUsernames(){
-    $results = ldap_search($this->ldap_resource,$ldap['base_dn'], "(cn=*)");
+  	
+  	$ldap_base_dn="";//@TODO ...
+  	
+
+  	//@TODO use ldap_list
+    $results = ldap_search($this->ldap_resource,$ldap_base_dn, "(cn=*)");
     
-    if($result===false) {
+    if($results===false) {
       throw new LdapQueryException('can not fetch userlist');
     }
     
     $users=array();
     foreach($results as $result){
-      $users[]=$user["uid"][0];
+      $users[]=$result["uid"][0];
     }
     
     
@@ -90,7 +113,12 @@ class LdapService
    */
   public function updateUser(User $user){
     
-    $result = ldap_mod_replace($this->ldap_resource, "uid=$username,ou=users,dc=milliways,dc=info", $this->userToLdapArray($user));
+    $result = ldap_mod_replace($this->ldap_resource, "uid=".$user->getUsername().",ou=users,dc=milliways,dc=info", $this->userToLdapArray($user));
+
+    //@TODO
+    /*
+    if($result) { ldap_error
+    }*/
   }
 
   /**
@@ -100,8 +128,20 @@ class LdapService
     
     $ldap_base="";//@TODO get ldap base
     
-    $add = ldap_add($this->ldap_resource, 'uid='.$user->getUsername().',ou=users,'.$ldap_base , $this->userToLdapArray($user));
-    
+    $result = ldap_add($this->ldap_resource, 'uid='.$user->getUsername().',ou=users,'.$ldap_base , $this->userToLdapArray($user));
+    //@TODO
+    /*
+     if($result) {
+     }*/
+  }
+  
+  /**
+   * delete an user
+   * @param User $user
+   */
+  public function deleteUser(User $user){
+  	//@TODO .. ldap_delete
+  	throw new \BadFunctionCallException('not implemented yet');
   }
 
   /**
@@ -110,14 +150,67 @@ class LdapService
    * @return User
    */
   public function getUserByUsername($username){
-    
+  	
+  	$ri=ldap_read($this->ldap_resource, 'uid='+$username+','+$this->getBaseDN(),'(objectClass=inetOrgPerson)');
+  	if($ri===false)  {
+  		throw new LdapQueryException();
+  	}
+  	$entity=ldap_first_entry($this->ldap_resource,$ri);
+  	if($entity===false) {
+  		throw new UserNotFoundException();
+  	}
+  	
+  	$user=new User();
+  	$user->setUsername($username);
+  	
+  	ldap_free_result($ri);
+  	
+  	foreach ($this->services as $service_name) {
+  		$ri=ldap_read($this->ldap_resource, 'uid='+$username+','+$this->getBaseDN($service_name),'(objectClass=inetOrgPerson)');
+  		if($ri===false) {
+  			throw new LdapQueryException();
+  		}
+  		$entity=ldap_first_entry($this->ldap_resource,$ri);
+  		if($entity===false) {
+  			throw new LdapQueryException();
+  		}
+  		$service=new Service();
+  		$service->setName($service_name);
+  		
+  		if(isset($entity['userPassword'])) {
+  			foreach ($entity['userPassword'] as $password_hash) {
+  				$service->addPassword();
+  				
+  			}
+  		}else {
+  			
+  		}
+  		
+  		ldap_free_result($ri);
+  	}
+  	
+  	
+  	return $user;
+  }
+  
+  /**
+   * 
+   * @param string $password_hash
+   */
+  private function parsePassword($password_hash) {
+  	$password=new Password();
+  	//@TODO not complete
+  	preg_match('/^{crypt}\$()?$/', $subject,$matches);
+  	
+  	return $password;
   }
   
   /**
    * updates the users in the different services
    */
   public function updateServices(){
-      
+  	//@TODO ..
+    throw new \BadFunctionCallException('not implemented yet');
   }
   
   /**
@@ -125,6 +218,7 @@ class LdapService
    */
   public function showServiceInconsistence(){
     //...
+    //ldap_compare parsed with saved
   }
   
   /**
@@ -135,7 +229,7 @@ class LdapService
   private function userToLdapArray(User $user,$service=null) {
     
     $domain="";//@TODO get domain
-    
+    //@TODO passwordID
     $data=array();
     $data["objectClass"]    = array();
     $data["objectClass"][]  = "top";
@@ -144,9 +238,9 @@ class LdapService
     $data["objectClass"][]  = "shadowAccount";
 
     $data["uid"]            = $user->getUsername();
-    $data["homeDirectory"]  = "/var/vhome/".$username;
-    $data["givenName"]      = $user->getUsername();
-    $data["sn"]             = $this->getUsername();
+    $data["homeDirectory"]  = "/var/vhome/".$user->getUsername();
+    /*$data["givenName"]      = $user->getUsername();
+    $data["sn"]             = $this->getUsername();*/
     $data["displayName"]    = $this->getUsername();
     $data["cn"]             = $this->getUsername();
     $data["mail"]           = $this->getUsername."@".$domain;
@@ -154,30 +248,31 @@ class LdapService
     $data["userPassword"][] = $this->cryptPassword($user->getPassword());
     if($service!==null) {
       foreach($user->getService($service)->getPasswords() as $password) {
-        $data["userPassword"][] = $this->cryptPassword($user->getPassword());
+        $data["userPassword"][] = $this->cryptPassword($password);
       }
     }
-
-    //$data["uidnumber"]="5000";
-    //$data["gidNumber"]="5000";
     $data["loginShell"]="/bin/false";
 
     
     return $data;
   }
   
+  /**
+   * function to create the password hash
+   * @param Password $password valided password
+   */
   private function cryptPassword(Password $password) {
-    
-    
-    if($password->getPasswordPlain()!==null) {
-      $salt=getRandomeSalt();
-      $hash=crypt($password->getPasswordPlain(),'$6$round=6000$'.$salt);
-    }
-    
-    
-    return '{crypt}'.$password->getHash();
+  	$salt="";
+  	if($password->get)
+    $salt=getRandomeSalt();
+    $hash=crypt($password->getPasswordPlain(),'$6$round=6000$'.$salt);
+    return '{crypt}'.$hash;
   }
   
+  /**
+   * generate randome string
+   * @param number $length
+   */
   private function getRandomeSalt($length=10) {
     $chars="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -188,5 +283,20 @@ class LdapService
     }
 
     return $string;
+  }
+  
+  /**
+   * 
+   * @param string $service if null use
+   */
+  private function getBaseDN($service=null) {
+  	return "ou=Users"+($service==null?"":"DN="+$service)+$this->base_dn;
+  }
+  
+  /**
+   * close current ldap connection
+   */
+  public function close(){
+  	ldap_close($this->ldap_resource);
   }
 }

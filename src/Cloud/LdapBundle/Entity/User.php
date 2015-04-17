@@ -1,6 +1,8 @@
 <?php
 namespace Cloud\LdapBundle\Entity;
 
+use \Cloud\LdapBundle\Entity\Password;
+use \Cloud\LdapBundle\Entity\Service;
 
 class User {
   
@@ -22,35 +24,65 @@ class User {
    */
   private $services;
 
+  /**
+   * @return String
+   */
   public function getUsername(){
     return $this->username;
   }
 
+  /**
+   * 
+   * @param unknown $username
+   */
   public function setUsername($username){
     $this->username=$username;
     return $this;
   }
 
+  /**
+   * @return Password
+   */
   public function getPassword(){
     return $this->password;
   }
   
+  /**
+   * 
+   * @param Password $password
+   */
   public function setPassword(Password $password){
     $this->password=$password;
     return $this;
   }
+	
+
+	/**
+	 * @param Service $service
+	 * @return \Cloud\LdapBundle\Entity\Service
+	 */
+	public function addService( Service $service) {
+		$this->services[$service->getName()] = $service;
+		return $this;
+	}
+	
+	/**
+	 * 
+	 * @param Service $service
+	 */
+	public function removeService( Service $service ) {
+		if(!isset($this->services[$service->getId()])) {
+			throw \InvalidArgumentException("service not in the list");
+		}
+		unset($this->services[$service->getId()]);
+		return $this;
+	}
+  
   
   /**
-   * @return Array<Service>
+   * @return AssoziativArray<Service>
    */
   public function getServices() {
-    
-  }
-  
-  /**
-   * @return Service
-   */
-  public function getService($servicename) {
-    
+    return $this->services;
   }
 }

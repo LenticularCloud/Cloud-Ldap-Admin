@@ -9,7 +9,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
 
-use Cloud\CLIBundle\Exception\UserNotFound;
+use Cloud\LdapBundle\Exception\UserNotFoundException;
+use Cloud\LdapBundle\Entity\Password;
 
 class PasswdCommand extends ContainerAwareCommand
 {

@@ -1,6 +1,6 @@
 <?php
-namespace Cloud\LdapBundle\Exception
+namespace Cloud\LdapBundle\Exception;
 
-class ConnectinErrorException extends \Exception {
+class ConnectionErrorException extends \Exception {
   
 } 

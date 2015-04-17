@@ -7,7 +7,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use Cloud\CLIBuLdapBundlendle\Exception\UserNotFound;
+use Cloud\LdapBundle\Exception\UserNotFoundException;
 
 class PasswdServiceListCommand extends ContainerAwareCommand
 {
@@ -26,12 +26,14 @@ class PasswdServiceListCommand extends ContainerAwareCommand
 
   protected function execute(InputInterface $input, OutputInterface $output)
   {
-    
+  	throw new \BadMethodCallException();
+    /*
     //read username into $username
+  	$username="";
     
     try {
       $user=$this->getContainer()->get('cloud.ldap')->getUserByUsername($username);
-    }catch (UserNotFound $e) {
+    }catch (UserNotFoundException $e) {
       //print error
       return 1;
     }
@@ -51,6 +53,6 @@ class PasswdServiceListCommand extends ContainerAwareCommand
           //print passwords...
         }
       }
-    }
+    }*/
 	}
 }

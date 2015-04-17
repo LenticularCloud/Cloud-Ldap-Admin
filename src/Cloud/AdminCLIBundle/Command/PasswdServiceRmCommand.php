@@ -24,9 +24,9 @@ class PasswdServiceRmCommand extends ContainerAwareCommand
 
   protected function execute(InputInterface $input, OutputInterface $output)
   {
-    
+    throw new \BadFunctionCallException();
     //read username into $username
-    
+    /*
     try {
       $user=$this->get('cloud.ldap')->getUserByUsername($username);
     }catch (UserNotFound $e) {
@@ -53,5 +53,7 @@ class PasswdServiceRmCommand extends ContainerAwareCommand
     }
     
     //remove password
+     
+     */
 	}
 }

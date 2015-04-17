@@ -26,5 +26,59 @@ class Password {
     $this->password_plain=$password_plain;
     $this->id=$id;
   }
+	
+	/**
+	 *
+	 * @return the String
+	 */
+	public function getHash() {
+		return $this->hash;
+	}
+	
+	/**
+	 *
+	 * @param
+	 *        	$hash
+	 */
+	public function setHash($hash) {
+		$this->hash = $hash;
+		return $this;
+	}
+	
+	/**
+	 *
+	 * @return the String
+	 */
+	public function getId() {
+		return $this->id;
+	}
+	
+	/**
+	 * unique
+	 * allow /(a-Z0-9-){1,10}/
+	 * @param String $id
+	 */
+	public function setId($id) {
+		$this->id = $id;
+		return $this;
+	}
+	
+	/**
+	 * 
+	 * @return the String
+	 */
+	public function getPasswordPlain() {
+		return $this->password_plain;
+	}
+	
+	/**
+	 *
+	 * @param $password_plain
+	 */
+	public function setPasswordPlain($password_plain) {
+		$this->password_plain = $password_plain;
+		return $this;
+	}
+	
 
 } 

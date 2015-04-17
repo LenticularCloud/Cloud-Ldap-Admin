@@ -6,8 +6,10 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\Question;
 
-use Cloud\LdapBundle\Exception\UserNotFound;
+use Cloud\LdapBundle\Exception\UserNotFoundException;
+use Cloud\LdapBundle\Entity\Password;
 
 class PasswdServiceAddCommand extends ContainerAwareCommand
 {
@@ -48,11 +50,11 @@ class PasswdServiceAddCommand extends ContainerAwareCommand
 
     //read service
     if($input->getArgument('service')) {
-      $password=$input->getArgument('password');
+      $service=$input->getArgument('service');
     } else {
-      $question = new Question('Please enter password:');
-      $question->setHidden(true);
-      $password=$helper->ask($input, $output, $question);
+      $question = new Question('Please enter service:');
+      //@TODO autocomplite
+      $service=$helper->ask($input, $output, $question);
     }
 
     //read password
@@ -77,13 +79,14 @@ class PasswdServiceAddCommand extends ContainerAwareCommand
       return 1;
     }
     
+    
     if($user->getService($service)==null) {
-      $output->writeln('service not found')
+      $output->writeln('service not found');
     }
     
     $user->getService($service)->setPassword(new Password($password,null));
     
-    $service->addPassword(new Password($password,$comment));
+    $service->addPassword(new Password($password,$passwordId));
     
 	}
 }
