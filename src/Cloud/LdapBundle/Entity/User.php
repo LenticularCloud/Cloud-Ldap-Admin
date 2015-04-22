@@ -23,6 +23,12 @@ class User {
    * @var AssoziativArray<Service>
    */
   private $services;
+  
+  /**
+   * @TODO think about that
+   * @var boolean 
+   */
+  private $enable;
 
   /**
    * @return String
@@ -78,11 +84,36 @@ class User {
 		return $this;
 	}
   
+
+	/**
+	 * @return AssoziativArray<Service>
+	 */
+	public function getServices() {
+		return $this->services;
+	}
+	
+  /**
+   * @return Service
+   */
+  public function getService($name) {
+    return $this->services[$name];
+  }
   
   /**
-   * @return AssoziativArray<Service>
+   * @return boolean
    */
-  public function getServices() {
-    return $this->services;
-  }
+	public function getEnable() {
+		return $this->enable;
+	}
+	
+	/**
+	 * 
+	 * @param boolean $enable
+	 */
+	public function setEnable($enable) {
+		$this->enable = $enable;
+		return $this;
+	}
+	
+  
 }

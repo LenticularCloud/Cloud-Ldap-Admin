@@ -1,0 +1,8 @@
+dn: uid=__USER__,ou=users,__BASE__
+objectclass: person
+objectclass: inetorgperson
+uid: __USER__
+sn: __USER__
+cn: __USER__
+mail: __USER__@__DOMAIN__
+userPassword: {CRYPT}$2y$06$m4VEiAwxhmJfSb7OzwDd4uB4zyWm5WQa3kzPYGvLu28tt8oAZkTXO

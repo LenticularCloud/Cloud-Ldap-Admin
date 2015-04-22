@@ -1,0 +1,4 @@
+dn: ou=users,dc=git,__BASE__
+ou: users
+objectClass: top
+objectClass: organizationalUnit

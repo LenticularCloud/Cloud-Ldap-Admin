@@ -1,0 +1,5 @@
+dn: ou=groups, __BASE__
+ou: groups
+objectclass: top
+objectClass: organizationalUnit
+structuralObjectClass: organizationalUnit

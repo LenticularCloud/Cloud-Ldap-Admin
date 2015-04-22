@@ -55,7 +55,7 @@ class Password {
 	
 	/**
 	 * unique
-	 * allow /(a-Z0-9-){1,10}/
+	 * allow /(a-Z0-9_-){1,10}/
 	 * @param String $id
 	 */
 	public function setId($id) {

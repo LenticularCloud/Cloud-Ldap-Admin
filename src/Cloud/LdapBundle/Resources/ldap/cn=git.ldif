@@ -1,0 +1,8 @@
+dn: cn=git,__BASE__
+objectclass: person
+objectclass: inetorgperson
+uid: git
+sn: git
+cn: git
+mail: git@__DOMAIN__
+userPassword: __PASSWORD__

@@ -25,11 +25,16 @@ class ListUsersCommand extends ContainerAwareCommand
 
   protected function execute(InputInterface $input, OutputInterface $output)
   {
-    
+    try {
+    	$this->getContainer()->get('cloud.ldap');
+    }catch(\Exception $e){
+    	
+    }
+  	
     if($input->getOption('json')) {
       $output->writeln(json_encode($this->getContainer()->get('cloud.ldap')->getAllUsernames()));
     }else {
-      foreach($this->getContainer()->get('cloud.ldap')->getAllUser() as $user) {
+      foreach($this->getContainer()->get('cloud.ldap')->getAllUsers() as $user) {
         $output->writeln($user->getUsername());
       }
     }

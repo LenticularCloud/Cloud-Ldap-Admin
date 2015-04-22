@@ -10,14 +10,17 @@ parameters:
     # database_path: "%kernel.root_dir%/data.db3"
     
     
-    services: [git_gogs,mail,seafile]
+    services:
+        - git_gogs
+        - mail
+        - seafile
 
-    ldap_server:    localhost
-    ldap_port:      389
-    ldap_bind_rdn:  root
-    ldap_bind_pw:   password
-    
-    ldap_base_dn:   dn=example,dn=org
+    ldap_server:    "localhost"
+    ldap_port:      "389"
+    ldap_bind_rdn:  "cn=root,dc=example,dc=com"
+    ldap_bind_pw:   "password"
+    ldap_base_dn:   "dn=example,dn=org"
+    domain:         "example.org"
     
 
     mailer_transport:  smtp

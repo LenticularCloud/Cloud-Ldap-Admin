@@ -10,5 +10,5 @@
 /vendor/
 /web/bundles/
 /tmp
-/.buildpath/
+.buildpath
 /.settings/
