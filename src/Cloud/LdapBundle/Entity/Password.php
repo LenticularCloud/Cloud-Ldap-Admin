@@ -11,7 +11,7 @@ class Password {
   private $hash;
 
   /**
-   * allow /a-Z0-9-/
+   * allow /a-Z0-9_-/
    * @var String $id
    */
   private $id;

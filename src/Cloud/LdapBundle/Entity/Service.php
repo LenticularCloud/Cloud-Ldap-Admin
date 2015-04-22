@@ -15,7 +15,7 @@ class Service {
    * passwords for this service
    *  @var Array<Password> $passwords
    */
-  private $passwords;
+  private $passwords=array();
   
   
 	/**

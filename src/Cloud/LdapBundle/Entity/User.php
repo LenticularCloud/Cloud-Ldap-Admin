@@ -22,7 +22,7 @@ class User {
    * assoziativ array with service info
    * @var AssoziativArray<Service>
    */
-  private $services;
+  private $services=array();
   
   /**
    * @TODO think about that
@@ -96,7 +96,7 @@ class User {
    * @return Service
    */
   public function getService($name) {
-    return $this->services[$name];
+    return isset($this->services[$name])?$this->services[$name]:null;
   }
   
   /**

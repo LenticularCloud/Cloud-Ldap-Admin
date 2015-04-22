@@ -10,6 +10,7 @@ use Symfony\Component\Console\Question\Question;
 
 use Cloud\LdapBundle\Exception\UserNotFoundException;
 use Cloud\LdapBundle\Entity\Password;
+use Cloud\LdapBundle\Entity\Service;
 
 class PasswdServiceAddCommand extends ContainerAwareCommand
 {
@@ -22,9 +23,10 @@ class PasswdServiceAddCommand extends ContainerAwareCommand
         ->setDescription('add a userpassword to a specific service')
         ->addArgument('username',InputArgument::OPTIONAL,null)
         ->addArgument('service',InputArgument::OPTIONAL,null)
-        ->addArgument('password',InputArgument::OPTIONAL,null)
         ->addArgument('id',InputArgument::OPTIONAL,null)
-        ->setHelp("parameter: [username [service [password id]]]")
+        ->addArgument('password',InputArgument::OPTIONAL,null)
+        ->addOption('force','f',InputOption::VALUE_NONE,'force creation of password, also if service not exist for this user')
+        ->setHelp("parameter: [-f] [username] [service] [id] [password]")
     ;
   }
 
@@ -53,8 +55,21 @@ class PasswdServiceAddCommand extends ContainerAwareCommand
       $service=$input->getArgument('service');
     } else {
       $question = new Question('Please enter service:');
-      //@TODO autocomplite
+  		$question->setAutocompleterValues($this->getContainer()->get('cloud.ldap')->getServices());
       $service=$helper->ask($input, $output, $question);
+    }
+    
+    //read id
+    if($input->getArgument('id')) {
+      $passwordId=$input->getArgument('id');
+    } else {
+      $question = new Question('Please enter password id:');
+      $passwordId=$helper->ask($input, $output, $question);
+    }
+    //@TODO global validation
+    if(preg_match("/^[a-zA-Z0-9_.-]{2,}$/",$passwordId)==0) {
+      $output->writeln('Invalide id.');
+      return 1;
     }
 
     //read password
@@ -66,27 +81,25 @@ class PasswdServiceAddCommand extends ContainerAwareCommand
       $password=$helper->ask($input, $output, $question);
     }
     
-    //read id
-    if($input->getArgument('id')) {
-      $passwordId=$input->getArgument('id');
-    } else {
-      $question = new Question('Please enter password id:');
-      $passwordId=$helper->ask($input, $output, $question);
-    }
-    
-    if(preg_match("/^[a-zA-Z0-9_.-]{2,}$/",$passwordId)!=0) {
-      $output->writeln('Invalide id.');
-      return 1;
-    }
-    
     
     if($user->getService($service)==null) {
-      $output->writeln('service not found');
+    	if(in_array($service, $this->getContainer()->get('cloud.ldap')->getServices())) {
+    		if($input->getOption('force')) {
+	    		$tmp=new Service();
+	    		$tmp->setName($service);
+	    		$user->addService($tmp);
+    		}else {
+      		$output->writeln('service not found for this user, use -f to create it');
+      		return 1;
+    		}
+    	} else {
+      	$output->writeln('service not found');
+      	return 1;
+    	}
     }
     
-    $user->getService($service)->setPassword(new Password($password,null));
-    
-    $service->addPassword(new Password($password,$passwordId));
+    $user->getService($service)->addPassword(new Password($password,$passwordId));
+    $this->getContainer()->get('cloud.ldap')->updateUser($user);
     
 	}
 }
