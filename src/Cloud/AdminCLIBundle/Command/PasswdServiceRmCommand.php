@@ -25,35 +25,5 @@ class PasswdServiceRmCommand extends ContainerAwareCommand
   protected function execute(InputInterface $input, OutputInterface $output)
   {
     throw new \BadFunctionCallException();
-    //read username into $username
-    /*
-    try {
-      $user=$this->get('cloud.ldap')->getUserByUsername($username);
-    }catch (UserNotFound $e) {
-      //print error
-      return 1;
-    }
-    
-    //print/read service into $servicename
-    while(!isset($service)) {
-      foreach($user->getServices() as $service) {
-        //print
-      }
-      //read name into $servicename
-      
-      $service=$user->getService($servicename);
-    }
-    
-    
-    //print passwords list and save id into $password_id
-    while(!isset($password_id)) {
-      foreach($service->getPasswords() as $password) {
-        //print password
-      }
-    }
-    
-    //remove password
-     
-     */
 	}
 }

@@ -12,7 +12,7 @@ use Cloud\LdapBundle\Exception\ConnectionErrorException;
 use Cloud\LdapBundle\Exception\LdapQueryException;
 use Cloud\LdapBundle\Entity\Service;
 
-
+//@TODO ldap_free_result refactor
 class LdapService
 {
   
@@ -77,7 +77,7 @@ class LdapService
   /**
    * @TODO check each returnvalue and return a better exception on failuer
    */
-  public function init(){
+  public function init() {
   	$dc=current(explode('.',$this->domain));
 
   	$data=array();
@@ -115,7 +115,6 @@ class LdapService
   		);
   		ldap_add($this->ldap_resource,'ou=users,'.'dc='.$service.','.$this->base_dn,$data);
   	}
-
   }
 
   /**
@@ -278,6 +277,7 @@ class LdapService
   public function showServiceInconsistence(){
     //...
     //ldap_compare parsed with saved
+    throw new \BadFunctionCallException('not implemented yet');
   }
   
   /**
