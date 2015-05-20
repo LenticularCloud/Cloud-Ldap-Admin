@@ -298,8 +298,41 @@ class LdapService
      */
     public function updateServices()
     {
-        // @TODO ..
-        throw new \BadFunctionCallException('not implemented yet');
+        foreach ($this->services as $service) {
+            if(!$this->isEntityExist('dc=' . $service . ',' . $this->base_dn)) {
+                $data = array();
+                $data['dc'] = $service;
+                $data['ou'] = $service;
+                $data['objectClass'] = array(
+                    'organizationalUnit',
+                    'dcObject'
+                );
+                ldap_add($this->ldap_resource, 'dc=' . $service . ',' . $this->base_dn, $data);
+            }
+
+            if(!$this->isEntityExist('ou=users,' . 'dc=' . $service . ',' . $this->base_dn)) {
+                $data = array();
+                $data['ou'] = 'users';
+                $data['objectClass'] = array(
+                    'top',
+                    'organizationalUnit'
+                );
+                ldap_add($this->ldap_resource, 'ou=users,' . 'dc=' . $service . ',' . $this->base_dn, $data);
+            }
+        }
+    }
+    
+    private function isEntityExist($dn){
+        $ri = @ldap_search($this->ldap_resource, $dn, '(objectClass=*)', array());
+        if ($ri === false) {
+            return false; // not found or other error
+        }
+        $result = ldap_first_entry($this->ldap_resource, $ri);
+        if ($result === false) {
+            return false; // nor found
+        }
+        
+        return true;
     }
 
     /**

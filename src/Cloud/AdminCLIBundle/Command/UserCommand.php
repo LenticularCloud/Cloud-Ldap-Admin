@@ -9,6 +9,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 use Cloud\LdapBundle\Entity\User;
 use Cloud\LdapBundle\Entity\Password;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 class UserCommand extends ContainerAwareCommand
 {
@@ -37,13 +38,13 @@ class UserCommand extends ContainerAwareCommand
             return 255;
         }
         
-        //check parameters
-        if($input->getOption('add') && $input->getOption('delete')) {
+        // check parameters
+        if ($input->getOption('add') && $input->getOption('delete')) {
             $output->writeln("<error>can't add and delete</error>");
             return 1;
         }
         
-        //if no option is set show user list
+        // if no option is set show user list
         if (! $input->getOption('add') && ! $input->getOption('delete')) {
             if ($input->getOption('json')) {
                 $output->writeln(json_encode($this->getContainer()
@@ -59,53 +60,67 @@ class UserCommand extends ContainerAwareCommand
             return 0;
         }
         
-
         // read username
-        $username=null;
+        $username = null;
         if ($input->getArgument('username') !== null) {
             $username = $input->getArgument('username');
         } else {
             $question = new Question('Please enter the name of the User:');
-            if($input->getOption('delete')) {
-            $question->setAutocompleterValues($this->getContainer()
-                ->get('cloud.ldap')
-                ->getAllUsernames());
+            if ($input->getOption('delete')) {
+                $question->setAutocompleterValues($this->getContainer()
+                    ->get('cloud.ldap')
+                    ->getAllUsernames());
             }
             $username = $helper->ask($input, $output, $question);
         }
         
         if ($input->getOption('delete')) {
-            $user=$this->getContainer()->get('cloud.ldap')->getUserByUsername($username);
+            if (! $input->getOption('force')) {
+                $question = new ConfirmationQuestion('You realy whant to delete this user? [y/N]:', false);
+                if (! $helper->ask($input, $output, $question)) {
+                    $output->writeln('<error>canceled by user, if you use a script use \'-f\' to force delete</error>');
+                    return 1;
+                }
+            }
             
-            if($user==null) {
+            $user = $this->getContainer()
+                ->get('cloud.ldap')
+                ->getUserByUsername($username);
+            
+            if ($user == null) {
                 $output->writeln("<error>can't find user</error>");
             }
             
-            $this->getContainer()->get('cloud.ldap')->deleteUser($user);
+            $this->getContainer()
+                ->get('cloud.ldap')
+                ->deleteUser($user);
             return 0;
         }
         
         if ($input->getOption('add')) {
-            $user=$this->getContainer()->get('cloud.ldap')->getUserByUsername($username);
+            $user = $this->getContainer()
+                ->get('cloud.ldap')
+                ->getUserByUsername($username);
             
-            if($user!=null) {
+            if ($user != null) {
                 $output->writeln("<error>username allready taken</error>");
             }
             
-
-            //read password
-            $password=null;
-            if($input->getArgument('password')) {
-                $password=$input->getArgument('password');
+            // read password
+            $password = null;
+            if ($input->getArgument('password')) {
+                $password = $input->getArgument('password');
             } else {
                 $question = new Question('Please enter password:');
                 $question->setHidden(true);
-                $password=$helper->ask($input, $output, $question);
+                $password = $helper->ask($input, $output, $question);
             }
-            $user=new User($username);
-            $user->addPassword(new Password('master',$password));
+            $user = new User($username);
+            $user->addPassword(new Password('master', $password));
             
-            $this->getContainer()->get('cloud.ldap')->createUser($user);
+            $this->getContainer()
+                ->get('cloud.ldap')
+                ->createUser($user);
             return 0;
         }
         
