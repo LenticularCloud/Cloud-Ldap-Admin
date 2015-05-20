@@ -9,6 +9,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 use Cloud\LdapBundle\Entity\User;
 use Cloud\LdapBundle\Entity\Password;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 class UpdateCommand extends ContainerAwareCommand
 {
@@ -23,6 +24,8 @@ class UpdateCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $helper = $this->getHelper('question');
+        
         if (! $input->getOption('force')) {
             $question = new ConfirmationQuestion('You realy whant to delete this user? [y/N]:', false);
             if (! $helper->ask($input, $output, $question)) {
@@ -31,6 +34,10 @@ class UpdateCommand extends ContainerAwareCommand
             }
         }
         
-        $this->getContainer()->get('cloud.ldap')->updateServices();
+        $this->getContainer()
+            ->get('cloud.ldap')
+            ->updateServices();
+        
+        return 0;
     }
 }

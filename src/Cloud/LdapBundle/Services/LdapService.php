@@ -187,8 +187,9 @@ class LdapService
         if ($result === false) {
             throw new LdapQueryException('can not modify user');
         }
-        foreach ($this->services as $service) {
-            $result = @ldap_mod_replace($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service . ',' . $this->base_dn, $this->userToLdapArray($user, $service));
+        foreach ($user->getServices() as $service) {
+            if (in_array($service->getName(), $this->service))
+                $result = @ldap_mod_replace($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service . ',' . $this->base_dn, $this->userToLdapArray($user, $service));
             if ($result === false) {
                 throw new LdapQueryException('can not modify user\'s service ' . $service);
             }
@@ -299,7 +300,7 @@ class LdapService
     public function updateServices()
     {
         foreach ($this->services as $service) {
-            if(!$this->isEntityExist('dc=' . $service . ',' . $this->base_dn)) {
+            if (! $this->isEntityExist('dc=' . $service . ',' . $this->base_dn)) {
                 $data = array();
                 $data['dc'] = $service;
                 $data['ou'] = $service;
@@ -309,8 +310,8 @@ class LdapService
                 );
                 ldap_add($this->ldap_resource, 'dc=' . $service . ',' . $this->base_dn, $data);
             }
-
-            if(!$this->isEntityExist('ou=users,' . 'dc=' . $service . ',' . $this->base_dn)) {
+            
+            if (! $this->isEntityExist('ou=users,' . 'dc=' . $service . ',' . $this->base_dn)) {
                 $data = array();
                 $data['ou'] = 'users';
                 $data['objectClass'] = array(
@@ -321,8 +322,14 @@ class LdapService
             }
         }
     }
-    
-    private function isEntityExist($dn){
+
+    /**
+     * check if object is exist
+     *
+     * @param string $dn            
+     */
+    private function isEntityExist($dn)
+    {
         $ri = @ldap_search($this->ldap_resource, $dn, '(objectClass=*)', array());
         if ($ri === false) {
             return false; // not found or other error
@@ -333,6 +340,52 @@ class LdapService
         }
         
         return true;
+    }
+
+    /**
+     * enables an service for an user
+     *
+     * @param User $user            user that is affected
+     * @param string $service            service to disable
+     * @throws \InvalidArgumentException
+     * @throws LdapQueryException
+     */
+    public function enableService(User $user, $service)
+    {
+        if (! in_array($service, $this->services)) {
+            throw new \InvalidArgumentException('service not exist');
+        }
+        if ($user->getService($service) != null) {
+            throw new \InvalidArgumentException('service not disabled');
+        }
+        
+        $result = @ldap_add($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service . ',' . $this->base_dn, $this->userToLdapArray($user, $service));
+        if ($result === false) {
+            throw new LdapQueryException('can not enable service ' . $service);
+        }
+    }
+
+    /**
+     * disables an service for an user
+     *
+     * @param User $user            user that is affected
+     * @param string $service            service to disable
+     * @throws \InvalidArgumentException
+     * @throws LdapQueryException
+     */
+    public function disableService(User $user, $service)
+    {
+        if (! in_array($service, $this->services)) {
+            throw new \InvalidArgumentException('service not exist');
+        }
+        if ($user->getService($service) == null) {
+            throw new \InvalidArgumentException('service not enabled');
+        }
+        
+        $result = @ldap_delete($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service . ',' . $this->base_dn);
+        if ($result === false) {
+            throw new LdapQueryException('can not disable service  ' . $service);
+        }
     }
 
     /**

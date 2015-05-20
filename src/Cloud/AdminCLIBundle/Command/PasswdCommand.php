@@ -65,6 +65,12 @@ class PasswdCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $helper = $this->getHelper('question');
+        try {
+            $this->getContainer()->get('cloud.ldap');
+        } catch (\Exception $e) {
+            $output->writeln("<error>Can't connect to database</error>");
+            return 255;
+        }
         
         // check options
         $action = null;
