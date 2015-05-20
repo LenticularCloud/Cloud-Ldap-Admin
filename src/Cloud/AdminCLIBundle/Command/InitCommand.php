@@ -19,7 +19,7 @@ class InitCommand extends ContainerAwareCommand
   protected function configure()
   {
     $this
-        ->setName('init')
+        ->setName('cloud:init')
         ->setDescription('init the ldap database')
         ->setHelp("")
     ;
