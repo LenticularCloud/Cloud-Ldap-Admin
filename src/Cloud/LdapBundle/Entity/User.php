@@ -13,6 +13,8 @@ class User
      *
      * @Assert\NotBlank()
      * @Assert\Length(min=2,minMessage="Username must be at least {{ limit }} characters long")
+     * @Assert\Regex("/^[a-zA-Z0-9_-]+$/")
+     * @TODO think about '.' in the allowd chars
      *
      * @var String $username
      */

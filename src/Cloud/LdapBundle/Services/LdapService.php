@@ -12,7 +12,7 @@ use Cloud\LdapBundle\Exception\InvalidUserException;
 use Cloud\LdapBundle\Entity\Service;
 
 // @TODO ldap_free_result refactor
-class LdapService 
+class LdapService
 {
 
     /**
@@ -44,12 +44,13 @@ class LdapService
      * @var array
      */
     private $services;
-    
+
     /**
+     *
      * @var \Cloud\LdapBundle\Security\PasswordEncoderInterface
      */
     private $encoder;
-    
+
     /**
      *
      * @param ContainerInterface $container            
@@ -81,7 +82,7 @@ class LdapService
             throw new ConnectionErrorException('can\'t bind to ldap: ' . ldap_error($this->ldap_resource));
         }
         
-        $this->encoder=new \Cloud\LdapBundle\Security\CryptEncoder();
+        $this->encoder = new \Cloud\LdapBundle\Security\CryptEncoder();
     }
 
     /**
@@ -130,7 +131,7 @@ class LdapService
 
     /**
      * get an array of all users
-     * 
+     *
      * @return Array<User>
      * @throws LdapQueryException
      */
@@ -146,7 +147,7 @@ class LdapService
 
     /**
      * get an array of all users
-     * 
+     *
      * @return Array<User>
      * @throws LdapQueryException
      */
@@ -177,9 +178,9 @@ class LdapService
      */
     public function updateUser(User $user)
     {
-        $errors=$this->container->get('validator')->validate($user);
-        if(count($errors)>0) {
-            throw new InvalidUserException((string)$errors);
+        $errors = $this->container->get('validator')->validate($user);
+        if (count($errors) > 0) {
+            throw new InvalidUserException((string) $errors);
         }
         
         $result = @ldap_mod_replace($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,' . $this->base_dn, $this->userToLdapArray($user));
@@ -199,9 +200,9 @@ class LdapService
      */
     public function createUser(User $user)
     {
-        $errors=$this->container->get('validator')->validate($user);
-        if(count($errors)>0) {
-            throw new InvalidUserException((string)$errors);
+        $errors = $this->container->get('validator')->validate($user);
+        if (count($errors) > 0) {
+            throw new InvalidUserException((string) $errors);
         }
         
         $result = @ldap_add($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,' . $this->base_dn, $this->userToLdapArray($user));
@@ -218,44 +219,54 @@ class LdapService
 
     /**
      * delete an user
-     * 
+     *
      * @param User $user            
      */
     public function deleteUser(User $user)
     {
-        foreach($user->getServices() as $service) {
-            ldap_delete($this->ldap_resource,'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->base_dn);
+        $errors = $this->container->get('validator')->validate($user);
+        if (count($errors) > 0) {
+            throw new InvalidUserException((string) $errors);
         }
         
-        ldap_delete($this->ldap_resource,'uid=' . $user->getUsername() . ',ou=users,' . $this->base_dn);
+        foreach ($user->getServices() as $service) {
+            ldap_delete($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->base_dn);
+        }
         
+        ldap_delete($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,' . $this->base_dn);
     }
 
     /**
      * search for user and return it
-     * username has to be validated first
-     * 
-     * @throws UserNotFoundException
+     * if user is not found,return null
+     *
      * @return User
      */
     public function getUserByUsername($username)
     {
-        $ri = ldap_search($this->ldap_resource, 'uid=' . $username . ',ou=users,' . $this->base_dn, '(objectClass=inetOrgPerson)', array(
+        $user = new User($username);
+        
+        // check username to protect against inject attack
+        $error = $this->container->get('validator')->validateProperty($user, 'username');
+        if (count($error) > 0) {
+            return null; // invalid username
+        }
+        
+        $ri = @ldap_search($this->ldap_resource, 'uid=' . $username . ',ou=users,' . $this->base_dn, '(objectClass=inetOrgPerson)', array(
             'uid',
             'userPassword'
         ));
         if ($ri === false) {
-            throw new LdapQueryException();
+            return null; // not found or other error
         }
         $result = ldap_first_entry($this->ldap_resource, $ri);
         if ($result === false) {
-            throw new UserNotFoundException();
+            return null; // nor found
         }
         $entity = ldap_get_attributes($this->ldap_resource, $result);
         
-        $user = new User($username);
-        foreach ($entity['userPassword'] as $password) {
-            $user->addPassword($this->encoder->parsePassword($password));
+        for ($i = 0; $i < $entity['userPassword']['count']; $i ++) {
+            $user->addPassword($this->encoder->parsePassword($entity['userPassword'][$i]));
         }
         
         ldap_free_result($ri);
@@ -268,7 +279,7 @@ class LdapService
                     $service = new Service($service_name);
                     for ($i = 0; $i < $entity['userPassword']['count']; $i ++) {
                         $password = $this->encoder->parsePassword($entity['userPassword'][$i]);
-                        if ($password->getId() != 'main') {
+                        if (! isset($user->getPasswords()[$password->getId()])) {
                             $service->addPassword($password);
                         }
                     }
@@ -303,7 +314,7 @@ class LdapService
 
     /**
      * function to convert a user object into an array for ldap push
-     * 
+     *
      * @param User $user            
      * @param String $service
      *            Service name to get data
@@ -330,7 +341,7 @@ class LdapService
         $data['gidNumber'] = 1337;
         $data["userPassword"] = array();
         foreach ($user->getPasswords() as $password) {
-
+            
             if ($password->getHash() == null)
                 $this->encoder->encodePassword($password);
             $data["userPassword"][] = $password->getHash();
@@ -347,7 +358,6 @@ class LdapService
         
         return $data;
     }
-
 
     /**
      *

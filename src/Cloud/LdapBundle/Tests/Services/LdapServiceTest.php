@@ -51,4 +51,11 @@ class LdapServiceTest extends WebTestCase
         $this->ldapService->deleteUser($user2);
         $this->assertNotContains("testUser",$this->ldapService->getAllUsernames());
     }
+    
+    
+    public function testNotExistUser(){
+        $this->assertNull($this->ldapService->getUserByUsername("notExistUsername"));
+
+        $this->assertNull($this->ldapService->getUserByUsername("invalidUsername,dn=ö"));
+    }
 }

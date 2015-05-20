@@ -11,6 +11,7 @@ class Service
      * name of the service
      *
      * @Assert\NotBlank()
+     * @Assert\Regex("/^[a-zA-Z0-9_-]+$/")
      * 
      * @var String $name
      */
