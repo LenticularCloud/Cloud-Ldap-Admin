@@ -188,10 +188,10 @@ class LdapService
             throw new LdapQueryException('can not modify user');
         }
         foreach ($user->getServices() as $service) {
-            if (in_array($service->getName(), $this->service))
-                $result = @ldap_mod_replace($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service . ',' . $this->base_dn, $this->userToLdapArray($user, $service));
+            if (in_array($service->getName(), $this->services))
+                $result = @ldap_mod_replace($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->base_dn, $this->userToLdapArray($user, $service->getName()));
             if ($result === false) {
-                throw new LdapQueryException('can not modify user\'s service ' . $service);
+                throw new LdapQueryException('can not modify user\'s service ' . $service->getName());
             }
         }
     }
