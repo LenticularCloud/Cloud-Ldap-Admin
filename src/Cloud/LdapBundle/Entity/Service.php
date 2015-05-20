@@ -1,65 +1,91 @@
 <?php
 namespace Cloud\LdapBundle\Entity;
 
+use Symfony\Component\Validator\Constraints as Assert;
 use \Cloud\LdapBundle\Entity\Password;
 
+class Service
+{
 
-class Service {
-  
-  /**
-   * name of the service
-   */
-  private $name;
-  
-  /**
-   * passwords for this service
-   *  @var Array<Password> $passwords
-   */
-  private $passwords=array();
-  
-  
-	/**
-	 * @return unknown
-	 */
-	public function getName() {
-		return $this->name;
-	}
-	
-	/**
-	 * @param unknown $name
-	 * @return \Cloud\LdapBundle\Entity\Service
-	 */
-	public function setName($name) {
-		$this->name = $name;
-		return $this;
-	}
-	
-	/**
-	 * return Array<Passwords>
-	 */
-	public function getPasswords() {
-		return $this->passwords;
-	}
-	
+    /**
+     * name of the service
+     *
+     * @Assert\NotBlank()
+     * 
+     * @var String $name
+     */
+    private $name;
 
-	/**
-	 * @param Password $password
-	 * @return \Cloud\LdapBundle\Entity\Service
-	 */
-	public function addPassword( Password $password) {
-		$this->passwords[$password->getId()] = $password;
-		return $this;
-	}
-	
-	/**
-	 * 
-	 * @param Password $password
-	 */
-	public function removePassword( Password $password ) {
-		if(!isset($this->passwords[$password->getId()])) {
-			throw \InvalidArgumentException("password not in the list");
-		}
-		unset($this->passwords[$password->getId()]);
-		return $this;
-	}
+    /**
+     * passwords for this service
+     *
+     * @Assert\Valid(deep=true)
+     *
+     * @var Array<Password> $passwords
+     */
+    private $passwords = array();
+
+    /**
+     * 
+     * @param string $name
+     */
+    public function __construct($name){
+        $this->name=$name;
+    }
+    
+    /**
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    /**
+     *
+     * @return Array<Password>
+     */
+    public function getPasswords()
+    {
+        return $this->passwords;
+    }
+    
+    /**
+     *
+     * @return Password
+     */
+    public function getPassword($passwordId)
+    {
+        if (!isset($this->passwords[$passwordId]))
+            return null;
+        
+        return $this->passwords[$passwordId];
+    }
+
+    /**
+     *
+     * @param Password $password            
+     * @return \Cloud\LdapBundle\Entity\Service
+     */
+    public function addPassword(Password $password)
+    {
+        if (isset($this->passwords[$password->getId()]))
+            throw new \InvalidArgumentException("passwordId is in use");
+        $this->passwords[$password->getId()] = $password;
+        return $this;
+    }
+
+    /**
+     *
+     * @param Password $password            
+     */
+    public function removePassword(Password $password)
+    {
+        if (! isset($this->passwords[$password->getId()])) {
+            throw \InvalidArgumentException("password not in the list");
+        }
+        unset($this->passwords[$password->getId()]);
+        return $this;
+    }
 }

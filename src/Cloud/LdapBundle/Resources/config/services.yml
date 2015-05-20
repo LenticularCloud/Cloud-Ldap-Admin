@@ -4,3 +4,5 @@ services:
     cloud.ldap:
         class: Cloud\LdapBundle\Services\LdapService
         arguments: ['@service_container']
+    cloud.encoder.crypt:
+        class: Cloud\LdapBundle\Security\CryptEncoder
