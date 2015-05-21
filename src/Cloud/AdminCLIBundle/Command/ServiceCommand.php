@@ -76,6 +76,9 @@ class ServiceCommand extends ContainerAwareCommand
                 ->get('cloud.ldap')
                 ->getUserByUsername($username);
         } catch (UserNotFoundException $e) {
+            $this->user=null;
+        }
+        if($this->user==null) {
             $output->writeln('User not found');
             return 1;
         }
