@@ -296,9 +296,33 @@ class LdapService
 
     /**
      * updates the users in the different services
+     * @param boolean $dirtRun boolean to make a dirt run to show changes
+     * @return 
      */
-    public function updateServices()
+    public function updateServices($dirtRun=false)
     {
+        if($this->isEntityExist($this->base_dn)) {
+            $dc = current(explode('.', $this->domain));
+            
+            $data = array();
+            $data['dc'] = $dc;
+            $data['ou'] = $dc;
+            $data['objectClass'] = array(
+                'organizationalUnit',
+                'dcObject'
+            );
+            ldap_add($this->ldap_resource, $this->base_dn, $data);
+        }
+        if($this->isEntityExist('ou=users,' .$this->base_dn)){
+            $data = array();
+            $data['ou'] = 'users';
+            $data['objectClass'] = array(
+                'top',
+                'organizationalUnit'
+            );
+            ldap_add($this->ldap_resource, 'ou=users,' . $this->base_dn, $data);
+        }
+        
         foreach ($this->services as $service) {
             if (! $this->isEntityExist('dc=' . $service . ',' . $this->base_dn)) {
                 $data = array();
