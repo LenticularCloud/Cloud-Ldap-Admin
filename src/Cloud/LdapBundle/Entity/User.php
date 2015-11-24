@@ -5,8 +5,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 use \Cloud\LdapBundle\Entity\Password;
 use \Cloud\LdapBundle\Entity\Service;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use Symfony\Component\Security\Core\User\User as BaseUser;
 
-class User
+class User extends BaseUser
 {
 
     /**
@@ -46,8 +47,8 @@ class User
      */
     private $enable;
 
-    public function __construct($username) {
-        $this->username=$username;
+    public function __construct($username, $password, array $roles = array(), $enabled = true, $userNonExpired = true, $credentialsNonExpired = true, $userNonLocked = true) {
+        parent::__construct($username, $password, $roles, $enabled , $userNonExpired, $credentialsNonExpired , $userNonLocked );
     }
 
     /**
@@ -101,7 +102,7 @@ class User
      *
      * @return Password
      */
-    public function getPassword($passwordId)
+    public function getPassword($passwordId=null)
     {
         if (!isset($this->passwords[$passwordId]))
             return null;

@@ -1,10 +1,10 @@
 <?php
 namespace Cloud\LdapBundle\Security;
 
-
+use Symfony\Component\Security\Core\Encoder\PasswordEncoderInterface;
 use Cloud\LdapBundle\Entity\Password;
 
-interface PasswordEncoderInterface {
+interface LdapPasswordEncoderInterface extends PasswordEncoderInterface {
 
     /**
      * function das sets the hash value in the password object

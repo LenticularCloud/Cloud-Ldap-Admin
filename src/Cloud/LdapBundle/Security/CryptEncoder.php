@@ -2,6 +2,7 @@
 namespace Cloud\LdapBundle\Security;
 
 use Cloud\LdapBundle\Entity\Password;
+use Symfony\Component\Security\Core\Encoder\PasswordEncoderInterface;
 
 /**
  *
@@ -15,7 +16,7 @@ class CryptEncoder implements PasswordEncoderInterface
      * (non-PHPdoc)
      * 
      * @see \Symfony\Component\Security\Core\Encoder\PasswordEncoderInterface::encodePassword()
-     */
+     * /
     public function encodePassword(Password $password)
     {
         $rounds = 60000; // incresed rounds for harder bruteforce
@@ -31,7 +32,25 @@ class CryptEncoder implements PasswordEncoderInterface
         $hash = crypt($password->getPasswordPlain(), '$6$rounds=' . $rounds . '$' . $salt . '$');
         $password->setHash('{crypt}' . $hash);
         $password->setPasswordPlain(null);
-    }
+    }*/
+    
+    
+    public function encodePassword($raw,$salt) {
+        $rounds = 60000; // incresed rounds for harder bruteforce
+        
+        $hash = crypt($raw, '$6$rounds=' . $rounds . '$' . $salt . '$');
+        return $hash;
+    
+     }
+     
+     public function isPasswordValid($encoded,$raw,$salt) {
+
+         $rounds = 60000; // incresed rounds for harder bruteforce
+         
+         $hash = crypt($raw, '$6$rounds=' . $rounds . '$' . $salt . '$');
+         return $hash==encoded;
+     }
+
 
     /**
      * generate randome string
@@ -54,7 +73,7 @@ class CryptEncoder implements PasswordEncoderInterface
     /**
      * (non-PHPdoc)
      * @see \Symfony\Component\Security\Core\Encoder\PasswordEncoderInterface::isPasswordValid()
-     */
+     * /
     public function isPasswordValid(Password $password)
     {
         if(substr($password->getHash(),0,7)!='{crypt}')
@@ -65,7 +84,7 @@ class CryptEncoder implements PasswordEncoderInterface
         }
         
         return false;
-    }
+    }*/
     
 
     /**

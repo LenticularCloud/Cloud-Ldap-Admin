@@ -3,7 +3,9 @@ imports:
 
 #framework:
 #    validation:
-#        cache: apc
+#        cache: validator.mapping.cache.apc
+#    serializer:
+#        cache: serializer.mapping.cache.apc
 
 #doctrine:
 #    orm:
@@ -23,3 +25,6 @@ monolog:
             level: debug
         console:
             type:  console
+
+parameters:
+    auth_required_channel: 'https'

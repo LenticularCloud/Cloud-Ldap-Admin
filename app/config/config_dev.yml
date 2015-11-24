@@ -23,7 +23,7 @@ monolog:
             verbosity_levels:
                 VERBOSITY_VERBOSE: INFO
                 VERBOSITY_VERY_VERBOSE: DEBUG
-            channels: ["!doctrine"]
+#            channels: ["!doctrine"]
         console_very_verbose:
             type:   console
             bubble: false
@@ -41,8 +41,8 @@ monolog:
         #    type:   chromephp
         #    level:  info
 
-assetic:
-    use_controller: true
-
 #swiftmailer:
 #    delivery_address: me@example.com
+
+parameters:
+    auth_required_channel: 'http'

@@ -1,8 +1,30 @@
 
 
 services:
-    cloud.ldap:
-        class: Cloud\LdapBundle\Services\LdapService
-        arguments: ['@service_container']
+    cloud.ldap.userprovider:
+        class: Cloud\LdapBundle\Security\LdapUserProvider
+        arguments:
+            - "@cloud.ldap.client"
+            - "ou=Users,%ldap_base_dn%"
+            - "%ldap_bind_rdn%"
+            - "%ldap_bind_pw%"
+            - ["ROLE_USER"]
+            #- "uid"
+            - "cn"
+    user.check:
+        class: Symfony\Component\Security\Core\User\UserChecker
+    cloud.ldap.authenticationprovider:
+        class: Cloud\LdapBundle\Security\LdapBindAuthenticationProvider
+        arguments:
+            - "@cloud.ldap.userprovider"
+            - "@user.check"
+            - "default"
+            - "@cloud.ldap.client"
+            #- "uid={username},ou=Users,%ldap_base_dn%"
+            - "cn={username},%ldap_base_dn%"
+            - true
+    cloud.ldap.client:
+        class: Cloud\LdapBundle\Services\LdapClient
+        arguments: [ "%ldap_host%" ]
     cloud.encoder.crypt:
         class: Cloud\LdapBundle\Security\CryptEncoder
