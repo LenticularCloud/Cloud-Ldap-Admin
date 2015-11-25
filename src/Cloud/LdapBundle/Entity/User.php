@@ -6,8 +6,9 @@ use \Cloud\LdapBundle\Entity\Password;
 use \Cloud\LdapBundle\Entity\Service;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Security\Core\User\User as BaseUser;
+use Symfony\Component\Security\Core\User\UserInterface;
 
-class User extends BaseUser
+class User implements UserInterface
 {
 
     /**
@@ -30,6 +31,11 @@ class User extends BaseUser
      * @var Array<Password> $passwords
      */
     private $passwords = array();
+    
+    /**
+     * 
+     */
+    private $roles=array();
 
     /**
      * assoziativ array with service info
@@ -47,9 +53,33 @@ class User extends BaseUser
      */
     private $enable;
 
-    public function __construct($username, $password, array $roles = array(), $enabled = true, $userNonExpired = true, $credentialsNonExpired = true, $userNonLocked = true) {
-        parent::__construct($username, $password, $roles, $enabled , $userNonExpired, $credentialsNonExpired , $userNonLocked );
+    public function __construct($username, array $roles = array(), $enabled = true, $userNonExpired = true, $credentialsNonExpired = true, $userNonLocked = true) {
+        $this->username=$username;
+        $this->roles=$roles;
+        $this->enable=$enabled;
+        //parent::__construct($username, "", $roles, $enabled , $userNonExpired, $credentialsNonExpired , $userNonLocked );
     }
+    
+    public function getRoles()
+    {
+        return $this->roles;
+    }
+    
+    public function addRoles($role)
+    {
+        $this->roles[]=$role;
+    }
+    
+    public function getSalt()
+    {
+        return "";
+    }
+    
+    public function eraseCredentials()
+    {
+        
+    }
+    
 
     /**
      * check for same id in user object and services

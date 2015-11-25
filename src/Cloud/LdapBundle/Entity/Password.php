@@ -30,12 +30,15 @@ class Password
      *
      * @var String $password_plain
      */
-    private $password_plain = null;
+    private $password_plain;
+    
+    private $isMasterPassword;
 
-    public function __construct($id = null, $password_plain = null)
+    public function __construct($id = null, $password_plain = null,$isMasterPassword=false)
     {
         $this->password_plain = $password_plain;
         $this->id = $id;
+        $this->isMasterPassword=$isMasterPassword;
     }
 
     /**
@@ -110,4 +113,16 @@ class Password
         $this->password_plain = $password_plain;
         return $this;
     }
+
+    public function isMasterPassword()
+    {
+        return $this->isMasterPassword;
+    }
+
+    public function setMasterPassword($isMasterPassword)
+    {
+        $this->isMasterPassword = $isMasterPassword;
+        return $this;
+    }
+ 
 } 

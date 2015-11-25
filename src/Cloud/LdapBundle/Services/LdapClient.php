@@ -86,7 +86,10 @@ class LdapClient implements LdapClientInterface
                 $filter
             );
         }
-        $search = ldap_search($this->connection, $dn, $query, $filter);
+        $search = @ldap_search($this->connection, $dn, $query, $filter);
+        if($search===false) {
+            return;
+        }
         $infos = ldap_get_entries($this->connection, $search);
         if (0 === $infos['count']) {
             return;
@@ -214,6 +217,15 @@ class LdapClient implements LdapClientInterface
      */
     private $services;
     
+    public function replace($dn,array $entity)
+    {
+        dump($dn,$entity);
+        $result = @ldap_mod_replace($this->ldap_resource, $dn, $entity);
+        if ($result === false) {
+            throw new LdapException('can not modify user');
+        }
+    }
+    
     //------------------------old part -----------------------------//
 
     /**
@@ -334,31 +346,6 @@ class LdapClient implements LdapClientInterface
         }
         
         return $users;
-    }
-
-    /**
-     *
-     * @throws UserNotFoundException
-     * @throws InvalidUserException
-     */
-    public function updateUser(User $user)
-    {
-        $errors = $this->container->get('validator')->validate($user);
-        if (count($errors) > 0) {
-            throw new InvalidUserException((string) $errors);
-        }
-        
-        $result = @ldap_mod_replace($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,' . $this->base_dn, $this->userToLdapArray($user));
-        if ($result === false) {
-            throw new LdapQueryException('can not modify user');
-        }
-        foreach ($user->getServices() as $service) {
-            if (in_array($service->getName(), $this->services))
-                $result = @ldap_mod_replace($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->base_dn, $this->userToLdapArray($user, $service->getName()));
-            if ($result === false) {
-                throw new LdapQueryException('can not modify user\'s service ' . $service->getName());
-            }
-        }
     }
 
     /**
@@ -592,53 +579,6 @@ class LdapClient implements LdapClientInterface
         // ...
         // ldap_compare parsed with saved
         throw new \BadFunctionCallException('not implemented yet');
-    }
-
-    /**
-     * function to convert a user object into an array for ldap push
-     *
-     * @param User $user            
-     * @param String $service
-     *            Service name to get data
-     */
-    private function userToLdapArray(User $user, $service = null)
-    {
-        // @TODO passwordID
-        $data = array();
-        $data["cn"] = $user->getUsername();
-        $data["uid"] = $user->getUsername();
-        $data["objectClass"] = array();
-        $data["objectClass"][] = "top";
-        $data["objectClass"][] = "inetOrgPerson";
-        $data["objectClass"][] = "posixAccount";
-        $data["objectClass"][] = "shadowAccount";
-        
-        $data["uid"] = $user->getUsername();
-        $data["homeDirectory"] = "/var/vhome/" . $user->getUsername();
-        $data["givenName"] = $user->getUsername();
-        $data["sn"] = $user->getUsername();
-        $data["displayName"] = $user->getUsername();
-        $data["mail"] = $user->getUsername() . "@" . $this->domain;
-        $data['uidNumber'] = 1337; // @TODO: probably take a autoincrement id
-        $data['gidNumber'] = 1337;
-        $data["userPassword"] = array();
-        foreach ($user->getPasswords() as $password) {
-            
-            if ($password->getHash() == null)
-                $this->encoder->encodePassword($password);
-            $data["userPassword"][] = $password->getHash();
-        }
-        
-        if ($service !== null && $user->getService($service) != null) {
-            foreach ($user->getService($service)->getPasswords() as $password) {
-                if ($password->getHash() == null)
-                    $this->encoder->encodePassword($password);
-                $data["userPassword"][] = $password->getHash();
-            }
-        }
-        $data["loginShell"] = "/bin/false";
-        
-        return $data;
     }
 
     /**

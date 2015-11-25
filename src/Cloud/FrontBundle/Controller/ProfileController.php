@@ -19,6 +19,7 @@ class ProfileController extends Controller
      */
     public function indexAction()
     {
+        dump($this->get('security.token_storage')->getToken()->getUser());
         return array();
     }
 }

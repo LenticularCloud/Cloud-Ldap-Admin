@@ -1,5 +1,7 @@
 {% extends "CloudFrontBundle::base.html.twig" %}
 
 {% block content %}
-adsfs
+{% for service in app.user.getServices %}
+    {{ service.getName }}
+{% endfor %}
 {% endblock %}

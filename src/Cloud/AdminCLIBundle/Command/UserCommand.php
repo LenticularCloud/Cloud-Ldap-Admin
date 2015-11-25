@@ -10,6 +10,7 @@ use Symfony\Component\Console\Question\Question;
 use Cloud\LdapBundle\Entity\User;
 use Cloud\LdapBundle\Entity\Password;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 
 class UserCommand extends ContainerAwareCommand
 {
@@ -32,7 +33,7 @@ class UserCommand extends ContainerAwareCommand
         $helper = $this->getHelper('question');
         
         try {
-            $this->getContainer()->get('cloud.ldap');
+            $this->getContainer()->get('cloud.ldap.client');
         } catch (\Exception $e) {
             $output->writeln("<error>Can't connect to database</error>");
             return 255;
@@ -48,11 +49,11 @@ class UserCommand extends ContainerAwareCommand
         if (! $input->getOption('add') && ! $input->getOption('delete')) {
             if ($input->getOption('json')) {
                 $output->writeln(json_encode($this->getContainer()
-                    ->get('cloud.ldap')
+                    ->get('cloud.ldap.client')
                     ->getAllUsernames()));
             } else {
                 foreach ($this->getContainer()
-                    ->get('cloud.ldap')
+                    ->get('cloud.ldap.client')
                     ->getAllUsernames() as $username) {
                     $output->writeln($username);
                 }
@@ -68,7 +69,7 @@ class UserCommand extends ContainerAwareCommand
             $question = new Question('Please enter the name of the User:');
             if ($input->getOption('delete')) {
                 $question->setAutocompleterValues($this->getContainer()
-                    ->get('cloud.ldap')
+                    ->get('cloud.ldap.client')
                     ->getAllUsernames());
             }
             $username = $helper->ask($input, $output, $question);
@@ -82,28 +83,28 @@ class UserCommand extends ContainerAwareCommand
                     return 1;
                 }
             }
-            
-            $user = $this->getContainer()
-                ->get('cloud.ldap')
-                ->getUserByUsername($username);
-            
-            if ($user == null) {
+            try {
+                $user = $this->getContainer()
+                    ->get('cloud.ldap.userprovider')
+                    ->loadUserByUsername($username);
+            }catch (UsernameNotFoundException $e) {
                 $output->writeln("<error>can't find user</error>");
             }
             
             $this->getContainer()
-                ->get('cloud.ldap')
+                ->get('cloud.ldap.util.usermanipulator')
                 ->deleteUser($user);
             return 0;
         }
         
         if ($input->getOption('add')) {
-            $user = $this->getContainer()
-                ->get('cloud.ldap')
-                ->getUserByUsername($username);
-            
-            if ($user != null) {
+            try {
+                $user = $this->getContainer()
+                    ->get('cloud.ldap.userprovider')
+                    ->loadUserByUsername($username);
                 $output->writeln("<error>username allready taken</error>");
+                return 1;
+            }catch(UsernameNotFoundException $e) {
             }
             
             // read password
@@ -119,11 +120,16 @@ class UserCommand extends ContainerAwareCommand
             $user->addPassword(new Password('master', $password));
             
             $this->getContainer()
-                ->get('cloud.ldap')
-                ->createUser($user);
+                ->get('cloud.ldap.util.usermanipulator')
+                ->create($user);
             return 0;
         }
         
         return 0;
+    }
+    
+    private function add()
+    {
+        
     }
 }

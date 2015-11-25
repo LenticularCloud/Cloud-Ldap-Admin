@@ -2,21 +2,20 @@
 namespace Cloud\LdapBundle\Security;
 
 use Cloud\LdapBundle\Entity\Password;
-use Symfony\Component\Security\Core\Encoder\PasswordEncoderInterface;
 
 /**
  *
  * @author tuxcoder
  *        
  */
-class CryptEncoder implements PasswordEncoderInterface
+class CryptEncoder implements LdapPasswordEncoderInterface
 {
 
     /**
      * (non-PHPdoc)
      * 
      * @see \Symfony\Component\Security\Core\Encoder\PasswordEncoderInterface::encodePassword()
-     * /
+     */
     public function encodePassword(Password $password)
     {
         $rounds = 60000; // incresed rounds for harder bruteforce
@@ -32,25 +31,7 @@ class CryptEncoder implements PasswordEncoderInterface
         $hash = crypt($password->getPasswordPlain(), '$6$rounds=' . $rounds . '$' . $salt . '$');
         $password->setHash('{crypt}' . $hash);
         $password->setPasswordPlain(null);
-    }*/
-    
-    
-    public function encodePassword($raw,$salt) {
-        $rounds = 60000; // incresed rounds for harder bruteforce
-        
-        $hash = crypt($raw, '$6$rounds=' . $rounds . '$' . $salt . '$');
-        return $hash;
-    
-     }
-     
-     public function isPasswordValid($encoded,$raw,$salt) {
-
-         $rounds = 60000; // incresed rounds for harder bruteforce
-         
-         $hash = crypt($raw, '$6$rounds=' . $rounds . '$' . $salt . '$');
-         return $hash==encoded;
-     }
-
+    }
 
     /**
      * generate randome string
@@ -59,6 +40,8 @@ class CryptEncoder implements PasswordEncoderInterface
      */
     private function getRandomeSalt($length = 9)
     {
+        //@TODO use openssl_random_pseudo_bytes as random
+        
         $chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         
         $string = "";
@@ -73,7 +56,7 @@ class CryptEncoder implements PasswordEncoderInterface
     /**
      * (non-PHPdoc)
      * @see \Symfony\Component\Security\Core\Encoder\PasswordEncoderInterface::isPasswordValid()
-     * /
+     */
     public function isPasswordValid(Password $password)
     {
         if(substr($password->getHash(),0,7)!='{crypt}')
@@ -84,7 +67,7 @@ class CryptEncoder implements PasswordEncoderInterface
         }
         
         return false;
-    }*/
+    }
     
 
     /**
@@ -96,9 +79,10 @@ class CryptEncoder implements PasswordEncoderInterface
         $password = new Password();
         $password->setHash($password_hash);
         $matches = null;
-        preg_match('#^{crypt}\$\d\$(rounds=\d+\$)?([0-9a-zA-Z_-]+=)?[0-9a-zA-Z_-]+\$[^\$]*$#', $password_hash, $matches);
+        preg_match('#^{crypt}\$\d\$(rounds=\d+\$)?([0-9a-zA-Z_-]+)?(=|\+)?[0-9a-zA-Z_-]+\$[^\$]*$#', $password_hash, $matches);
         if ($matches != null) {
             $password->setId(substr($matches[2], 0, - 1));
+            $password->setMasterPassword($matches[3]==='+');
         }
         return $password;
     }

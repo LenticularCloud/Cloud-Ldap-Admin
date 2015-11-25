@@ -7,8 +7,13 @@ use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Ldap\Exception\ConnectionException;
 use Symfony\Component\Ldap\LdapClientInterface;
+use Cloud\LdapBundle\Entity\User;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\UserProviderInterface;
+use Cloud\LdapBundle\Util\UserToLdapArrayTransformer;
+use Cloud\LdapBundle\Util\ServiceToLdapArrayTransformer;
 
-class LdapUserProvider extends BaseLdapUserProvider
+class LdapUserProvider implements UserProviderInterface
 {
 
     protected $ldap;
@@ -18,26 +23,27 @@ class LdapUserProvider extends BaseLdapUserProvider
     protected $defaultRoles;
     protected $uidKey;
     protected $filter;
+    protected $services;
     
     
-    public function __construct(LdapClientInterface $ldap, $baseDn, $searchDn = null, $searchPassword = null, array $defaultRoles = array(), $uidKey = 'sAMAccountName', $filter = '({uid_key}={username})')
+    public function __construct(LdapClientInterface $ldap, $baseDn, $searchDn = null, $searchPassword = null, array $defaultRoles = array(), $uidKey = 'sAMAccountName', $filter = '({uid_key}={username})',array $services)
     {
         $this->ldap = $ldap;
-        parent::__construct($ldap, $baseDn, $searchDn, $searchPassword , $defaultRoles, $uidKey , $filter);
         $this->baseDn = $baseDn;
         $this->searchDn = $searchDn;
         $this->searchPassword = $searchPassword;
         $this->defaultRoles = $defaultRoles;
         $this->uidKey = $uidKey;
         $this->filter = $filter;
+        $this->services = $services;
     }
     
     /**
      * {@inheritDoc}
      */
     public function supportsClass($class)
-    {
-        $userClass = 'Symfony\Component\Security\Core\User\User';
+    {        
+        $userClass = 'Symfony\Component\Security\Core\User\UserInterface';
     
         return $userClass === $class || is_subclass_of($class, $userClass);
     }
@@ -47,12 +53,14 @@ class LdapUserProvider extends BaseLdapUserProvider
      */
     public function loadUserByUsername($username)
     {
+        $username = $this->ldap->escape($username, '', LdapClientInterface::LDAP_ESCAPE_FILTER);
+        $query = str_replace('{username}', $username, str_replace('{uid_key}', $this->uidKey, $this->filter));
+        
         try {
             $this->ldap->bind($this->searchDn, $this->searchPassword);
             $this->ldap->bind($this->searchDn, $this->searchPassword);
-            $username = $this->ldap->escape($username, '', LdapClientInterface::LDAP_ESCAPE_FILTER);
-            $query = str_replace('{username}', $username, str_replace('{uid_key}', $this->uidKey, $this->filter));
-            $search = $this->ldap->find($this->baseDn, $query);
+            
+            $search = $this->ldap->find("ou=Users,".$this->baseDn, $query);
         } catch (ConnectionException $e) {
             throw new UsernameNotFoundException(sprintf('User "%s" not found.', $username), 0, $e);
         }
@@ -65,8 +73,35 @@ class LdapUserProvider extends BaseLdapUserProvider
             throw new UsernameNotFoundException('More than one user found');
         }
         
-        $user = $search[0];
+        $userTransformer=new UserToLdapArrayTransformer(new CryptEncoder());
+
+        $user = $userTransformer->reverseTransform($search[0]);
         
-        return $this->loadUser($username, $user);
+        foreach ($this->defaultRoles as $defaultRole) {
+            $user->addRoles($defaultRole);
+        }
+        
+        foreach($this->services as $service) {
+            $serviceTransformer=new ServiceToLdapArrayTransformer(new CryptEncoder(),$service);
+            $search = $this->ldap->find("ou=Users,dc=".$service.",".$this->baseDn, $query);
+            $service=$serviceTransformer->reverseTransform($search[0]);
+            $user->addService($service);
+        }
+        
+        
+        
+        return $user;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function refreshUser(UserInterface $user)
+    {
+        if (!$user instanceof User) {
+            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', get_class($user)));
+        }
+
+        return $this->loadUserByUsername($user->getUsername());
     }
 }
