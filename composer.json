@@ -14,7 +14,7 @@
 		"doctrine/orm" : "~2.4",
 		"doctrine/dbal" : "<2.5",
 		"doctrine/doctrine-bundle" : "~1.4",
-		"symfony/assetic-bundle" : "~2.7",
+		"symfony/assetic-bundle" : "dev-master",
 		"symfony/swiftmailer-bundle" : "~2.3",
 		"symfony/monolog-bundle" : "~2.4",
 		"sensio/distribution-bundle" : "~4.0",

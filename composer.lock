@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "b745bfc334e8145e9fc2c69b4ceec833",
-    "content-hash": "81faac28a0120520555063c661fc0f1a",
+    "hash": "02cfd9a802dc4dbf64d7fd1615b58ca2",
+    "content-hash": "ce3a3d216eb7b1c2131a69e4d1d67252",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -1300,7 +1300,7 @@
         },
         {
             "name": "symfony/assetic-bundle",
-            "version": "v2.7.1",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/assetic-bundle.git",
@@ -3172,7 +3172,8 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "symfony/symfony": 20
+        "symfony/symfony": 20,
+        "symfony/assetic-bundle": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

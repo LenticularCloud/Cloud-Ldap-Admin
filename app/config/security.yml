@@ -23,7 +23,7 @@ security:
         main:
             anonymous: ~
             # activate different ways to authenticate
-
+            
             # http_basic: ~
             # http://symfony.com/doc/current/book/security.html#a-configuring-how-your-users-will-authenticate
             provider: ldap_users
@@ -43,3 +43,4 @@ security:
     # http://symfony.com/doc/current/cookbook/security/access_control.html
     access_control:
         - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: "%auth_required_channel%" }
+        #- { path: ^/, roles: ROLE_USER, requires_channel: "%auth_required_channel%" }
