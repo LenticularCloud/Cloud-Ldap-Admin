@@ -11,6 +11,7 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Ldap\Exception\ConnectionException;
 use Symfony\Component\Ldap\Exception\LdapException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
+use InvalidArgumentException;
 
 class LdapClient implements LdapClientInterface
 {
@@ -260,42 +261,6 @@ class LdapClient implements LdapClientInterface
         return true;
     }
     
-    //------------------------old part -----------------------------//
-
-    /**
-     *
-     * @param ContainerInterface $container            
-     * @throws ConnectionErrorException
-     * /
-    public function __construct(ContainerInterface $container)
-    {
-        $this->container = $container;
-        
-        $ldap_host = $this->container->getParameter('ldap_server');
-        $ldap_port = $this->container->getParameter('ldap_port');
-        $bind_rdn = $this->container->getParameter('ldap_bind_rdn');
-        $bind_pw = $this->container->getParameter('ldap_bind_pw');
-        $this->base_dn = $this->container->getParameter('ldap_base_dn');
-        $this->services = $this->container->getParameter('services');
-        $this->domain = $this->container->getParameter('domain');
-        
-        $this->ldap_resource = @ldap_connect($ldap_host, $ldap_port);
-        if ($this->ldap_resource === false) {
-            throw new ConnectionErrorException();
-        }
-        
-        $result = @ldap_set_option($this->ldap_resource, LDAP_OPT_PROTOCOL_VERSION, 3);
-        if ($result === false) {
-            throw new ConnectionErrorException('can\'t set to ldap v3: ' . ldap_error($this->ldap_resource));
-        }
-        $bind = @ldap_bind($this->ldap_resource, $bind_rdn, $bind_pw);
-        if ($bind === false) {
-            throw new ConnectionErrorException('can\'t bind to ldap: ' . ldap_error($this->ldap_resource));
-        }
-        
-        $this->encoder = new \Cloud\LdapBundle\Security\CryptEncoder();
-    }
-
     /**
      * @TODO check each returnvalue and return a better exception on failuer
      */
@@ -310,7 +275,7 @@ class LdapClient implements LdapClientInterface
             'organizationalUnit',
             'dcObject'
         );
-        ldap_add($this->ldap_resource, $this->base_dn, $data);
+        ldap_add($this->connection, $this->base_dn, $data);
         
         $data = array();
         $data['ou'] = 'users';
@@ -318,7 +283,7 @@ class LdapClient implements LdapClientInterface
             'top',
             'organizationalUnit'
         );
-        ldap_add($this->ldap_resource, 'ou=users,' . $this->base_dn, $data);
+        ldap_add($this->connection, 'ou=users,' . $this->base_dn, $data);
         
         foreach ($this->services as $service) {
             $data = array();
@@ -328,7 +293,7 @@ class LdapClient implements LdapClientInterface
                 'organizationalUnit',
                 'dcObject'
             );
-            ldap_add($this->ldap_resource, 'dc=' . $service . ',' . $this->base_dn, $data);
+            ldap_add($this->connection, 'dc=' . $service . ',' . $this->base_dn, $data);
             
             $data = array();
             $data['ou'] = 'users';
@@ -336,24 +301,8 @@ class LdapClient implements LdapClientInterface
                 'top',
                 'organizationalUnit'
             );
-            ldap_add($this->ldap_resource, 'ou=users,' . 'dc=' . $service . ',' . $this->base_dn, $data);
+            ldap_add($this->connection, 'ou=users,' . 'dc=' . $service . ',' . $this->base_dn, $data);
         }
-    }
-
-    /**
-     * get an array of all users
-     *
-     * @return Array<User>
-     * @throws LdapQueryException
-     */
-    public function getAllUsers()
-    {
-        $users = array();
-        foreach ($this->getAllUsernames() as $username) {
-            $users[] = $this->getUserByUsername($username);
-        }
-        
-        return $users;
     }
 
     /**
@@ -364,12 +313,12 @@ class LdapClient implements LdapClientInterface
      */
     public function getAllUsernames()
     {
-        $result = @ldap_list($this->ldap_resource, 'ou=users,' . $this->base_dn, '(uid=*)', array(
+        $result = @ldap_list($this->connection, 'ou=users,' . $this->base_dn, '(uid=*)', array(
             'uid'
         ));
         
         if ($result === false) {
-            throw new LdapQueryException('can not fetch userlist');
+            throw new LdapException(ldap_error($this->connection));
         }
         
         $info = ldap_get_entries($this->ldap_resource, $result);
@@ -383,160 +332,6 @@ class LdapClient implements LdapClientInterface
     }
 
     /**
-     * creates a new user
-     */
-    public function createUser(User $user)
-    {
-        $errors = $this->container->get('validator')->validate($user);
-        if (count($errors) > 0) {
-            throw new InvalidUserException((string) $errors);
-        }
-        
-        $result = @ldap_add($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,' . $this->base_dn, $this->userToLdapArray($user));
-        if ($result === false) {
-            throw new LdapQueryException('can not add user');
-        }
-        foreach ($this->services as $service) {
-            $result = @ldap_add($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service . ',' . $this->base_dn, $this->userToLdapArray($user, $service));
-            if ($result === false) {
-                throw new LdapQueryException('can not add user to service ' . $service);
-            }
-        }
-    }
-
-    /**
-     * delete an user
-     *
-     * @param User $user            
-     */
-    public function deleteUser(User $user)
-    {
-        $errors = $this->container->get('validator')->validate($user);
-        if (count($errors) > 0) {
-            throw new InvalidUserException((string) $errors);
-        }
-        
-        foreach ($user->getServices() as $service) {
-            ldap_delete($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->base_dn);
-        }
-        
-        ldap_delete($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,' . $this->base_dn);
-    }
-
-    /**
-     * search for user and return it
-     * if user is not found,return null
-     *
-     * @return User
-     */
-    public function getUserByUsername($username)
-    {
-        $user = new User($username);
-        
-        // check username to protect against inject attack
-        $error = $this->container->get('validator')->validateProperty($user, 'username');
-        if (count($error) > 0) {
-            return null; // invalid username
-        }
-        
-        $ri = @ldap_search($this->ldap_resource, 'uid=' . $username . ',ou=users,' . $this->base_dn, '(objectClass=inetOrgPerson)', array(
-            'uid',
-            'userPassword'
-        ));
-        if ($ri === false) {
-            return null; // not found or other error
-        }
-        $result = ldap_first_entry($this->ldap_resource, $ri);
-        if ($result === false) {
-            return null; // nor found
-        }
-        $entity = ldap_get_attributes($this->ldap_resource, $result);
-        
-        for ($i = 0; $i < $entity['userPassword']['count']; $i ++) {
-            $user->addPassword($this->encoder->parsePassword($entity['userPassword'][$i]));
-        }
-        
-        ldap_free_result($ri);
-        foreach ($this->services as $service_name) {
-            $ri = @ldap_read($this->ldap_resource, 'uid=' . $username . ',ou=users,dc=' . $service_name . ',' . $this->base_dn, '(objectClass=inetOrgPerson)');
-            if ($ri !== false) {
-                $result = ldap_first_entry($this->ldap_resource, $ri);
-                if ($result !== false) {
-                    $entity = ldap_get_attributes($this->ldap_resource, $result);
-                    $service = new Service($service_name);
-                    for ($i = 0; $i < $entity['userPassword']['count']; $i ++) {
-                        $password = $this->encoder->parsePassword($entity['userPassword'][$i]);
-                        if (! isset($user->getPasswords()[$password->getId()])) {
-                            $service->addPassword($password);
-                        }
-                    }
-                    $user->addService($service);
-                }
-                
-                ldap_free_result($ri);
-            }
-        }
-        
-        return $user;
-    }
-
-    /**
-     * updates the users in the different services
-     * 
-     * @param boolean $dirtRun
-     *            boolean to make a dirt run to show changes
-     * @return
-     *
-     */
-    public function updateServices($dirtRun = false)
-    {
-        if ($this->isEntityExist($this->base_dn)) {
-            $dc = current(explode('.', $this->domain));
-            
-            $data = array();
-            $data['dc'] = $dc;
-            $data['ou'] = $dc;
-            $data['objectClass'] = array(
-                'organizationalUnit',
-                'dcObject'
-            );
-            ldap_add($this->ldap_resource, $this->base_dn, $data);
-        }
-        if ($this->isEntityExist('ou=users,' . $this->base_dn)) {
-            $data = array();
-            $data['ou'] = 'users';
-            $data['objectClass'] = array(
-                'top',
-                'organizationalUnit'
-            );
-            ldap_add($this->ldap_resource, 'ou=users,' . $this->base_dn, $data);
-        }
-        
-        foreach ($this->services as $service) {
-            if (! $this->isEntityExist('dc=' . $service . ',' . $this->base_dn)) {
-                $data = array();
-                $data['dc'] = $service;
-                $data['ou'] = $service;
-                $data['objectClass'] = array(
-                    'organizationalUnit',
-                    'dcObject'
-                );
-                ldap_add($this->ldap_resource, 'dc=' . $service . ',' . $this->base_dn, $data);
-            }
-            
-            if (! $this->isEntityExist('ou=users,' . 'dc=' . $service . ',' . $this->base_dn)) {
-                $data = array();
-                $data['ou'] = 'users';
-                $data['objectClass'] = array(
-                    'top',
-                    'organizationalUnit'
-                );
-                ldap_add($this->ldap_resource, 'ou=users,' . 'dc=' . $service . ',' . $this->base_dn, $data);
-            }
-        }
-    }
-
-    /**
      * @TODO think about that
      */
     public function showServiceInconsistence()
@@ -544,30 +339,5 @@ class LdapClient implements LdapClientInterface
         // ...
         // ldap_compare parsed with saved
         throw new \BadFunctionCallException('not implemented yet');
-    }
-
-    /**
-     *
-     * @param string $service
-     *            if null use
-     */
-    private function getBaseDN($service = null)
-    {
-        return "ou=Users" + ($service == null ? "" : "DN=" + $service) + $this->base_dn;
-    }
-
-    /**
-     * close current ldap connection
-     */
-    public function close()
-    {
-        ldap_close($this->ldap_resource);
-    }
-
-    /**
-     */
-    public function getServices()
-    {
-        return $this->services;
     }
 }

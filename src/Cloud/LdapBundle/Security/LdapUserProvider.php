@@ -94,6 +94,25 @@ class LdapUserProvider implements UserProviderInterface
     }
 
     /**
+     * get an array of all users
+     *
+     * @return Array<User>
+     * @throws LdapQueryException
+     */
+    public function getUsers()
+    {
+        $this->ldap->bind($this->searchDn, $this->searchPassword);
+        $this->ldap->bind($this->searchDn, $this->searchPassword);
+        
+        $users = array();
+        foreach ($this->ldap->getAllUsernames() as $username) {
+            $users[] = $this->loadUserByUsername($username);
+        }
+        
+        return $users;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function refreshUser(UserInterface $user)
