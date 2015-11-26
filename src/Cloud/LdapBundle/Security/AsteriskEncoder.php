@@ -8,7 +8,7 @@ use Cloud\LdapBundle\Entity\Password;
  * @author tuxcoder
  *        
  */
-class CryptEncoder implements LdapPasswordEncoderInterface
+class AsteriskEncoder implements LdapPasswordEncoderInterface
 {
 
     /**
@@ -23,12 +23,12 @@ class CryptEncoder implements LdapPasswordEncoderInterface
         $salt = "";
         if ($password->getId() != null && $password->getId() != "") {
             $salt = $this->getRandomeSalt(16 - strlen($password->getId()));
-            $salt = $password->getId() . ($password->isMasterPassword()?'+':'=') . $salt;
+            $salt = $password->getId() . "=" . $salt;
         } else {
             $salt = 'main=' . $this->getRandomeSalt();
         }
         
-        $hash = crypt($password->getPasswordPlain(), '$6$rounds='. $rounds . '$' . $salt . '$');
+        $hash = crypt($password->getPasswordPlain(), '$6$rounds=' . $rounds . '$' . $salt . '$');
         $password->setHash('{crypt}' . $hash);
         $password->setPasswordPlain(null);
     }
@@ -79,9 +79,9 @@ class CryptEncoder implements LdapPasswordEncoderInterface
         $password = new Password();
         $password->setHash($password_hash);
         $matches = null;
-        preg_match('#^{crypt}\$\d\$(rounds=\d+\$)?([0-9a-zA-Z_-]+)?(=|\+)[0-9a-zA-Z_-]+\$[^\$]*$#', $password_hash, $matches);
+        preg_match('#^{crypt}\$\d\$(rounds=\d+\$)?([0-9a-zA-Z_-]+)?(=|\+)?[0-9a-zA-Z_-]+\$[^\$]*$#', $password_hash, $matches);
         if ($matches != null) {
-            $password->setId($matches[2]);
+            $password->setId(substr($matches[2], 0, - 1));
             $password->setMasterPassword($matches[3]==='+');
         }
         return $password;

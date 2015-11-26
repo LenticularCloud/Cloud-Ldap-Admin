@@ -29,8 +29,8 @@ security:
             provider: ldap_users
             form_login_ldap:
                 service: cloud.ldap.client
-                #dn_string: "uid={username},ou=Users,%ldap_base_dn%"
-                dn_string: "cn={username},%ldap_base_dn%"
+                dn_string: "uid={username},ou=users,%ldap_base_dn%"
+                #dn_string: "cn={username},%ldap_base_dn%"
                 check_path: /login_check
                 login_path: /login
 #            form_login: 

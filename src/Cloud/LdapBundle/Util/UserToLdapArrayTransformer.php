@@ -5,15 +5,19 @@ use Cloud\LdapBundle\Services\LdapClient;
 use Cloud\LdapBundle\Entity\User;
 use InvalidArgumentException;
 use Symfony\Component\Form\DataTransformerInterface;
-use Cloud\LdapBundle\Security\LdapPasswordEncoderInterface;
+use Cloud\LdapBundle\Security\CryptEncoder;
 
 class UserToLdapArrayTransformer implements DataTransformerInterface
 {
+    /**
+     * 
+     * @var CryptEncoder
+     */
     protected $encoder;
     
-    public function __construct(LdapPasswordEncoderInterface $encoder)
+    public function __construct()
     {
-        $this->encoder=$encoder;
+        $this->encoder=new CryptEncoder();
     }
     
     public function transform($user)
@@ -48,14 +52,6 @@ class UserToLdapArrayTransformer implements DataTransformerInterface
             }
             $data["userPassword"][] = $password->getHash();
         }
-        /*
-        if ($service !== null && $user->getService($service) != null) {
-            foreach ($user->getService($service)->getPasswords() as $password) {
-                if ($password->getHash() == null)
-                    $this->encoder->encodePassword($password);
-                $data["userPassword"][] = $password->getHash();
-            }
-        }*/
         
         return $data;
     }
@@ -63,8 +59,8 @@ class UserToLdapArrayTransformer implements DataTransformerInterface
     public function reverseTransform($ldapArray)
     {
         $user=new User($ldapArray['uid'][0]);
-
-        for ($i = 0; $i < $ldapArray['userpassword']['count']; $i ++) {
+        $passwords=isset($ldapArray['userpassword'])?$ldapArray['userpassword']:array();
+        for ($i = 0; $i < $passwords['count']; $i ++) {
             $password=$this->encoder->parsePassword($ldapArray['userpassword'][$i]);
             $user->addPassword($password);
         }

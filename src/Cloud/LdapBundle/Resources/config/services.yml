@@ -4,10 +4,12 @@ services:
     cloud.ldap.util.usermanipulator:
         class: Cloud\LdapBundle\Util\UserManipulator
         arguments:
-            - "@cloud.ldap.client"
+            - "@cloud.ldap.client.root"
             - "@cloud.encoder.crypt"
-            - "%ldap_base_dn%"
             - "@validator"
+            - "%ldap_base_dn%"
+            - "%ldap_bind_rdn%"
+            - "%ldap_bind_pw%"
     cloud.ldap.userprovider:
         class: Cloud\LdapBundle\Security\LdapUserProvider
         arguments:
@@ -31,6 +33,8 @@ services:
             - "uid={username},ou=Users,%ldap_base_dn%"
             - true
     cloud.ldap.client:
+        class: Cloud\LdapBundle\Services\LdapClient
+    cloud.ldap.client.root:
         class: Cloud\LdapBundle\Services\LdapClient
         arguments: [ "%ldap_host%" ]
     cloud.encoder.crypt:

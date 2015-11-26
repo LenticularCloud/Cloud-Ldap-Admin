@@ -2,8 +2,9 @@
 namespace Cloud\LdapBundle\Entity;
 
 use Symfony\Component\Validator\Constraints as Assert;
-use \Cloud\LdapBundle\Entity\Password;
 use InvalidArgumentException;
+use Cloud\LdapBundle\Security\LdapPasswordEncoderInterface;
+use Cloud\LdapBundle\Security\CryptEncoder;
 
 class Service
 {
@@ -36,6 +37,17 @@ class Service
      * @var boolean $enabled
      */
     protected $enabled=false;
+    
+    /**
+     * @var User $user
+     */
+    protected $user=null;
+    
+    /**
+     * 
+     * @var LdapPasswordEncoderInterface    $encoder
+     */
+    protected $encoder;
 
     /**
      *
@@ -43,6 +55,7 @@ class Service
      */
     public function __construct($name)
     {
+        $this->encoder=new CryptEncoder();
         $this->name = $name;
     }
 
@@ -96,6 +109,9 @@ class Service
         if (isset($this->passwords[$password->getId()]))
             throw new InvalidArgumentException("passwordId is in use");
         $this->passwords[$password->getId()] = $password;
+        if($password->getService()!==$this) {
+            $password->setService($this);
+        }
         return $this;
     }
 
@@ -112,7 +128,7 @@ class Service
         return $this;
     }
 
-    public function getMasterPasswordEnabled()
+    public function isMasterPasswordEnabled()
     {
         return $this->masterPasswordEnabled;
     }
@@ -133,6 +149,39 @@ class Service
         $this->enabled = $enabled;
         return $this;
     }
+
+    /**
+     * 
+     * @return \Cloud\LdapBundle\Entity\User
+     */
+    public function getUser()
+    {
+        return $this->user;
+    }
+
+    /**
+     * 
+     * @param User $user
+     */
+    public function setUser(User $user)
+    {
+        $this->user = $user;
+        if(!in_array($this,$user->getServices())) {
+            $this->user->addService($this);
+        }
+        
+        return $this;
+    }
+
+    /**
+     * @return LdapPasswordEncoderInterface
+     */
+    public function getEncoder()
+    {
+        return $this->encoder;
+    }
+ 
+ 
  
  
 }

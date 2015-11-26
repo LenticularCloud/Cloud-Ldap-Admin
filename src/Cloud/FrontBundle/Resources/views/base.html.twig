@@ -41,12 +41,12 @@
 	<div class="container" role="main" style="margin-top:60px">
 	{% block content %} {% endblock %}
 	</div>
-  {# 'bundles/fosjsrouting/js/router.js'#}
 	{% javascripts
                 '@CloudFrontBundle/Resources/public/js/jquery.js'
                 '@CloudFrontBundle/Resources/public/js/bootstrap.js'
                 '@CloudFrontBundle/Resources/public/js/*'
                 filter='?yui_js' %}
+     <script type="text/javascript" src="{{ asset_url }}" ></script>
     {% endjavascripts %}
     <script type="text/javascript">{% block javascript_code %}{% endblock %}</script>
 </body>

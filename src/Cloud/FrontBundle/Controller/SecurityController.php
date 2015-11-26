@@ -40,7 +40,6 @@ class SecurityController extends Controller
      */
     public function logoutAction(Request $request)
     {
-        die("error");
         $this->get('security.token_storage')->setToken(null);
         $this->get('request')->getSession()->invalidate();
         

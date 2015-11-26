@@ -32,7 +32,20 @@ class Password
      */
     private $password_plain;
     
+    
+    /**
+     * 
+     * @var User    $user
+     */
+    private $user;
+    
     private $isMasterPassword;
+    
+    /**
+     * 
+     * @var Service
+     */
+    private $service;
 
     public function __construct($id = null, $password_plain = null,$isMasterPassword=false)
     {
@@ -90,7 +103,13 @@ class Password
      */
     public function setId($id)
     {
-        $this->id = $id;
+        if($this->service!==null) {
+            $this->service->removePassword($this);
+            $this->id = $id;
+            $this->service->addPassword($this);
+        }else {
+            $this->id = $id;
+        }
         return $this;
     }
 
@@ -124,5 +143,47 @@ class Password
         $this->isMasterPassword = $isMasterPassword;
         return $this;
     }
+
+    public function getUser()
+    {
+        return $this->user;
+    }
+
+    public function setUser($user)
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    /**
+     * 
+     * @return \Cloud\LdapBundle\Entity\Service
+     */
+    public function getService()
+    {
+        return $this->service;
+    }
+
+    /**
+     * 
+     * @param Service $service
+     * @return \Cloud\LdapBundle\Entity\Password
+     */
+    public function setService($service)
+    {
+        if($this->service!==null && in_array($this,$this->service->getPasswords())) {
+            $this->service->removePassword($this);
+        }
+        
+        $this->service = $service;
+        
+        if(!in_array($this,$this->service->getPasswords())) {
+            $this->service->addPassword($this);
+        }
+        
+        return $this;
+    }
+ 
+ 
  
 } 

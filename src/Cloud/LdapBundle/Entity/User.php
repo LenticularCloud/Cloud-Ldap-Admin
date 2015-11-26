@@ -80,26 +80,6 @@ class User implements UserInterface
         
     }
     
-
-    /**
-     * check for same id in user object and services
-     * 
-     * @Assert\Callback
-     */
-    public function validate(ExecutionContextInterface $context)
-    {
-        foreach ($this->getServices() as $service) {
-            foreach ($service->getPasswords() as $password) {
-                if(isset($this->passwords[$password->getId()])) {
-                    $context->buildViolation('password ids can\'t be in user object and in a service')
-                        ->atPath('passwords')
-                        ->addViolation();
-                    return;
-                }
-            }
-        }
-    }
-    
     /**
      *
      * @return String
@@ -151,6 +131,9 @@ class User implements UserInterface
         if (isset($this->passwords[$password->getId()]))
             throw new \InvalidArgumentException("passwordId is in use");
         $this->passwords[$password->getId()] = $password;
+        if($password->getUser()!==$this) {
+            $password->setUser($this);
+        }
         return $this;
     }
 
@@ -164,6 +147,9 @@ class User implements UserInterface
             throw \InvalidArgumentException("password not in the list");
         }
         unset($this->passwords[$password->getId()]);
+        if($password->getUser()===$this) {
+            $password->setUser(null);
+        }
         return $this;
     }
 
@@ -178,6 +164,10 @@ class User implements UserInterface
             throw new \InvalidArgumentException("service name can't be null");
         }
         $this->services[$service->getName()] = $service;
+        if($service->getUser()!==$this) {
+            $service->setUser($this);
+        }
+        
         return $this;
     }
 
@@ -191,6 +181,9 @@ class User implements UserInterface
             throw \InvalidArgumentException("service not in the list");
         }
         unset($this->services[$service->getId()]);
+        if($service->getUser()===$this) {
+            $service->setUser(null);
+        }
         return $this;
     }
 

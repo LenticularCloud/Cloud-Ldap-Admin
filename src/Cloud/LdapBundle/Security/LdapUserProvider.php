@@ -73,7 +73,7 @@ class LdapUserProvider implements UserProviderInterface
             throw new UsernameNotFoundException('More than one user found');
         }
         
-        $userTransformer=new UserToLdapArrayTransformer(new CryptEncoder());
+        $userTransformer=new UserToLdapArrayTransformer();
 
         $user = $userTransformer->reverseTransform($search[0]);
         
@@ -82,7 +82,7 @@ class LdapUserProvider implements UserProviderInterface
         }
         
         foreach($this->services as $service) {
-            $serviceTransformer=new ServiceToLdapArrayTransformer(new CryptEncoder(),$service);
+            $serviceTransformer=new ServiceToLdapArrayTransformer($service);
             $search = $this->ldap->find("ou=Users,dc=".$service.",".$this->baseDn, $query);
             $service=$serviceTransformer->reverseTransform($search[0]);
             $user->addService($service);

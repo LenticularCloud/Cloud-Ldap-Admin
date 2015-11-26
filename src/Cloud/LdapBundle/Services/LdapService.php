@@ -3,215 +3,41 @@ namespace Cloud\LdapBundle\Services;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Ldap\LdapClientInterface;
 use Cloud\LdapBundle\Entity\User;
 use Cloud\LdapBundle\Entity\Password;
+use Cloud\LdapBundle\Exception\UserNotFoundException;
+use Cloud\LdapBundle\Exception\ConnectionErrorException;
+use Cloud\LdapBundle\Exception\LdapQueryException;
+use Cloud\LdapBundle\Exception\InvalidUserException;
 use Cloud\LdapBundle\Entity\Service;
-use Symfony\Component\Security\Core\User\UserProviderInterface;
-use Symfony\Component\Ldap\Exception\ConnectionException;
-use Symfony\Component\Ldap\Exception\LdapException;
-use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 
-class LdapClient implements LdapClientInterface
+// @TODO ldap_free_result refactor
+class LdapService
 {
 
-    private $host;
-
-    private $port;
-
-    private $version;
-
-    private $useSsl;
-
-    private $useStartTls;
-
-    private $optReferrals;
-
-    private $connection;
-
-    private $charmaps;
-
     /**
-     * Constructor.
      *
-     * @param string $host            
-     * @param int $port            
-     * @param int $version            
-     * @param bool $useSsl            
-     * @param bool $useStartTls            
-     * @param bool $optReferrals            
+     * @var Ressorce $ldap_resource
      */
-    public function __construct($host = null, $port = 389, $version = 3, $useSsl = false, $useStartTls = false, $optReferrals = false)
-    {
-        if (! extension_loaded('ldap')) {
-            throw new LdapException('The ldap module is needed.');
-        }
-
-        $this->host = $host;
-        $this->port = $port;
-        $this->version = $version;
-        $this->useSsl = (bool) $useSsl;
-        $this->useStartTls = (bool) $useStartTls;
-        $this->optReferrals = (bool) $optReferrals;
-    }
-
-    public function __destruct()
-    {
-        $this->disconnect();
-    }
+    private $ldap_resource;
 
     /**
      *
-     * @ERROR!!!
-     *
+     * @var ContainerInterface $container
      */
-    public function bind($dn = null, $password = null)
-    {
-        if (! $this->connection) {
-            $this->connect();
-        }
-        
-        if (true !== @ldap_bind($this->connection, $dn, $password)) {
-            throw new ConnectionException(ldap_error($this->connection));
-        }
-    }
+    private $container;
 
     /**
      *
-     * @ERROR!!!
-     *
+     * @var String
      */
-    public function find($dn, $query, $filter = '*')
-    {
-        if (! is_array($filter)) {
-            $filter = array(
-                $filter
-            );
-        }
-        $search = @ldap_search($this->connection, $dn, $query, $filter);
-        if($search===false) {
-            return;
-        }
-        $infos = ldap_get_entries($this->connection, $search);
-        if (0 === $infos['count']) {
-            return;
-        }
-        return $infos;
-    }
+    private $base_dn;
 
     /**
      *
-     * @ERROR!!!
-     *
+     * @var String
      */
-    public function escape($subject, $ignore = '', $flags = 0)
-    {
-        if (function_exists('ldap_escape')) {
-            return ldap_escape($subject, $ignore, $flags);
-        }
-        return $this->doEscape($subject, $ignore, $flags);
-    }
-
-    private function connect()
-    {
-        if (! $this->connection) {
-            $host = $this->host;
-            if ($this->useSsl) {
-                $host = 'ldaps://' . $host;
-            }
-            ldap_set_option($this->connection, LDAP_OPT_PROTOCOL_VERSION, $this->version);
-            ldap_set_option($this->connection, LDAP_OPT_REFERRALS, $this->optReferrals);
-            $this->connection = ldap_connect($host, $this->port);
-            if ($this->useStartTls) {
-                ldap_start_tls($this->connection);
-            }
-        }
-    }
-
-    private function disconnect()
-    {
-        if ($this->connection && is_resource($this->connection)) {
-            ldap_unbind($this->connection);
-        }
-        $this->connection = null;
-    }
-
-    /**
-     * Stub implementation of the {@link ldap_escape()} function of the ldap
-     * extension.
-     *
-     * Escape strings for safe use in LDAP filters and DNs.
-     *
-     * @author Chris Wright <ldapi@daverandom.com>
-     *        
-     * @param string $subject            
-     * @param string $ignore            
-     * @param int $flags            
-     *
-     * @return string
-     *
-     * @see http://stackoverflow.com/a/8561604
-     */
-    private function doEscape($subject, $ignore = '', $flags = 0)
-    {
-        $charMaps = $this->getCharmaps();
-        // Create the base char map to escape
-        $flags = (int) $flags;
-        $charMap = array();
-        if ($flags & self::LDAP_ESCAPE_FILTER) {
-            $charMap += $charMaps[self::LDAP_ESCAPE_FILTER];
-        }
-        if ($flags & self::LDAP_ESCAPE_DN) {
-            $charMap += $charMaps[self::LDAP_ESCAPE_DN];
-        }
-        if (! $charMap) {
-            $charMap = $charMaps[0];
-        }
-        // Remove any chars to ignore from the list
-        $ignore = (string) $ignore;
-        for ($i = 0, $l = strlen($ignore); $i < $l; ++ $i) {
-            unset($charMap[$ignore[$i]]);
-        }
-        // Do the main replacement
-        $result = strtr($subject, $charMap);
-        // Encode leading/trailing spaces if LDAP_ESCAPE_DN is passed
-        if ($flags & self::LDAP_ESCAPE_DN) {
-            if ($result[0] === ' ') {
-                $result = '\\20' . substr($result, 1);
-            }
-            if ($result[strlen($result) - 1] === ' ') {
-                $result = substr($result, 0, - 1) . '\\20';
-            }
-        }
-        return $result;
-    }
-
-    private function getCharmaps()
-    {
-        if (null !== $this->charmaps) {
-            return $this->charmaps;
-        }
-        $charMaps = array(
-            self::LDAP_ESCAPE_FILTER => array('\\', '*', '(', ')', "\x00"),
-            self::LDAP_ESCAPE_DN => array('\\', ',', '=', '+', '<', '>', ';', '"', '#'),
-        );
-        $charMaps[0] = array();
-        for ($i = 0; $i < 256; ++ $i) {
-            $charMaps[0][chr($i)] = sprintf('\\%02x', $i);
-        }
-        for ($i = 0, $l = count($charMaps[self::LDAP_ESCAPE_FILTER]); $i < $l; ++ $i) {
-            $chr = $charMaps[self::LDAP_ESCAPE_FILTER][$i];
-            unset($charMaps[self::LDAP_ESCAPE_FILTER][$i]);
-            $charMaps[self::LDAP_ESCAPE_FILTER][$chr] = $charMaps[0][$chr];
-        }
-        for ($i = 0, $l = count($charMaps[self::LDAP_ESCAPE_DN]); $i < $l; ++ $i) {
-            $chr = $charMaps[self::LDAP_ESCAPE_DN][$i];
-            unset($charMaps[self::LDAP_ESCAPE_DN][$i]);
-            $charMaps[self::LDAP_ESCAPE_DN][$chr] = $charMaps[0][$chr];
-        }
-        $this->charmaps = $charMaps;
-        return $this->charmaps;
-    }
+    private $domain;
 
     /**
      *
@@ -219,54 +45,17 @@ class LdapClient implements LdapClientInterface
      */
     private $services;
 
-    public function replace($dn,array $entity)
-    {
-        if (true != @ldap_mod_replace($this->connection, $dn, $entity)) {
-            throw new LdapException(ldap_error($this->connection));
-        }
-    }
-    
-    public function delete($dn)
-    {
-        if (true != @ldap_delete($this->connection, $dn)) {
-            throw new LdapException(ldap_error($this->connection));
-        }
-    }
-
-    public function add($dn,array $entity)
-    {
-        dump($dn, $entity);
-        if (true != @ldap_add($this->connection, $dn, $entity)) {
-            throw new LdapException(ldap_error($this->connection));
-        }
-    }
-
     /**
-     * check if object is exist
      *
-     * @param string $dn            
+     * @var \Cloud\LdapBundle\Security\LdapPasswordEncoderInterface
      */
-    public function isEntityExist($dn)
-    {
-        $ri = @ldap_search($this->connection, $dn, '(objectClass=*)', array());
-        if ($ri === false) {
-            return false; // not found or other error
-        }
-        $result = ldap_first_entry($this->connection, $ri);
-        if ($result === false) {
-            return false; // not found
-        }
-        
-        return true;
-    }
-    
-    //------------------------old part -----------------------------//
+    private $encoder;
 
     /**
      *
      * @param ContainerInterface $container            
      * @throws ConnectionErrorException
-     * /
+     */
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
@@ -383,6 +172,31 @@ class LdapClient implements LdapClientInterface
     }
 
     /**
+     *
+     * @throws UserNotFoundException
+     * @throws InvalidUserException
+     */
+    public function updateUser(User $user)
+    {
+        $errors = $this->container->get('validator')->validate($user);
+        if (count($errors) > 0) {
+            throw new InvalidUserException((string) $errors);
+        }
+        
+        $result = @ldap_mod_replace($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,' . $this->base_dn, $this->userToLdapArray($user));
+        if ($result === false) {
+            throw new LdapQueryException('can not modify user');
+        }
+        foreach ($user->getServices() as $service) {
+            if (in_array($service->getName(), $this->services))
+                $result = @ldap_mod_replace($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->base_dn, $this->userToLdapArray($user, $service->getName()));
+            if ($result === false) {
+                throw new LdapQueryException('can not modify user\'s service ' . $service->getName());
+            }
+        }
+    }
+
+    /**
      * creates a new user
      */
     public function createUser(User $user)
@@ -482,15 +296,12 @@ class LdapClient implements LdapClientInterface
 
     /**
      * updates the users in the different services
-     * 
-     * @param boolean $dirtRun
-     *            boolean to make a dirt run to show changes
-     * @return
-     *
+     * @param boolean $dirtRun boolean to make a dirt run to show changes
+     * @return 
      */
-    public function updateServices($dirtRun = false)
+    public function updateServices($dirtRun=false)
     {
-        if ($this->isEntityExist($this->base_dn)) {
+        if($this->isEntityExist($this->base_dn)) {
             $dc = current(explode('.', $this->domain));
             
             $data = array();
@@ -502,7 +313,7 @@ class LdapClient implements LdapClientInterface
             );
             ldap_add($this->ldap_resource, $this->base_dn, $data);
         }
-        if ($this->isEntityExist('ou=users,' . $this->base_dn)) {
+        if($this->isEntityExist('ou=users,' .$this->base_dn)){
             $data = array();
             $data['ou'] = 'users';
             $data['objectClass'] = array(
@@ -537,6 +348,71 @@ class LdapClient implements LdapClientInterface
     }
 
     /**
+     * check if object is exist
+     *
+     * @param string $dn            
+     */
+    private function isEntityExist($dn)
+    {
+        $ri = @ldap_search($this->ldap_resource, $dn, '(objectClass=*)', array());
+        if ($ri === false) {
+            return false; // not found or other error
+        }
+        $result = ldap_first_entry($this->ldap_resource, $ri);
+        if ($result === false) {
+            return false; // nor found
+        }
+        
+        return true;
+    }
+
+    /**
+     * enables an service for an user
+     *
+     * @param User $user            user that is affected
+     * @param string $service            service to disable
+     * @throws \InvalidArgumentException
+     * @throws LdapQueryException
+     */
+    public function enableService(User $user, $service)
+    {
+        if (! in_array($service, $this->services)) {
+            throw new \InvalidArgumentException('service not exist');
+        }
+        if ($user->getService($service) != null) {
+            throw new \InvalidArgumentException('service not disabled');
+        }
+        
+        $result = @ldap_add($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service . ',' . $this->base_dn, $this->userToLdapArray($user, $service));
+        if ($result === false) {
+            throw new LdapQueryException('can not enable service ' . $service);
+        }
+    }
+
+    /**
+     * disables an service for an user
+     *
+     * @param User $user            user that is affected
+     * @param string $service            service to disable
+     * @throws \InvalidArgumentException
+     * @throws LdapQueryException
+     */
+    public function disableService(User $user, $service)
+    {
+        if (! in_array($service, $this->services)) {
+            throw new \InvalidArgumentException('service not exist');
+        }
+        if ($user->getService($service) == null) {
+            throw new \InvalidArgumentException('service not enabled');
+        }
+        
+        $result = @ldap_delete($this->ldap_resource, 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service . ',' . $this->base_dn);
+        if ($result === false) {
+            throw new LdapQueryException('can not disable service  ' . $service);
+        }
+    }
+
+    /**
      * @TODO think about that
      */
     public function showServiceInconsistence()
@@ -544,6 +420,53 @@ class LdapClient implements LdapClientInterface
         // ...
         // ldap_compare parsed with saved
         throw new \BadFunctionCallException('not implemented yet');
+    }
+
+    /**
+     * function to convert a user object into an array for ldap push
+     *
+     * @param User $user            
+     * @param String $service
+     *            Service name to get data
+     */
+    private function userToLdapArray(User $user, $service = null)
+    {
+        // @TODO passwordID
+        $data = array();
+        $data["cn"] = $user->getUsername();
+        $data["uid"] = $user->getUsername();
+        $data["objectClass"] = array();
+        $data["objectClass"][] = "top";
+        $data["objectClass"][] = "inetOrgPerson";
+        $data["objectClass"][] = "posixAccount";
+        $data["objectClass"][] = "shadowAccount";
+        
+        $data["uid"] = $user->getUsername();
+        $data["homeDirectory"] = "/var/vhome/" . $user->getUsername();
+        $data["givenName"] = $user->getUsername();
+        $data["sn"] = $user->getUsername();
+        $data["displayName"] = $user->getUsername();
+        $data["mail"] = $user->getUsername() . "@" . $this->domain;
+        $data['uidNumber'] = 1337; // @TODO: probably take a autoincrement id
+        $data['gidNumber'] = 1337;
+        $data["userPassword"] = array();
+        foreach ($user->getPasswords() as $password) {
+            
+            if ($password->getHash() == null)
+                $this->encoder->encodePassword($password);
+            $data["userPassword"][] = $password->getHash();
+        }
+        
+        if ($service !== null && $user->getService($service) != null) {
+            foreach ($user->getService($service)->getPasswords() as $password) {
+                if ($password->getHash() == null)
+                    $this->encoder->encodePassword($password);
+                $data["userPassword"][] = $password->getHash();
+            }
+        }
+        $data["loginShell"] = "/bin/false";
+        
+        return $data;
     }
 
     /**

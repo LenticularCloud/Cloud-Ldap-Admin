@@ -11,7 +11,7 @@ class UserToLdapArrayTransformerTest extends \PHPUnit_Framework_TestCase
     
     public function testTransform ()
     {
-        $transformer=new UserToLdapArrayTransformer(new CryptEncoder());
+        $transformer=new UserToLdapArrayTransformer();
         
         $user=new User("testuser");
         $pw=new Password();
@@ -55,7 +55,7 @@ class UserToLdapArrayTransformerTest extends \PHPUnit_Framework_TestCase
         $data['userPassword']['count']=1;
         
 
-        $transformer=new UserToLdapArrayTransformer(new CryptEncoder());
+        $transformer=new UserToLdapArrayTransformer();
         
         $user=$transformer->reverseTransform($data);
 

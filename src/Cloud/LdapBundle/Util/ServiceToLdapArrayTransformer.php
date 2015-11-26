@@ -10,47 +10,58 @@ use Cloud\LdapBundle\Entity\Service;
 
 class ServiceToLdapArrayTransformer implements DataTransformerInterface
 {
-    protected $encoder;
     protected $serviceName;
     
-    public function __construct(LdapPasswordEncoderInterface $encoder,$serviceName)
+    public function __construct($serviceName)
     {
-        $this->encoder=$encoder;
         $this->serviceName=$serviceName;
     }
     
-    public function transform($user)
+    public function transform($service)
     {
-        if(! $user instanceof User ) {
+        if(! $service instanceof Service ) {
             throw new InvalidArgumentException();
         }
         
         $data = array();
-        $data["cn"] = $user->getUsername();
-        $data["uid"] = $user->getUsername();
+        $data["cn"] = $service->getUser()->getUsername();
+        $data["uid"] = $service->getUser()->getUsername();
         $data["objectClass"] = array();
         $data["objectClass"][] = "top";
         $data["objectClass"][] = "inetOrgPerson";
         $data["objectClass"][] = "posixAccount";
         $data["objectClass"][] = "shadowAccount";
         
-        $data["uid"] = $user->getUsername();
-        $data["homeDirectory"] = "/var/vhome/" . $user->getUsername();
-        $data["givenName"] = $user->getUsername();
-        $data["sn"] = $user->getUsername();
-        $data["displayName"] = $user->getUsername();
-        //$data["mail"] = $user->getUsername() . "@" . $this->domain;
+        $data["uid"] = $service->getUser()->getUsername();
+        $data["homeDirectory"] = "/var/vhome/" . $service->getUser()->getUsername();
+        $data["givenName"] = $service->getUser()->getUsername();
+        $data["sn"] = $service->getUser()->getUsername();
+        $data["displayName"] = $service->getUser()->getUsername();
+        $data["mail"] = $service->getUser()->getUsername() . "@" ."test.com";// $service->getUser()->getDomain();
         $data['uidNumber'] = 1337; // @TODO: probably take a autoincrement id
         $data['gidNumber'] = 1337;
-        $data["loginShell"] = "/bin/false";
         $data["userPassword"] = array();
-        foreach ($user->getPasswords() as $password) {
-        
+        foreach ($service->getPasswords() as $password) {
+            
             if ($password->getPasswordPlain() !== null){
-                $this->encoder->encodePassword($password);
+                $service->getEncoder()->encodePassword($password);
             }
             $data["userPassword"][] = $password->getHash();
         }
+        if($service->isMasterPasswordEnabled()) {
+            foreach($service->getUser()->getPasswords() as $password) {
+                if ($password->getPasswordPlain() !== null){
+                    $service->getEncoder()->encodePassword($password);
+                }
+                $data["userPassword"][] = $password->getHash();
+            }
+        }
+
+        if(count( $data["userPassword"])==0) {
+            unset($data["userPassword"]);
+        }
+        
+        $data["loginShell"] = "/bin/false";
         
         return $data;
     }
@@ -60,16 +71,19 @@ class ServiceToLdapArrayTransformer implements DataTransformerInterface
         $service=new Service($this->serviceName);
         
         if($ldapArray==null) {
+            $service->setEnabled(false);
             return $service;
         }
         
         $service->setEnabled(true);
         
-        for ($i = 0; $i < $ldapArray['userpassword']['count']; $i ++) {
-            $password=$this->encoder->parsePassword($ldapArray['userpassword'][$i]);
-            $service->addPassword($password);
+        $passwords=isset($ldapArray['userpassword'])?$ldapArray['userpassword']:array('count'=>0);
+        for ($i = 0; $i < $passwords['count']; $i ++) {
+            $password=$service->getEncoder()->parsePassword($ldapArray['userpassword'][$i]);
             if($password->isMasterPassword()) {
                 $service->setMasterPasswordEnabled(true);
+            }else {
+                $service->addPassword($password);
             }
         }
         
