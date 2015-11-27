@@ -12,6 +12,7 @@ use Cloud\FrontBundle\Form\Type\ServiceType;
 use Cloud\LdapBundle\Entity\Service;
 use Cloud\FrontBundle\Form\Type\NewPasswordType;
 use Symfony\Component\Form\FormError;
+use InvalidArgumentException;
 
 /**
  * @Route("/profile")
@@ -152,30 +153,29 @@ class ProfileController extends Controller
      * @Method("POST")
      * @Template()
      */
-    public function passwordNewAction($service = null)
+    public function passwordNewAction($serviceName = null)
     {
         $user = $this->getUser();
         $form = $this->createForm(new NewPasswordType());
         
         $form->bind($this->getRequest());
         $password = $form->getData();
-        
-        if ($service === null) {
-            $_password=$user->getPassword($password->getId());
-        }else {
-            $_password=$user->getService($service)->getPassword($password->getId());
-        }
-        if($_password!==null) {
+        try {
+            if ($serviceName === null) {
+                $user->getPassword($password->getId());
+            }else {
+                $user->getService($serviceName)->getPassword($password->getId());
+            }
             $form->addError(new FormError("Password Id is in use"));
-        }
+        }catch(InvalidArgumentException $e) {}
         
         if ($form->isValid()) {
             
-            if ($service === null) {
+            if ($serviceName === null) {
                 $password->setMasterPassword(true);
                 $user->addPassword($password);
             } else {
-                $user->getService($service)->addPassword($password);
+                $user->getService($serviceName)->addPassword($password);
             }
             
             $errors = $this->get('validator')->validate($user);
