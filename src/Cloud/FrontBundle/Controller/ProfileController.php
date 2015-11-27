@@ -25,9 +25,26 @@ class ProfileController extends Controller
      */
     public function indexAction()
     {
+        
+        //--- services ---
         $formEdit = array();
+        $formEditServiceMasterPassword = array();
         foreach ($this->getUser()->getServices() as $service) {
+            //-- service settings --
+            $form = $this->createForm(new ServiceType(), $service, array(
+                'action' => $this->generateUrl('profile_service_masterPassword_edit', array(
+                    'service' => $service->getName()
+                )),
+                'method' => 'POST'
+            ));
+            $formEditServiceMasterPassword[$service->getName()] = $form->createView();
+
+            //--- service passwords ---
             $formEdit[$service->getName()] = array();
+            
+            if(!$service->isEnabled())  {
+                continue;
+            }
             
             foreach ($service->getPasswords() as $password) {
                 if (! $password->isMasterPassword()) {
@@ -53,6 +70,7 @@ class ProfileController extends Controller
                 ->createView();
         }
         
+        //---- master ---
         $formEditMaster = array();
         foreach ($this->getUser()->getPasswords() as $password) {
             $form = $this->createForm(new PasswordType(), $password, array(
@@ -71,27 +89,17 @@ class ProfileController extends Controller
         ))
             ->createView();
         
-        $formEditServiceMasterPassword = array();
-        foreach ($this->getUser()->getServices() as $service) {
-            $form = $this->createForm(new ServiceType(), $service, array(
-                'action' => $this->generateUrl('profile_service_masterPassword_edit', array(
-                    'service' => $service->getName()
-                )),
-                'method' => 'POST'
-            ));
-            $formEditServiceMasterPassword[$service->getName()] = $form->createView();
-        }
         
         $errors = $this->getRequest()
             ->getSession()
             ->getFlashBag()
             ->get('errors', array());
-
+        
         return array(
             'errors' => $errors,
             'formEdit' => $formEdit,
             'formEditMasterPasswords' => $formEditMaster,
-            'formEditServiceMasterPassword' => $formEditServiceMasterPassword
+            'formEditServiceMasterPasswords' => $formEditServiceMasterPassword
         );
     }
 

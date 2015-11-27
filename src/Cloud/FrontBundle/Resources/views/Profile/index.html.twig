@@ -49,23 +49,23 @@
         </div>
         {% endfor %}
     </div>
-    {% for serviceName,formEditService in formEdit %}
+    {% for serviceName,formEditServiceMasterPassword in formEditServiceMasterPasswords %}
       <div role="tabpanel" class="tab-pane" id="{{ serviceName }}">
         <div class="row">
-            {{ form_start(attribute(formEditServiceMasterPassword,serviceName)) }}
-                {{ form_widget(attribute(formEditServiceMasterPassword,serviceName)._token) }}
+            {{ form_start(formEditServiceMasterPassword) }}
+                {{ form_widget(formEditServiceMasterPassword._token) }}
                 <div class="col-md-4">
-                {{ form_row(attribute(formEditServiceMasterPassword,serviceName).masterPasswordEnabled) }}
+                {{ form_row(formEditServiceMasterPassword.masterPasswordEnabled) }}
                 </div>
                 <div class="col-md-4">
-                {{ form_row(attribute(formEditServiceMasterPassword,serviceName).enabled) }}
+                {{ form_row(formEditServiceMasterPassword.enabled) }}
                 </div>
                 <div class="col-md-4">
-                {{ form_row(attribute(formEditServiceMasterPassword,serviceName).save) }}
+                {{ form_row(formEditServiceMasterPassword.save) }}
                 </div>
-            {{ form_end(attribute(formEditServiceMasterPassword,serviceName)) }}
+            {{ form_end(formEditServiceMasterPassword) }}
         </div>
-        {% for formEditPassword in formEditService %}
+        {% for formEditPassword in attribute(formEdit,serviceName) %}
         <div class="row">
             {{ form_start(formEditPassword) }}
                 {{ form_widget(formEditPassword._token) }}
