@@ -32,7 +32,7 @@ class PasswordType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('id','text')
+            ->add('id','text',array('disabled'=>true))
             ->add('id_old','hidden',array('mapped'=>false))
             ->add('passwordPlain','repeated',array(
                 'type'=>'password',

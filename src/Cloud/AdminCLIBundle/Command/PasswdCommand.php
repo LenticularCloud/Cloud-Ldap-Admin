@@ -66,7 +66,7 @@ class PasswdCommand extends ContainerAwareCommand
     {
         $helper = $this->getHelper('question');
         try {
-            $this->getContainer()->get('cloud.ldap');
+            $this->getContainer()->get('cloud.ldap.userprovider');
         } catch (\Exception $e) {
             $output->writeln("<error>Can't connect to database</error>");
             return 255;
@@ -86,16 +86,16 @@ class PasswdCommand extends ContainerAwareCommand
         } else {
             $question = new Question('Please enter the name of the User:');
             $question->setAutocompleterValues($this->getContainer()
-                ->get('cloud.ldap')
-                ->getAllUsernames());
+                ->get('cloud.ldap.userprovider')
+                ->getUsernames());
             $username = $helper->ask($input, $output, $question);
         }
         
         // check username for existence
         try {
             $this->user = $this->getContainer()
-                ->get('cloud.ldap')
-                ->getUserByUsername($username);
+                ->get('cloud.ldap.userprovider')
+                ->loadUserByUsername($username);
         } catch (UserNotFoundException $e) {
             $output->writeln('User not found');
             return 1;
@@ -108,8 +108,8 @@ class PasswdCommand extends ContainerAwareCommand
             if ($serviceName == '.') {
                 $question = new Question('Please enter the name of the Service:');
                 $question->setAutocompleterValues($this->getContainer()
-                    ->get('cloud.ldap')
-                    ->getServices());
+                    ->get('cloud.ldap.userprovider')
+                    ->getServiceNames());
                 $serviceName = $helper->ask($input, $output, $question);
             }
             $service = $this->user->getService($serviceName);
@@ -178,8 +178,8 @@ class PasswdCommand extends ContainerAwareCommand
                 $this->user->removePassword($password);
             }
             $this->getContainer()
-                ->get('cloud.ldap')
-                ->updateUser($this->user);
+                ->get('cloud.ldap.util.usermanipulator')
+                ->update($this->user);
             return 0; // complete delete a password
         }
         
@@ -201,8 +201,8 @@ class PasswdCommand extends ContainerAwareCommand
             }
             
             $this->getContainer()
-                ->get('cloud.ldap')
-                ->updateUser($this->user);
+                ->get('cloud.ldap.util.usermanipulator')
+                ->update($this->user);
             return 0;
         }
         if ($action == "modify") {

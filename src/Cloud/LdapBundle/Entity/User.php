@@ -26,7 +26,7 @@ class User implements UserInterface
      * main passwords for this user
      *
      * @Assert\Valid(deep=true)
-     * @Assert\NotBlank()
+     * @Assert\NotBlank(message="You have to set at min. one master password.")
      *
      * @var Array<Password> $passwords
      */
@@ -114,6 +114,7 @@ class User implements UserInterface
      */
     public function getPassword($passwordId=null)
     {
+        dump($passwordId);
         if (!isset($this->passwords[$passwordId]))
             return null;
         

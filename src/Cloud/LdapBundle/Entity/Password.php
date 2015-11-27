@@ -18,7 +18,8 @@ class Password
 
     /**
      * @Assert\NotBlank()
-     * @Assert\Regex("/^[a-zA-Z0-9_-]{2,10}$/")
+     * @Assert\Regex("/^[a-zA-Z0-9_-]+$/",message="Id have to be only chars from a-zA-Z0-9_-")
+     * @Assert\Length(max=10,min=2,maxMessage="Id have to be max. 10 chars long",minMessage="Id have to min. 2 chars long")
      *
      * @var String $id
      */
@@ -34,6 +35,7 @@ class Password
     
     
     /**
+     * @Assert\Valid(deep=true)
      * 
      * @var User    $user
      */
@@ -42,6 +44,7 @@ class Password
     private $isMasterPassword;
     
     /**
+     * @Assert\Valid(deep=true)
      * 
      * @var Service
      */
@@ -59,7 +62,7 @@ class Password
      */
     public function validate(ExecutionContextInterface $context)
     {
-        if (! isset($this->hash) && ! isset($this->password_plain)) {
+        if ($context->getGroup()=='create' && ! isset($this->hash) && ! isset($this->password_plain)) {
             $context->buildViolation('password_plain have to be not null if no hash is set')
                 ->atPath('password_plain')
                 ->addViolation();

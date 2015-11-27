@@ -1,14 +1,19 @@
 {% extends "CloudFrontBundle::base.html.twig" %}
 
 {% block content %}
-
+{% if errors %}
+<ul class="alert alert-danger" role="alert">
+    {% for error in errors %}
+       {{ error|raw }}
+    {% endfor %}
+</ul>
+{% endif %}
 <ul class="nav nav-tabs">
   <li role="presentation" class="active"><a href="#main" aria-controls="home" role="tab" data-toggle="tab">Main</a></li>
 {% for service in app.user.getServices %}
   <li role="presentation"><a href="#{{ service.getName }}" aria-controls="profile" role="tab" data-toggle="tab">{{ service.getName }}</a></li>
 {% endfor %}
 </ul>
-
 <div class="tab-content">
     <div role="tabpanel" class="tab-pane active" id="main">
         {% for formEditPassword in formEditMasterPasswords %}

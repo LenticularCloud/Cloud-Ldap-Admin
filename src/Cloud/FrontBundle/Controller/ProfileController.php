@@ -11,6 +11,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Cloud\FrontBundle\Form\Type\ServiceType;
 use Cloud\LdapBundle\Entity\Service;
 use Cloud\FrontBundle\Form\Type\NewPasswordType;
+use Symfony\Component\Form\FormError;
 
 /**
  * @Route("/profile")
@@ -81,7 +82,14 @@ class ProfileController extends Controller
             $formEditServiceMasterPassword[$service->getName()] = $form->createView();
         }
         
+        $errors = $this->getRequest()
+            ->getSession()
+            ->getFlashBag()
+            ->get('errors', array());
+
+        dump($this->getUser());
         return array(
+            'errors' => $errors,
             'formEdit' => $formEdit,
             'formEditMasterPasswords' => $formEditMaster,
             'formEditServiceMasterPassword' => $formEditServiceMasterPassword
@@ -107,19 +115,28 @@ class ProfileController extends Controller
         $form = $this->createForm(new PasswordType(), $password);
         $form->bind($this->getRequest());
         
-        if ($form->isValid()) {
-            if ($form->get('remove')->isClicked()) {
-                if ($serviceName == null) {
-                    $user->removePassword($password);
-                } else {
-                    $user->getService($serviceName)->removePassword($password);
-                }
+        if ($form->get('remove')->isClicked()) {
+            if ($serviceName == null) {
+                $user->removePassword($password);
+            } else {
+                $user->getService($serviceName)->removePassword($password);
             }
+        }
+        
+        $errors = $this->get('validator')->validate($user);
+        
+        if (count($errors) === 0) {
             $this->get('cloud.ldap.util.usermanipulator')->update($user);
+        } else {
+            $this->getRequest()
+                ->getSession()
+                ->getFlashBag()
+                ->set('errors', $this->render('CloudFrontBundle::error.html.twig', array(
+                'errors' => $errors
+            )));
         }
         
         return $this->redirect($this->generateUrl('profile'));
-        ;
     }
 
     /**
@@ -132,10 +149,21 @@ class ProfileController extends Controller
     {
         $user = $this->getUser();
         $form = $this->createForm(new NewPasswordType());
+        
         $form->bind($this->getRequest());
+        $password = $form->getData();
+        
+        if ($service === null) {
+            $_password=$user->getPassword($password->getId());
+        }else {
+            $_password=$user->getService($service)->getPassword($password->getId());
+        }
+        if($_password!==null) {
+            $form->addError(new FormError("Password Id is in use"));
+        }
         
         if ($form->isValid()) {
-            $password = $form->getData();
+            
             if ($service === null) {
                 $password->setMasterPassword(true);
                 $user->addPassword($password);
@@ -143,8 +171,24 @@ class ProfileController extends Controller
                 $user->getService($service)->addPassword($password);
             }
             
-            $this->get('cloud.ldap.util.usermanipulator')->update($user);
+            $errors = $this->get('validator')->validate($user);
+            if (count($errors) === 0) {
+                $this->get('cloud.ldap.util.usermanipulator')->update($user);
+                
+                return $this->redirect($this->generateUrl('profile'));
+            }
+        }else {
+            $errors=$form->getErrors(true);
         }
+        dump($this->get('twig')->render('CloudFrontBundle::error.html.twig', array(
+            'errors' => $errors
+        )));
+        $this->getRequest()
+            ->getSession()
+            ->getFlashBag()
+            ->set('errors', $this->get('twig')->render('CloudFrontBundle::error.html.twig', array(
+            'errors' => $errors
+        )));
         
         return $this->redirect($this->generateUrl('profile'));
     }

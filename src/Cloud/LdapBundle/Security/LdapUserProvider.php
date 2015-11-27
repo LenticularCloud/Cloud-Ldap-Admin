@@ -125,4 +125,9 @@ class LdapUserProvider implements UserProviderInterface
 
         return $this->loadUserByUsername($user->getUsername());
     }
+    
+    
+    public function getServiceNames() {
+        return $this->services;
+    }
 }

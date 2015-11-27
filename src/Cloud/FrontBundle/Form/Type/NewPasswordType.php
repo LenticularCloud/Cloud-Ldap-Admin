@@ -24,7 +24,7 @@ class NewPasswordType extends AbstractType
         $resolver->setDefaults(array(
             'data_class' => 'Cloud\LdapBundle\Entity\Password',
             'validation_groups' => array(
-                'Default'
+                'create'
             )
         ));
     }
@@ -34,8 +34,8 @@ class NewPasswordType extends AbstractType
         $builder
             ->add('id','text')
             ->add('passwordPlain','repeated',array(
+                'invalid_message' => 'The password fields must match.',
                 'type'=>'password',
-                'required' => false,
                 'first_options'  => array('label' => 'Password'),
                 'second_options' => array('label' => 'Repeat Password'),
             ))

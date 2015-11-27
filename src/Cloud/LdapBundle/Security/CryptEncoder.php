@@ -80,9 +80,11 @@ class CryptEncoder implements LdapPasswordEncoderInterface
         $password->setHash($password_hash);
         $matches = null;
         preg_match('#^{crypt}\$\d\$(rounds=\d+\$)?([0-9a-zA-Z_-]+)?(=|\+)[0-9a-zA-Z_-]+\$[^\$]*$#', $password_hash, $matches);
-        if ($matches != null) {
+        if ($matches !== null) {
             $password->setId($matches[2]);
             $password->setMasterPassword($matches[3]==='+');
+        }else {
+            return null;
         }
         return $password;
     }
