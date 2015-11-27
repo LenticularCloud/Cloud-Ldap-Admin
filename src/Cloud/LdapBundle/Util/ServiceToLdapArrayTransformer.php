@@ -68,7 +68,6 @@ class ServiceToLdapArrayTransformer implements DataTransformerInterface
 
     public function reverseTransform($ldapArray)
     {
-        dump($ldapArray);
         $service=new Service($this->serviceName);
         
         if($ldapArray===null) {
@@ -79,9 +78,7 @@ class ServiceToLdapArrayTransformer implements DataTransformerInterface
         $service->setEnabled(true);
         
         $passwords=isset($ldapArray['userpassword'])?$ldapArray['userpassword']:array('count'=>0);
-        dump($passwords);
         for ($i = 0; $i < $passwords['count']; $i ++) {
-            dump($ldapArray['userpassword'][$i]);
             $password=$service->getEncoder()->parsePassword($ldapArray['userpassword'][$i]);
             if($password===null) {
                 continue;
@@ -92,7 +89,6 @@ class ServiceToLdapArrayTransformer implements DataTransformerInterface
                 $service->addPassword($password);
             }
         }
-        dump($service);
         
         return $service;
     }

@@ -114,7 +114,6 @@ class User implements UserInterface
      */
     public function getPassword($passwordId=null)
     {
-        dump($passwordId);
         if (!isset($this->passwords[$passwordId]))
             return null;
         

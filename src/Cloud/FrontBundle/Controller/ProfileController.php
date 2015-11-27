@@ -87,7 +87,6 @@ class ProfileController extends Controller
             ->getFlashBag()
             ->get('errors', array());
 
-        dump($this->getUser());
         return array(
             'errors' => $errors,
             'formEdit' => $formEdit,
@@ -180,9 +179,7 @@ class ProfileController extends Controller
         }else {
             $errors=$form->getErrors(true);
         }
-        dump($this->get('twig')->render('CloudFrontBundle::error.html.twig', array(
-            'errors' => $errors
-        )));
+        
         $this->getRequest()
             ->getSession()
             ->getFlashBag()

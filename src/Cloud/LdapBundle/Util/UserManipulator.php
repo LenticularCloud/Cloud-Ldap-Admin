@@ -56,7 +56,6 @@ class UserManipulator
 
     public function update(User $user)
     {
-        dump($user);
         $errors = $this->validator->validate($user);
         if (count($errors) > 0) {
             throw new InvalidArgumentException((string) $errors);
