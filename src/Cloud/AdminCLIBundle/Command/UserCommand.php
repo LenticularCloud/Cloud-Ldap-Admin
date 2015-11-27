@@ -33,7 +33,7 @@ class UserCommand extends ContainerAwareCommand
         $helper = $this->getHelper('question');
         
         try {
-            $this->getContainer()->get('cloud.ldap.client');
+            $this->getContainer()->get('cloud.ldap.userprovider');
         } catch (\Exception $e) {
             $output->writeln("<error>Can't connect to database</error>");
             return 255;
@@ -49,12 +49,12 @@ class UserCommand extends ContainerAwareCommand
         if (! $input->getOption('add') && ! $input->getOption('delete')) {
             if ($input->getOption('json')) {
                 $output->writeln(json_encode($this->getContainer()
-                    ->get('cloud.ldap.client')
-                    ->getAllUsernames()));
+                    ->get('cloud.ldap.userprovider')
+                    ->getUsernames()));
             } else {
                 foreach ($this->getContainer()
-                    ->get('cloud.ldap.client')
-                    ->getAllUsernames() as $username) {
+                    ->get('cloud.ldap.userprovider')
+                    ->getUsernames() as $username) {
                     $output->writeln($username);
                 }
             }
@@ -69,8 +69,8 @@ class UserCommand extends ContainerAwareCommand
             $question = new Question('Please enter the name of the User:');
             if ($input->getOption('delete')) {
                 $question->setAutocompleterValues($this->getContainer()
-                    ->get('cloud.ldap.client')
-                    ->getAllUsernames());
+                    ->get('cloud.ldap.userprovider')
+                    ->getUsernames());
             }
             $username = $helper->ask($input, $output, $question);
         }
@@ -93,7 +93,7 @@ class UserCommand extends ContainerAwareCommand
             
             $this->getContainer()
                 ->get('cloud.ldap.util.usermanipulator')
-                ->deleteUser($user);
+                ->delete($user);
             return 0;
         }
         

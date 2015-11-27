@@ -36,6 +36,9 @@ class LdapUserProvider implements UserProviderInterface
         $this->uidKey = $uidKey;
         $this->filter = $filter;
         $this->services = $services;
+
+        $this->ldap->bind($this->searchDn, $this->searchPassword);
+        $this->ldap->bind($this->searchDn, $this->searchPassword);
     }
     
     /**
@@ -57,8 +60,6 @@ class LdapUserProvider implements UserProviderInterface
         $query = str_replace('{username}', $username, str_replace('{uid_key}', $this->uidKey, $this->filter));
         
         try {
-            $this->ldap->bind($this->searchDn, $this->searchPassword);
-            $this->ldap->bind($this->searchDn, $this->searchPassword);
             
             $search = $this->ldap->find("ou=Users,".$this->baseDn, $query);
         } catch (ConnectionException $e) {
@@ -89,7 +90,6 @@ class LdapUserProvider implements UserProviderInterface
         }
         
         
-        
         return $user;
     }
 
@@ -101,8 +101,6 @@ class LdapUserProvider implements UserProviderInterface
      */
     public function getUsers()
     {
-        $this->ldap->bind($this->searchDn, $this->searchPassword);
-        $this->ldap->bind($this->searchDn, $this->searchPassword);
         
         $users = array();
         foreach ($this->ldap->getAllUsernames() as $username) {
@@ -110,6 +108,10 @@ class LdapUserProvider implements UserProviderInterface
         }
         
         return $users;
+    }
+    
+    public function getUsernames() {
+        return $this->ldap->getUsernames("ou=Users,".$this->baseDn);
     }
 
     /**

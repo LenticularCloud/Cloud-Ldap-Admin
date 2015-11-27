@@ -41,7 +41,7 @@ class UserManipulator
 
         $userTransformer = new UserToLdapArrayTransformer();
         
-        $this->client->replace('uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn, $userTransformer->transform($user));
+        $this->client->add('uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn, $userTransformer->transform($user));
     }
 
     public function activate(User $user, $service = null)
@@ -83,6 +83,22 @@ class UserManipulator
                 if($this->client->isEntityExist($dn)) {
                     $this->client->delete($dn);
                 }
+            }
+        }
+    }
+    
+    public function delete(User $user) {
+
+        $dn='uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn;
+        if($this->client->isEntityExist($dn)) {
+            $this->client->delete($dn);
+        }
+        foreach ($user->getServices() as $service) {
+
+            $dn='uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
+
+            if($this->client->isEntityExist($dn)) {
+                $this->client->delete($dn);
             }
         }
     }

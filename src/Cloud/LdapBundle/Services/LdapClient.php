@@ -310,9 +310,9 @@ class LdapClient implements LdapClientInterface
      * @return Array<User>
      * @throws LdapQueryException
      */
-    public function getAllUsernames()
+    public function getUsernames($dn)
     {
-        $result = @ldap_list($this->connection, 'ou=users,' . $this->base_dn, '(uid=*)', array(
+        $result = @ldap_list($this->connection,$dn, '(uid=*)', array(
             'uid'
         ));
         
@@ -320,7 +320,7 @@ class LdapClient implements LdapClientInterface
             throw new LdapException(ldap_error($this->connection));
         }
         
-        $info = ldap_get_entries($this->ldap_resource, $result);
+        $info = ldap_get_entries($this->connection, $result);
         
         $users = array();
         for ($i = 0; $i < $info["count"]; $i ++) {
