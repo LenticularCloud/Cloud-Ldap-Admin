@@ -24,10 +24,6 @@ class ProfileController extends Controller
      */
     public function indexAction()
     {
-        dump($this->get('security.token_storage')
-            ->getToken()
-            ->getUser());
-        
         $formEdit = array();
         foreach ($this->getUser()->getServices() as $service) {
             $formEdit[$service->getName()] = array();
@@ -74,7 +70,7 @@ class ProfileController extends Controller
         ))
             ->createView();
         
-        $formEditServiceMasterPassword=array();
+        $formEditServiceMasterPassword = array();
         foreach ($this->getUser()->getServices() as $service) {
             $form = $this->createForm(new ServiceType(), $service, array(
                 'action' => $this->generateUrl('profile_service_masterPassword_edit', array(
@@ -88,7 +84,7 @@ class ProfileController extends Controller
         return array(
             'formEdit' => $formEdit,
             'formEditMasterPasswords' => $formEditMaster,
-            'formEditServiceMasterPassword'=>$formEditServiceMasterPassword
+            'formEditServiceMasterPassword' => $formEditServiceMasterPassword
         );
     }
 
@@ -101,22 +97,18 @@ class ProfileController extends Controller
     public function passwordEditAction($passwordId, $serviceName = null)
     {
         $user = $this->getUser();
-
-        dump($serviceName);
+        
         if ($serviceName === null) {
             $password = $user->getPassword($passwordId);
         } else {
             $password = $user->getService($serviceName)->getPassword($passwordId);
         }
         
-        $form = $this->createForm(new PasswordType(),$password);
+        $form = $this->createForm(new PasswordType(), $password);
         $form->bind($this->getRequest());
         
         if ($form->isValid()) {
-            
-            dump($form->get('remove')->isClicked());
-            
-            if($form->get('remove')->isClicked()) {
+            if ($form->get('remove')->isClicked()) {
                 if ($serviceName == null) {
                     $user->removePassword($password);
                 } else {
@@ -144,7 +136,6 @@ class ProfileController extends Controller
         
         if ($form->isValid()) {
             $password = $form->getData();
-            dump($service);
             if ($service === null) {
                 $password->setMasterPassword(true);
                 $user->addPassword($password);
@@ -154,7 +145,6 @@ class ProfileController extends Controller
             
             $this->get('cloud.ldap.util.usermanipulator')->update($user);
         }
-        
         
         return $this->redirect($this->generateUrl('profile'));
     }
@@ -190,18 +180,14 @@ class ProfileController extends Controller
     public function serviceMasterPasswordEditAction($service)
     {
         $user = $this->getUser();
-        $service=$user->getService($service);
+        $service = $user->getService($service);
         
-       $form = $this->createForm(new ServiceType(), $service);
+        $form = $this->createForm(new ServiceType(), $service);
         $form->bind($this->getRequest());
         if ($form->isValid()) {
             $this->get('cloud.ldap.util.usermanipulator')->update($user);
         }
-        dump($form);
-        
-
         
         return $this->redirect($this->generateUrl('profile'));
-        ;
     }
 }

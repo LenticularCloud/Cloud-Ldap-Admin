@@ -236,7 +236,6 @@ class LdapClient implements LdapClientInterface
 
     public function add($dn,array $entity)
     {
-        dump($dn, $entity);
         if (true != @ldap_add($this->connection, $dn, $entity)) {
             throw new LdapException(ldap_error($this->connection));
         }

@@ -27,4 +27,4 @@ monolog:
             type:  console
 
 parameters:
-    auth_required_channel: 'https'
+    auth_required_channel: 'http'
