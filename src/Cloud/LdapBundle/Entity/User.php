@@ -114,8 +114,9 @@ class User implements UserInterface
      */
     public function getPassword($passwordId=null)
     {
-        if (!isset($this->passwords[$passwordId]))
-            return null;
+        if (! isset($this->passwords[$passwordId])) {
+            throw new InvalidArgumentException("passwordId not found");
+        }
         
         return $this->passwords[$passwordId];
     }
