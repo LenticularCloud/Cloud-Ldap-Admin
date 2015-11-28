@@ -134,6 +134,9 @@ class User implements UserInterface
         if($password->getUser()!==$this) {
             $password->setUser($this);
         }
+        if(!$password->isMasterPassword()) {
+            $password->setMasterPassword(true);
+        }
         return $this;
     }
 
