@@ -7,6 +7,7 @@ use \Cloud\LdapBundle\Entity\Service;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Security\Core\User\User as BaseUser;
 use Symfony\Component\Security\Core\User\UserInterface;
+use InvalidArgumentException;
 
 class User implements UserInterface
 {
