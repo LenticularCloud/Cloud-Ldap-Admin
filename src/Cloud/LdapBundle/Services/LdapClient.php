@@ -91,11 +91,11 @@ class LdapClient implements LdapClientInterface
         }
         $search = @ldap_search($this->connection, $dn, $query, $filter);
         if($search===false) {
-            return;
+            return null;
         }
         $infos = ldap_get_entries($this->connection, $search);
         if (0 === $infos['count']) {
-            return;
+            return null;
         }
         return $infos;
     }
@@ -258,50 +258,6 @@ class LdapClient implements LdapClientInterface
         }
         
         return true;
-    }
-    
-    /**
-     * @TODO check each returnvalue and return a better exception on failuer
-     */
-    public function init()
-    {
-        $dc = current(explode('.', $this->domain));
-        
-        $data = array();
-        $data['dc'] = $dc;
-        $data['ou'] = $dc;
-        $data['objectClass'] = array(
-            'organizationalUnit',
-            'dcObject'
-        );
-        ldap_add($this->connection, $this->base_dn, $data);
-        
-        $data = array();
-        $data['ou'] = 'users';
-        $data['objectClass'] = array(
-            'top',
-            'organizationalUnit'
-        );
-        ldap_add($this->connection, 'ou=users,' . $this->base_dn, $data);
-        
-        foreach ($this->services as $service) {
-            $data = array();
-            $data['dc'] = $service;
-            $data['ou'] = $service;
-            $data['objectClass'] = array(
-                'organizationalUnit',
-                'dcObject'
-            );
-            ldap_add($this->connection, 'dc=' . $service . ',' . $this->base_dn, $data);
-            
-            $data = array();
-            $data['ou'] = 'users';
-            $data['objectClass'] = array(
-                'top',
-                'organizationalUnit'
-            );
-            ldap_add($this->connection, 'ou=users,' . 'dc=' . $service . ',' . $this->base_dn, $data);
-        }
     }
 
     /**

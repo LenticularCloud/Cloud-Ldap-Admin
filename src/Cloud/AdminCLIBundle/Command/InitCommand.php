@@ -24,16 +24,18 @@ class InitCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         try {
-            $this->getContainer()->get('cloud.ldap');
+            $this->getContainer()->get('cloud.ldap.schema.manipulator');
         } catch (\Exception $e) {
+            var_dump($e);
             $output->writeln("<error>Can't connect to database</error>");
             return 255;
         }
         
         $this->getContainer()
-            ->get('cloud.ldap')
-            ->init();
+            ->get('cloud.ldap.schema.manipulator')->updateSchema();
+
         
         return 0;
     }
+
 }

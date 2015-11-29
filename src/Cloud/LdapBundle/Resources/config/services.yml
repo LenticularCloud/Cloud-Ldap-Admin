@@ -39,3 +39,11 @@ services:
         arguments: [ "%ldap_host%" ]
     cloud.encoder.crypt:
         class: Cloud\LdapBundle\Security\CryptEncoder
+    cloud.ldap.schema.manipulator:
+        class: Cloud\LdapBundle\Util\SchemaManipulator
+        arguments:
+          - "@cloud.ldap.client.root"
+          - "%ldap_bind_rdn%"
+          - "%ldap_bind_pw%"
+          - "%ldap_base_dn%"
+          - "%services%"
