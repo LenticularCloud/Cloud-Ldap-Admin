@@ -121,8 +121,6 @@ class ServiceCommand extends ContainerAwareCommand
                 break;
             case 'enable':
                 $this->service->setEnabled(true);
-
-                $this->user->removeService($this->service);
                 $this->getContainer()
                     ->get('cloud.ldap.util.usermanipulator')
                     ->update($this->user);
