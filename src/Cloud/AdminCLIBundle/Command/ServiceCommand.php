@@ -136,7 +136,7 @@ class ServiceCommand extends ContainerAwareCommand
                     }
                 }
 
-                $this->user->removeService($this->service);
+                $this->service->setEnabled(false);
                 $this->getContainer()
                     ->get('cloud.ldap.util.usermanipulator')
                     ->update($this->user);
