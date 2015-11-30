@@ -184,10 +184,10 @@ class User implements UserInterface
      */
     public function removeService(Service $service)
     {
-        if (! isset($this->services[$service->getId()])) {
+        if (! isset($this->services[$service->getName()])) {
             throw \InvalidArgumentException("service not in the list");
         }
-        unset($this->services[$service->getId()]);
+        unset($this->services[$service->getName()]);
         if($service->getUser()===$this) {
             $service->setUser(null);
         }

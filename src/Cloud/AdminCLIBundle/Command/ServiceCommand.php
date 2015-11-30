@@ -48,14 +48,14 @@ class ServiceCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $helper = $this->getHelper('question');
-        
+
         try {
             $this->getContainer()->get('cloud.ldap.userprovider');
         } catch (\Exception $e) {
             $output->writeln("<error>Can't connect to database</error>");
             return 255;
         }
-        
+
         // read username
         $username = null;
         if ($input->getArgument('username') !== null) {
@@ -67,7 +67,7 @@ class ServiceCommand extends ContainerAwareCommand
                 ->getUsernames());
             $username = $helper->ask($input, $output, $question);
         }
-        
+
         // check username for existence
         try {
             $this->user = $this->getContainer()
@@ -84,16 +84,16 @@ class ServiceCommand extends ContainerAwareCommand
             $action = $input->getArgument('action');
         } else {
             $question = new Question('Please enter a action (list|show|enable|disable|enableMasterPassword|disableMasterPassword):');
-            $question->setAutocompleterValues(['list','show','enable','disable','enableMasterPassword','disableMasterPassword']);
+            $question->setAutocompleterValues(['list', 'show', 'enable', 'disable', 'enableMasterPassword', 'disableMasterPassword']);
             $action = $helper->ask($input, $output, $question);
         }
 
-        if ($action==='list') {
+        if ($action === 'list') {
             $table = new Table($output);
             $table
-                ->setHeaders(array('Service Name','Enabled','MasterPasswordEnabled','passwords'));
-            foreach($this->user->getServices() as $service) {
-                $table->addRow([$service->getName(),$service->isEnabled()?'X':'',$service->isMasterPasswordEnabled()?'X':'','@TODO']);
+                ->setHeaders(array('Service Name', 'Enabled', 'MasterPasswordEnabled', 'passwords'));
+            foreach ($this->user->getServices() as $service) {
+                $table->addRow([$service->getName(), $service->isEnabled() ? 'X' : '', $service->isMasterPasswordEnabled() ? 'X' : '', '@TODO']);
             }
             $table->render();
             return 0;
@@ -101,21 +101,21 @@ class ServiceCommand extends ContainerAwareCommand
 
 
         // read service
-        $serviceName=null;
+        $serviceName = null;
         if ($input->getArgument('service')) {
             $serviceName = $input->getArgument('service');
         } else {
             $question = new Question('Please enter service name:');
-            $question->setAutocompleterValues($this->getContainer()
-                ->get('cloud.ldap.schema.manipulator')
-                ->getServices());
+            $question->setAutocompleterValues(array_map(function ($service) {
+                    return $service->getName();
+                }, $this->user->getServices()));
             $serviceName = $helper->ask($input, $output, $question);
         }
 
-        $this->service=$this->user->getService($serviceName);
+        $this->service = $this->user->getService($serviceName);
 
 
-        switch($action) {
+        switch ($action) {
             case 'show':
                 //@TODO
                 break;
@@ -128,9 +128,9 @@ class ServiceCommand extends ContainerAwareCommand
                     ->update($this->user);
                 break;
             case 'disable':
-                if (! $input->getOption('force')) {
+                if (!$input->getOption('force')) {
                     $question = new ConfirmationQuestion('You really want to disable this service for the user \'' . $this->user->getUsername() . "?\n<error>all passwords get deleted</error> [y/N]:", false);
-                    if (! $helper->ask($input, $output, $question)) {
+                    if (!$helper->ask($input, $output, $question)) {
                         $output->writeln('<error>canceled by user, if you use a script use \'-f\' to force delete</error>');
                         return 1;
                     }
