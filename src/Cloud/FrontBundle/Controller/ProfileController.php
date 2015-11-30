@@ -33,7 +33,7 @@ class ProfileController extends Controller
         foreach ($this->getUser()->getServices() as $service) {
             //-- service settings --
             $form = $this->createForm(new ServiceType(), $service, array(
-                'action' => $this->generateUrl('profile_service_masterPassword_edit', array(
+                'action' => $this->generateUrl('profile_service_edit', array(
                     'service' => $service->getName()
                 )),
                 'method' => 'POST'
@@ -222,7 +222,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * @Route("/service/{service}/password/masterPassword",name="profile_service_masterPassword_edit")
+     * @Route("/service/{service}/edit",name="profile_service_edit")
      * @Method("POST")
      * @Template()
      */

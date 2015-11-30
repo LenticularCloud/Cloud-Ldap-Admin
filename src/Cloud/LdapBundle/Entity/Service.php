@@ -31,7 +31,7 @@ class Service
     /**
      * @var boolean $masterPasswordEnabled
      */
-    protected $masterPasswordEnabled=false;
+    protected $masterPasswordEnabled=true;
     
     /**
      * @var boolean $enabled

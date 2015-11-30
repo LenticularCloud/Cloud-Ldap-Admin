@@ -38,7 +38,7 @@ class SchemaManipulator
     public function updateSchema() {
         $this->addOuIfNotExist('ou=users,'.$this->baseDn);
 
-        foreach ($this->services as $service) {
+        foreach ($this->getServices() as $service) {
             $this->addDcIfNotExist('dc=' . $service . ',' . $this->baseDn,$service);
             $this->addOuIfNotExist('ou=users,dc=' . $service . ',' . $this->baseDn);
         }

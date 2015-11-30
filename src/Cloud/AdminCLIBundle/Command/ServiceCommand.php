@@ -1,7 +1,9 @@
 <?php
 namespace Cloud\AdminCLIBundle\Command;
 
+use Cloud\LdapBundle\Entity\Service;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -10,6 +12,7 @@ use Symfony\Component\Console\Question\Question;
 use Cloud\LdapBundle\Entity\User;
 use Cloud\LdapBundle\Entity\Password;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 
 class ServiceCommand extends ContainerAwareCommand
 {
@@ -22,19 +25,22 @@ class ServiceCommand extends ContainerAwareCommand
 
     /**
      *
-     * @var string
+     * @var Service
      */
-    private $serviceName;
+    private $service;
 
     protected function configure()
     {
         $this->setName('cloud:service')
             ->setDescription('activate or disable a service for an user')
             ->addArgument('username', InputArgument::OPTIONAL, null)
+            ->addArgument('action', InputArgument::OPTIONAL, null)
             ->addArgument('service', InputArgument::OPTIONAL, null)
             ->addOption('force', '-f', InputOption::VALUE_NONE, 'force deletes an service without asking')
-            ->addOption('add', '-a', InputOption::VALUE_NONE, 'enables an new service to a user')
-            ->addOption('delete', '-d', InputOption::VALUE_NONE, 'force deletes an service with all passwords')
+            /*enable 'enables an new service to a user'
+            ->addOption('disable', '-d', InputOption::VALUE_NONE, 'force deletes an service with all passwords')
+            ->addOption('disableMasterPws', null, InputOption::VALUE_NONE, 'disables the master passwords for this service')
+            ->addOption('enableMasterPws', null, InputOption::VALUE_NONE, 'enable the master passwords for this service')*/
             ->addOption('json', '-j', InputOption::VALUE_NONE, 'json output')
             ->setHelp('');
     }
@@ -44,16 +50,10 @@ class ServiceCommand extends ContainerAwareCommand
         $helper = $this->getHelper('question');
         
         try {
-            $this->getContainer()->get('cloud.ldap');
+            $this->getContainer()->get('cloud.ldap.userprovider');
         } catch (\Exception $e) {
             $output->writeln("<error>Can't connect to database</error>");
             return 255;
-        }
-        
-        // check parameters
-        if ($input->getOption('add') && $input->getOption('delete')) {
-            $output->writeln("<error>can't add and delete</error>");
-            return 1;
         }
         
         // read username
@@ -62,75 +62,101 @@ class ServiceCommand extends ContainerAwareCommand
             $username = $input->getArgument('username');
         } else {
             $question = new Question('Please enter the name of the User:');
-            if ($input->getOption('delete')) {
-                $question->setAutocompleterValues($this->getContainer()
-                    ->get('cloud.ldap')
-                    ->getAllUsernames());
-            }
+            $question->setAutocompleterValues($this->getContainer()
+                ->get('cloud.ldap.userprovider')
+                ->getUsernames());
             $username = $helper->ask($input, $output, $question);
         }
         
         // check username for existence
         try {
             $this->user = $this->getContainer()
-                ->get('cloud.ldap')
-                ->getUserByUsername($username);
-        } catch (UserNotFoundException $e) {
-            $this->user=null;
-        }
-        if($this->user==null) {
-            $output->writeln('User not found');
+                ->get('cloud.ldap.userprovider')
+                ->loadUserByUsername($username);
+        } catch (UsernameNotFoundException $e) {
+            $output->writeln('<error>User not found</error>');
             return 1;
         }
-        
-        // if no option is set show service list
-        if (! $input->getOption('add') && ! $input->getOption('delete')) {
-            $services = array_map(function ($value) {
-                return $value->getName();
-            }, $this->user->getServices());
-            
-            if ($input->getOption('json')) {
-                $output->writeln(json_encode($services));
-            } else {
-                foreach ($services as $username) {
-                    $output->writeln($username);
-                }
+
+
+        $action = null;
+        if ($input->getArgument('action') !== null) {
+            $action = $input->getArgument('action');
+        } else {
+            $question = new Question('Please enter a action (list|show|enable|disable|enableMasterPassword|disableMasterPassword):');
+            $question->setAutocompleterValues(['list','show','enable','disable','enableMasterPassword','disableMasterPassword']);
+            $action = $helper->ask($input, $output, $question);
+        }
+
+        if ($action==='list') {
+            $table = new Table($output);
+            $table
+                ->setHeaders(array('Service Name','Enabled','MasterPasswordEnabled','passwords'));
+            foreach($this->user->getServices() as $service) {
+                $table->addRow([$service->getName(),$service->isEnabled()?'X':'',$service->isMasterPasswordEnabled()?'X':'','@TODO']);
             }
+            $table->render();
             return 0;
         }
-        
+
+
         // read service
+        $serviceName=null;
         if ($input->getArgument('service')) {
-            $this->serviceName = $input->getArgument('service');
+            $serviceName = $input->getArgument('service');
         } else {
             $question = new Question('Please enter service name:');
             $question->setAutocompleterValues($this->getContainer()
-                ->get('cloud.ldap')
+                ->get('cloud.ldap.schema.manipulator')
                 ->getServices());
-            $this->serviceName = $helper->ask($input, $output, $question);
+            $serviceName = $helper->ask($input, $output, $question);
         }
-        
-        if ($input->getOption('delete')) {
-            if (! $input->getOption('force')) {
-                $question = new ConfirmationQuestion('You realy whant to disable this service for the user \'' . $this->user->getUsername() . "?\n<error>all passwords get deleted</error> [y/N]:", false);
-                if (! $helper->ask($input, $output, $question)) {
-                    $output->writeln('<error>canceled by user, if you use a script use \'-f\' to force delete</error>');
-                    return 1;
+
+        $this->service=$this->user->getService($serviceName);
+
+
+        switch($action) {
+            case 'show':
+                //@TODO
+                break;
+            case 'enable':
+                $this->service->setEnabled(true);
+
+                $this->user->removeService($this->service);
+                $this->getContainer()
+                    ->get('cloud.ldap.util.usermanipulator')
+                    ->update($this->user);
+                break;
+            case 'disable':
+                if (! $input->getOption('force')) {
+                    $question = new ConfirmationQuestion('You really want to disable this service for the user \'' . $this->user->getUsername() . "?\n<error>all passwords get deleted</error> [y/N]:", false);
+                    if (! $helper->ask($input, $output, $question)) {
+                        $output->writeln('<error>canceled by user, if you use a script use \'-f\' to force delete</error>');
+                        return 1;
+                    }
                 }
-            }
-            
-            $this->getContainer()
-                ->get('cloud.ldap')
-                ->disableService($this->user, $this->serviceName);
-            return 0;
+
+                $this->user->removeService($this->service);
+                $this->getContainer()
+                    ->get('cloud.ldap.util.usermanipulator')
+                    ->update($this->user);
+                break;
+            case 'enableMasterPassword':
+                $this->service->setMasterPasswordEnabled(true);
+                $this->getContainer()
+                    ->get('cloud.ldap.util.usermanipulator')
+                    ->update($this->user);
+                break;
+            case 'disableMasterPassword':
+                $this->service->setMasterPasswordEnabled(false);
+                $this->getContainer()
+                    ->get('cloud.ldap.util.usermanipulator')
+                    ->update($this->user);
+                break;
+            default:
+                $output->writeln('<error>action not found</error>');
+                return 1;
         }
-        
-        if ($input->getOption('add')) {
-            
-            $this->getContainer()
-                ->get('cloud.ldap')
-                ->enableService($this->user, $this->serviceName);
-            return 0;
-        }
+        return 0;
     }
 }
