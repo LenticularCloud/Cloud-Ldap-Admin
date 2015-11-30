@@ -93,7 +93,11 @@ class ServiceCommand extends ContainerAwareCommand
             $table
                 ->setHeaders(array('Service Name', 'Enabled', 'MasterPasswordEnabled', 'passwords'));
             foreach ($this->user->getServices() as $service) {
-                $table->addRow([$service->getName(), $service->isEnabled() ? 'X' : '', $service->isMasterPasswordEnabled() ? 'X' : '', '@TODO']);
+                $table->addRow([$service->getName(), $service->isEnabled() ? 'X' : '', $service->isMasterPasswordEnabled() ? 'X' : '', implode(',',
+                    array_map(function ($password) {
+                        return !$password->isMasterPassword() ? $password->getId() : '';
+                    }, $service->getPasswords()))
+                ]);
             }
             $table->render();
             return 0;
@@ -107,8 +111,8 @@ class ServiceCommand extends ContainerAwareCommand
         } else {
             $question = new Question('Please enter service name:');
             $question->setAutocompleterValues(array_map(function ($service) {
-                    return $service->getName();
-                }, $this->user->getServices()));
+                return $service->getName();
+            }, $this->user->getServices()));
             $serviceName = $helper->ask($input, $output, $question);
         }
 
@@ -122,6 +126,7 @@ class ServiceCommand extends ContainerAwareCommand
             case 'enable':
                 $this->service->setEnabled(true);
                 $this->service->setMasterPasswordEnabled(true);
+
                 $this->getContainer()
                     ->get('cloud.ldap.util.usermanipulator')
                     ->update($this->user);
