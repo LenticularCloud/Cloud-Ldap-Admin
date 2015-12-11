@@ -69,4 +69,9 @@ class SchemaManipulator
             $this->ldap->add($dn, $data);
         }
     }
+
+    public function getServices()
+    {
+        return $this->services;
+    }
 }

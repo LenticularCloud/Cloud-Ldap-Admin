@@ -8,7 +8,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
-use Cloud\LdapBundle\Exception\UserNotFoundException;
 use Cloud\LdapBundle\Entity\Password;
 use Symfony\Component\Console\Command\Command;
 use Cloud\LdapBundle\Entity\User;
