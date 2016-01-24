@@ -1,6 +1,8 @@
 cloud_ldap_admin
 ================
 
+!!THIS SOFTWARE IS NOT READY FOR USE YET!!
+
 
 
 INSTALL
@@ -17,8 +19,8 @@ https://getcomposer.org/download/
 ### Get dependents and configure
 
 ```Shell
-# cd cloud_ldap_admin
-# composer install
+cd cloud_ldap_admin
+composer install #this comand also offers you to set your configuration you can also do this later
 ```
 
 ###  Configure webserver
@@ -53,3 +55,9 @@ server {
   }
 }
 ```
+
+Configure
+---------
+
+The main config file is at `app/config/paramters.yml`
+
