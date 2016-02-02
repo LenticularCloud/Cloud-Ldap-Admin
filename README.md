@@ -1,9 +1,23 @@
-cloud_ldap_admin
+LenticularCloudAdmin
 ================
 
 !!THIS SOFTWARE IS NOT READY FOR USE YET!!
 
+Summary
+-------
 
+This is a tool to administrate a ldap database. It is concept to have multiple tables for different services.
+
+Example:
+Your domain is `example.org` so it creates the organisation units:
+`ou=users,dc=example,dc=org`
+`ou=users,dc=service,dc=example,dc=org`
+`ou=users,dc=service2,dc=example,dc=org`
+
+You can have also multiple passwords for this services or ONE global password for simple usage.
+The idea behind that, is to give not my password for the whole system to a creepy chat program.
+
+A user can also disable each service and remove himself from a organisation unit.
 
 INSTALL
 -------
@@ -22,6 +36,14 @@ https://getcomposer.org/download/
 cd cloud_ldap_admin
 composer install #this comand also offers you to set your configuration you can also do this later
 ```
+
+### Configure
+
+The main config file is at `app/config/paramters.yml`.
+
+### Inital ldap server
+
+`./app/console cloud:init`
 
 ###  Configure webserver
 
@@ -55,9 +77,3 @@ server {
   }
 }
 ```
-
-Configure
----------
-
-The main config file is at `app/config/paramters.yml`
-
