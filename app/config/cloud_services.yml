@@ -1,0 +1,4 @@
+cloud_ldap:
+  services:
+    test:
+      enable: false
