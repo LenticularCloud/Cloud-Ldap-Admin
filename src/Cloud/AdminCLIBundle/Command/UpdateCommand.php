@@ -35,8 +35,8 @@ class UpdateCommand extends ContainerAwareCommand
         }
         
         $this->getContainer()
-            ->get('cloud.ldap')
-            ->updateServices();
+            ->get('cloud.ldap.schema.manipulator')
+            ->updateSchema();
         
         return 0;
     }
