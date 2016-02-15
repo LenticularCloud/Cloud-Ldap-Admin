@@ -2,6 +2,7 @@
 /app/cache/*
 !app/cache/.gitkeep
 /app/config/parameters.yml
+/app/db.sqlite
 /app/logs/*
 !app/logs/.gitkeep
 /app/phpunit.xml
@@ -10,5 +11,6 @@
 /vendor/
 /web/bundles/
 /tmp
-.buildpath
-/.settings/
+/.buildpath
+/.idea
+/.settings

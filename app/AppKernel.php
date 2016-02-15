@@ -20,6 +20,7 @@ class AppKernel extends Kernel
             new Cloud\AdminCLIBundle\CloudAdminCLIBundle(),
             new Cloud\LdapBundle\CloudLdapBundle(),
             new Cloud\FrontBundle\CloudFrontBundle(),
+            new Cloud\RegistrationBundle\CloudRegistrationBundle(),
         );
 
         if (in_array($this->getEnvironment(), array('dev', 'test'), true)) {
