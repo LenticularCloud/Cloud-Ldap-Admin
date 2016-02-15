@@ -42,6 +42,7 @@ services:
     cloud.ldap.schema.manipulator:
         class: Cloud\LdapBundle\Util\SchemaManipulator
         arguments:
+          - "@logger"
           - "@cloud.ldap.client.root"
           - "%ldap_bind_rdn%"
           - "%ldap_bind_pw%"

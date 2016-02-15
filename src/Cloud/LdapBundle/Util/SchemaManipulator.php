@@ -10,6 +10,7 @@ namespace Cloud\LdapBundle\Util;
 
 
 use Cloud\LdapBundle\Services\LdapClient;
+use Symfony\Component\HttpKernel\Log\LoggerInterface;
 
 class SchemaManipulator
 {
@@ -26,47 +27,64 @@ class SchemaManipulator
      */
     private $ldap;
 
-    public function __construct(LdapClient $client,$bindDn,$bindPw,$baseDn,$services)
-    {
-        $this->ldap=$client;
-        $this->baseDn=$baseDn;
-        $this->services=$services;
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
 
-        $this->ldap->bind($bindDn,$bindPw);
+    public function __construct(LoggerInterface $logger,LdapClient $client, $bindDn, $bindPw, $baseDn, $services)
+    {
+        $this->logger=$logger;
+        $this->ldap = $client;
+        $this->baseDn = $baseDn;
+        $this->services = $services;
+
+        $this->ldap->bind($bindDn, $bindPw);
     }
 
-    public function updateSchema() {
-        $this->addOuIfNotExist('ou=users,'.$this->baseDn);
+    public function updateSchema()
+    {
+        $dc = preg_split("#,?dc=#", $this->baseDn);
+        $dc = $dc[1];
 
-        foreach ($this->getServices() as $service) {
-            $this->addDcIfNotExist('dc=' . $service . ',' . $this->baseDn,$service);
-            $this->addOuIfNotExist('ou=users,dc=' . $service . ',' . $this->baseDn);
+        $this->addDcIfNotExist($this->baseDn, $dc);
+        $this->addOuIfNotExist($this->baseDn, 'users');
+        $this->addOuIfNotExist($this->baseDn, 'groups');
+
+        foreach ($this->services as $service) {
+            $this->addDcIfNotExist('dc=' . $service . ',' . $this->baseDn, $service);
+            $this->addOuIfNotExist('dc=' . $service . ',' . $this->baseDn, 'users');
+            $this->addOuIfNotExist('dc=' . $service . ',' . $this->baseDn, 'groups');
         }
     }
 
-    public function addOuIfNotExist($dn)
+    public function addOuIfNotExist($dn, $name)
     {
-        if (!$this->ldap->isEntityExist($dn)) {
+        if (!$this->ldap->isEntityExist("ou=" . $name . "," . $dn)) {
             $data = array();
-            $data['ou'] = 'users';
-            $data['objectClass'] = array(
+            $data['ou'] = $name;
+            $data['objectClass'] = [
+                'top',
                 'organizationalUnit'
-            );
-            $this->ldap->add($dn, $data);
+            ];
+            $this->ldap->add("ou=" . $name . "," . $dn, $data);
+            $this->logger->info("Created Ou:'"."ou=" . $name . "," . $dn."''");
         }
     }
 
-    public function addDcIfNotExist($dn,$dc)
+    public function addDcIfNotExist($dn, $name)
     {
         if (!$this->ldap->isEntityExist($dn)) {
             $data = array();
-            $data['ou'] = $dc;
-            $data['dc'] = $dc;
-            $data['objectClass'] = array(
-                'organizationalUnit',
+            $data['dc'] = $name;
+            $data['o'] = $name;
+            $data['objectclass'] = array(
+                'top',
+                'organization',
                 'dcObject'
             );
             $this->ldap->add($dn, $data);
+            $this->logger->info("Created Dc:'".$dn."''");
         }
     }
 }

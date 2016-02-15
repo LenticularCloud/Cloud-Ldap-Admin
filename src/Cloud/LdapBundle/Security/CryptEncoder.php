@@ -25,7 +25,7 @@ class CryptEncoder implements LdapPasswordEncoderInterface
             $salt = $this->getRandomeSalt(16 - strlen($password->getId()));
             $salt = $password->getId() . ($password->isMasterPassword() ? '+' : '=') . $salt;
         } else {
-            $salt = 'main=' . $this->getRandomeSalt();
+            $salt = 'default=' . $this->getRandomeSalt();
         }
 
         $hash = crypt($password->getPasswordPlain(), '$6$rounds=' . $rounds . '$' . $salt . '$');

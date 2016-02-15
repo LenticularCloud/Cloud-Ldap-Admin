@@ -56,7 +56,7 @@ class LdapUserProvider implements UserProviderInterface
      */
     public function loadUserByUsername($username)
     {
-        $username = $this->ldap->escape($username, '', LdapClientInterface::LDAP_ESCAPE_FILTER);
+        $username = $this->ldap->escape($username, '', LDAP_ESCAPE_FILTER);
         $query = str_replace('{username}', $username, str_replace('{uid_key}', $this->uidKey, $this->filter));
         
         try {

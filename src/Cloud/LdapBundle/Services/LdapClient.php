@@ -273,7 +273,7 @@ class LdapClient implements LdapClientInterface
         ));
         
         if ($result === false) {
-            throw new LdapException(ldap_error($this->connection));
+            throw new LdapException(ldap_error($this->connection)." DN:".$dn);
         }
         
         $info = ldap_get_entries($this->connection, $result);
