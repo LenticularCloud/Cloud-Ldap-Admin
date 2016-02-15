@@ -41,9 +41,10 @@ twig:
         - bootstrap_3_layout.html.twig
 
 # Doctrine Configuration
-#doctrine:
-#    dbal:
-#        driver:   pdo_mysql
+doctrine:
+    dbal:
+        driver:   pdo_sqlite
+        path:   "%database_path%"
 #        host:     "%database_host%"
 #        port:     "%database_port%"
 #        dbname:   "%database_name%"
@@ -57,10 +58,10 @@ twig:
         #   3. Uncomment next line:
         #     path:     "%database_path%"
 
-#    orm:
-#        auto_generate_proxy_classes: "%kernel.debug%"
-#        naming_strategy: doctrine.orm.naming_strategy.underscore
-#        auto_mapping: true
+    orm:
+        auto_generate_proxy_classes: "%kernel.debug%"
+        naming_strategy: doctrine.orm.naming_strategy.underscore
+        auto_mapping: true
         
 # Swiftmailer Configuration
 swiftmailer:
