@@ -1,0 +1,10 @@
+{% extends "CloudFrontBundle::base.html.twig" %}
+
+{% block content %}
+
+    {% for user in users %}
+        {{ user.getUsername }}
+        {{ form(form_edit,{'action':path('registration_admin_edit',{'user':user.getId})}) }}
+    {% endfor %}
+
+{% endblock %}
