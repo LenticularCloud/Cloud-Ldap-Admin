@@ -62,7 +62,7 @@ class CryptEncoder implements LdapPasswordEncoderInterface
         if (substr($password->getHash(), 0, 7) != '{crypt}')
             return false;
         $hash = substr($password->getHash(), 7);
-        if (crypt($password->getPasswordPlain(), $hash) == $hash) {
+        if (crypt($password->getPasswordPlain(), $hash) === $hash) {
             return true;
         }
 
