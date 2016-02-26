@@ -1,4 +1,17 @@
 cloud_ldap:
+  main:
+    data_object: 'Cloud\LdapBundle\Enity\User'
   services:
-    test:
-      enable: false
+    git_gogs:
+      enable: true
+      data_object: 'Cloud\LdapBundle\Enity\DefaultService'
+    mail:
+      enable: true
+    seafile:
+      enable: true
+    ampache:
+      enable: true
+    radicale:
+      enable: true
+    freeradius:
+      enable: true
