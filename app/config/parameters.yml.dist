@@ -3,12 +3,6 @@
 # http://symfony.com/doc/current/best_practices/configuration.html#infrastructure-related-configuration
 # This file is auto-generated during the composer install
 parameters:
-    services:
-        - git_gogs
-        - mail
-        - seafile
-        - ampache
-        - radicale
     ldap_host: localhost
     ldap_port: 389
     ldap_bind_rdn: 'cn=root,dc=example,dc=org'

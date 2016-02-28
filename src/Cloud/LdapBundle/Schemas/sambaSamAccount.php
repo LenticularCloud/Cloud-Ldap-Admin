@@ -13,6 +13,7 @@ namespace Cloud\LdapBundle\Schemas;
  * sambaPrimaryGroupSID $ sambaDomainName $ sambaMungedDial $
  * sambaBadPasswordCount $ sambaBadPasswordTime $
  * sambaPasswordHistory $ sambaLogonHours))
+ * @LDAP\Schema()
  */
 interface SambaSamAccount
 {

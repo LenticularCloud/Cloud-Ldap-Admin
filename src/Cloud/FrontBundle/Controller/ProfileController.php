@@ -73,6 +73,7 @@ class ProfileController extends Controller
         
         //---- master ---
         $formEditMaster = array();
+        dump($this->getUser());
         foreach ($this->getUser()->getPasswords() as $password) {
             $form = $this->createForm(new PasswordType(), $password, array(
                 'action' => $this->generateUrl('profile_password_edit', array(

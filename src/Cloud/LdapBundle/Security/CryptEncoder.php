@@ -1,6 +1,7 @@
 <?php
 namespace Cloud\LdapBundle\Security;
 
+use Cloud\LdapBundle\Entity\Ldap\Attribute;
 use Cloud\LdapBundle\Entity\Password;
 
 /**
@@ -74,12 +75,12 @@ class CryptEncoder implements LdapPasswordEncoderInterface
      * (non-PHPdoc)
      * @see \Cloud\LdapBundle\Security\PasswordEncoderInterface::parsePassword()
      */
-    public function parsePassword($password_hash)
+    public function parsePassword(Attribute $password_hash)
     {
         $password = new Password();
-        $password->setHash($password_hash);
+        $password->setAttribute($password_hash);
         $matches = null;
-        $found = preg_match('#^{crypt}\$\d\$(rounds=\d+\$)?([0-9a-zA-Z_-]+)?(=|\+)[0-9a-zA-Z_-]+\$[^\$]*$#', $password_hash, $matches);
+        $found = preg_match('#^{crypt}\$\d\$(rounds=\d+\$)?([0-9a-zA-Z_-]+)?(=|\+)[0-9a-zA-Z_-]+\$[^\$]*$#', $password_hash->get(), $matches);
         if ($found === 1) {
             $password->setId($matches[2]);
             $password->setMasterPassword($matches[3] === '+');

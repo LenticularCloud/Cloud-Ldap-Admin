@@ -20,7 +20,8 @@ services:
             - ["ROLE_USER"]
             - "uid"
             - "({uid_key}={username})"
-            - "%services%"
+            - "%cloud_ldap.services%"
+            - "@cloud.ldap.annation.reader"
     user.check:
         class: Symfony\Component\Security\Core\User\UserChecker
     cloud.ldap.authenticationprovider:
@@ -47,4 +48,6 @@ services:
           - "%ldap_bind_rdn%"
           - "%ldap_bind_pw%"
           - "%ldap_base_dn%"
-          - "%services%"
+          - "%cloud_ldap.services%"
+    cloud.ldap.annation.reader:
+        class: Doctrine\Common\Annotations\AnnotationReader

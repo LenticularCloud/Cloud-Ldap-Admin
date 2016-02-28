@@ -5,6 +5,7 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Cloud\LdapBundle\Entity\Password;
 use Cloud\LdapBundle\Entity\Service;
 use Cloud\LdapBundle\Entity\User;
+use \InvalidArgumentException;
 
 class UserTest extends WebTestCase
 {
@@ -36,9 +37,11 @@ class UserTest extends WebTestCase
     {
         $user = new User(null);
         $this->assertNotEmpty($this->validator->validate($user));
-        
-        $user->setUsername("test");
-        $this->assertNotEmpty($this->validator->validate($user));
+
+
+        $user = new User("test");
+        //$user->setUsername("test");
+        //$this->assertNotEmpty($this->validator->validate($user));
         
         $user->addPassword(new Password("123456","testID"));
         $this->assertEmpty($this->validator->validate($user));

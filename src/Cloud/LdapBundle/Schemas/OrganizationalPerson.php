@@ -1,12 +1,8 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: norbert
- * Date: 2/15/16
- * Time: 8:51 PM
- */
-
 namespace Cloud\LdapBundle\Schemas;
+
+use Cloud\LdapBundle\Entity\Ldap\Attribute;
+use Cloud\LdapBundle\Mapper as LDAP;
 
 /**
  * DESC 'RFC2256: an organizational person'
@@ -16,8 +12,36 @@ namespace Cloud\LdapBundle\Schemas;
  * telephoneNumber $ internationaliSDNNumber $
  * facsimileTelephoneNumber $ street $ postOfficeBox $ postalCode $
  * postalAddress $ physicalDeliveryOfficeName $ ou $ st $ l ) )
+ * @LDAP\Schema()
  */
-interface OrganizationalPerson extends Person
+class OrganizationalPerson extends Person
 {
+
+    /**
+     * @var Attribute
+     *
+     * @Ldap\Attribute(type="string")
+     */
+    private $registeredAddress;
+
+    /**
+     * @return Attribute
+     */
+    public function getRegisteredAddress()
+    {
+        parent::__construct();
+        return $this->registeredAddress;
+    }
+
+    /**
+     * @param Attribute $registeredAddress
+     * @return OrganizationalPerson
+     */
+    public function setRegisteredAddress($registeredAddress)
+    {
+        $this->registeredAddress = $registeredAddress;
+        return $this;
+    }
+
 
 }

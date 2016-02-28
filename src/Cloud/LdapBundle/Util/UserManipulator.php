@@ -61,23 +61,22 @@ class UserManipulator
             throw new InvalidArgumentException((string) $errors);
         }
 
-        $userTransformer = new UserToLdapArrayTransformer();
+        $transformer = new LdapArrayToObjectTransformer(null);
 
-        $this->client->replace('uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn, $userTransformer->transform($user));
+        $this->client->replace('uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn, $transformer->transform($user));
         
         foreach ($user->getServices() as $service) {
 
             $dn='uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
-            
+            dump($service,$service->isEnabled());
             if($service->isEnabled()) {
-                $serviceTransformer =new ServiceToLdapArrayTransformer($service->getName());
-                
+                dump($transformer->transform($service));
                 if($this->client->isEntityExist($dn)) {
                     $this->client->replace($dn,
-                         $serviceTransformer->transform($service));
+                        $transformer->transform($service));
                 }else {
                     $this->client->add($dn,
-                         $serviceTransformer->transform($service));
+                        $transformer->transform($service));
                 }
             }else {
                 if($this->client->isEntityExist($dn)) {

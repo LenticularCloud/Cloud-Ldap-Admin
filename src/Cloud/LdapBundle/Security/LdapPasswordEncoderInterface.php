@@ -1,6 +1,7 @@
 <?php
 namespace Cloud\LdapBundle\Security;
 
+use Cloud\LdapBundle\Entity\Ldap\Attribute;
 use Cloud\LdapBundle\Entity\Password;
 
 interface LdapPasswordEncoderInterface {
@@ -25,8 +26,8 @@ interface LdapPasswordEncoderInterface {
     /**
      * gets a Password object from a hash string 
      *
-     * @param string $password_hash
+     * @param Attribute $password_hash
      * @return Password|null if can't be parsed return null
      */
-    public function parsePassword($password_hash);
+    public function parsePassword(Attribute $password_hash);
 }

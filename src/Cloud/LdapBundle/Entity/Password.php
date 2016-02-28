@@ -1,10 +1,11 @@
 <?php
 namespace Cloud\LdapBundle\Entity;
 
+use Cloud\LdapBundle\Entity\Ldap\AbstractAttribute;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
-class Password
+class Password extends  AbstractAttribute
 {
 
     /**
@@ -75,7 +76,7 @@ class Password
      */
     public function getHash()
     {
-        return $this->hash;
+        return $this->getAttribute()->get();
     }
 
     /**
@@ -85,13 +86,13 @@ class Password
      */
     public function setHash($hash)
     {
-        $this->hash = $hash;
+        $this->getAttribute()->set($hash);
         return $this;
     }
 
     /**
      *
-     * @return the String
+     * @return string
      */
     public function getId()
     {
@@ -102,7 +103,8 @@ class Password
      * unique
      * allow /(a-Z0-9_-){1,10}/
      *
-     * @param String $id            
+     * @param string $id
+     * @return Password
      */
     public function setId($id)
     {

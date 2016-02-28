@@ -7,6 +7,7 @@ namespace Cloud\LdapBundle\Schemas;
  * SUP top STRUCTURAL
  * MUST ( cn $ gidNumber )
  * MAY ( userPassword $ memberUid $ description ) )
+ * @LDAP\Schema()
  */
 interface PosixGroup
 {
