@@ -27,6 +27,9 @@ abstract class AbstractEntity
 
     public function getObject($type)
     {
+        if(! $this->objects instanceof ArrayCollection) {
+            return null;
+        }
         foreach ($this->objects as $object) {
             if ($object instanceof $type) {
                 return $object;

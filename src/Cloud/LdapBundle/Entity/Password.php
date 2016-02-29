@@ -53,6 +53,7 @@ class Password extends  AbstractAttribute
 
     public function __construct($id = null, $password_plain = null,$isMasterPassword=false)
     {
+        parent::__construct();
         $this->password_plain = $password_plain;
         $this->id = $id;
         $this->isMasterPassword=$isMasterPassword;

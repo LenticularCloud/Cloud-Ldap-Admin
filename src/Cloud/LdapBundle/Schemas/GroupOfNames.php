@@ -55,11 +55,11 @@ class GroupOfNames
 
 
     /**
-     * @return ArrayCollection
+     * @return array
      */
     public function getMembers()
     {
-        return $this->members);
+        return $this->members->map(function($value){return $value->get();})->getValues();
     }
 
     /**
@@ -68,7 +68,8 @@ class GroupOfNames
      */
     public function addMember($member)
     {
-        $this->members->add($member);
+        $this->removeMember($member);
+        $this->members->add(new Attribute($member));
         return $this;
     }
 
@@ -78,7 +79,12 @@ class GroupOfNames
      */
     public function removeMember($member)
     {
-        $this->members->remove($member);
+        foreach($this->members as $attr) {
+            if($attr->get() == $member) {
+                $this->members->remove($attr);
+                return $this;
+            }
+        }
         return $this;
     }
 }

@@ -1,12 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: norbert
- * Date: 2/27/16
- * Time: 7:18 PM
- */
-
 namespace Cloud\LdapBundle\Entity\Ldap;
+
 
 
 class AbstractAttribute
@@ -33,6 +27,11 @@ class AbstractAttribute
     {
         $this->attribute = $attribute;
         return $this;
+    }
+
+    public function __construct()
+    {
+        $this->attribute=new Attribute();
     }
 
 

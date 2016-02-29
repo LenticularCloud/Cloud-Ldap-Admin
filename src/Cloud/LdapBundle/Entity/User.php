@@ -49,15 +49,12 @@ class User extends AbstractEntity implements AdvancedUserInterface
      *
      * @var boolean
      */
-    private $enable=false;
+    private $enable = false;
 
     public function __construct($username, array $roles = array(), $enabled = true, $userNonExpired = true, $credentialsNonExpired = true, $userNonLocked = true)
     {
         parent::__construct();
         $this->username = $username;
-        foreach ($roles as $role) {
-            $this->addRoles($role);
-        }
         $this->setEnable($enabled);
     }
 
@@ -65,39 +62,52 @@ class User extends AbstractEntity implements AdvancedUserInterface
     {
         return [
             'inetorgperson' => Schemas\InetOrgPerson::class,
-            'posixaccount' => Schemas\PosixAccount::class,
             'shadowaccount' => Schemas\ShadowAccount::class,
             'lenticularuser' => Schemas\LenticularUser::class,
+            'posixaccount' => Schemas\PosixAccount::class,
         ];
     }
 
     public function afterAddObject($class)
     {
+        switch ($class) {
+            case Schemas\ShadowAccount::class:
 
-        if ($class === Schemas\ShadowAccount::class) {
+                $encoder = new CryptEncoder();
+                $this->passwords = [];
+                foreach ($this->getAttributes()->get('userpassword') as $password) {
+                    $password = $encoder->parsePassword($password);
+                    $this->passwords[$password->getId()] = $password;
+                }
+                break;
+            case Schemas\LenticularUser::class:
+                $this->enable = $this->getRoles() > 0;
 
-            $this->username = $this->getObject(Schemas\ShadowAccount::class)->getUid();
-
-            $encoder = new CryptEncoder();
-            $this->passwords = [];
-            foreach ($this->getObject(Schemas\ShadowAccount::class)->getUserPasswords() as $password) {
-                $password = $encoder->parsePassword($password);
-                $this->passwords[$password->getId()] = $password;
-            }
-        }
-        if($class === Schemas\LenticularUser::class) {
-            $this->enable=$this->getRoles()>0;
+                if ($this->getObject(Schemas\LenticularUser::class)->getUid() === null) {
+                    $this->getObject(Schemas\LenticularUser::class)->setUid($this->username);
+                } else {
+                    $this->username = $this->getObject(Schemas\LenticularUser::class)->getUid();
+                }
+                break;
+            case Schemas\InetOrgPerson::class:
+                $object=$this->getObject(Schemas\InetOrgPerson::class);
+                if($object->getSn()==null) {
+                    $object->setSn($this->username);
+                }
+                if($object->getCn()==null) {
+                    $object->setCn($this->username);
+                }
         }
     }
 
     public function __sleep()
     {
-        return array('username','enable');
+        return array('username', 'enable');
     }
 
     public function getRoles()
     {
-        if($this->getObject(Schemas\LenticularUser::class) !==null) {
+        if ($this->getObject(Schemas\LenticularUser::class) !== null) {
             return $this->getObject(Schemas\LenticularUser::class)->getAuthRoles();
         }
         return ["ROLE_USER"];
@@ -175,11 +185,17 @@ class User extends AbstractEntity implements AdvancedUserInterface
             $this->removePassword($this->passwords[$password->getId()]);
         }
         $this->passwords[$password->getId()] = $password;
+        $this->getAttributes()->get('userpassword')->add($this->passwords[$password->getId()]);
         if ($password->getUser() !== $this) {
             $password->setUser($this);
         }
         if (!$password->isMasterPassword()) {
             $password->setMasterPassword(true);
+        }
+        foreach ($this->services as $service) {
+            if ($service->isMasterPasswordEnabled()) {
+                $service->addPassword($password);
+            }
         }
         return $this;
     }
@@ -190,6 +206,7 @@ class User extends AbstractEntity implements AdvancedUserInterface
      */
     public function removePassword(Password $password)
     {
+        $this->getAttributes()->get('userpassword')->removeElement($this->passwords[$password->getId()]);
         $this->attributes->removeElement($this->passwords[$password->getId()]->getAttribute());
 
         foreach ($this->services as $service) {
@@ -284,6 +301,46 @@ class User extends AbstractEntity implements AdvancedUserInterface
     public function setEmail($email)
     {
         return $this->getObject(Schemas\InetOrgPerson::class)->setMail($email);
+    }
+
+    public function getAltEmail()
+    {
+        return $this->getObject(Schemas\LenticularUser::class)->getAltMail();
+    }
+
+    public function setAltEmail($altEmail)
+    {
+        return $this->getObject(Schemas\LenticularUser::class)->setAltMail($altEmail);
+    }
+
+    public function getGivenName()
+    {
+        return $this->getObject(Schemas\InetOrgPerson::class)->getGivenName();
+    }
+
+    public function setGivenName($givenName)
+    {
+        return $this->getObject(Schemas\InetOrgPerson::class)->setGivenName($givenName);
+    }
+
+    public function getSureName()
+    {
+        return $this->getObject(Schemas\InetOrgPerson::class)->getSn();
+    }
+
+    public function setSureName($sureName)
+    {
+        return $this->getObject(Schemas\InetOrgPerson::class)->setSn($sureName);
+    }
+
+    public function getDisplayName()
+    {
+        return $this->getObject(Schemas\InetOrgPerson::class)->getSn();
+    }
+
+    public function setDisplayName($displayName)
+    {
+        return $this->getObject(Schemas\InetOrgPerson::class)->setSn($displayName);
     }
 
     /**

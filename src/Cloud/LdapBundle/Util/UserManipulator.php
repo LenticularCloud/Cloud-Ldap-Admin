@@ -20,7 +20,7 @@ class UserManipulator
     protected $bindDn;
     protected $bindPassword;
 
-    public function __construct(LdapClient $client,LdapPasswordEncoderInterface $encoder,$validator,$baseDn,$bindDn,$bindPassword)
+    public function __construct(LdapClient $client, LdapPasswordEncoderInterface $encoder, $validator, $baseDn, $bindDn, $bindPassword)
     {
         $this->client = $client;
         $this->baseDn = $baseDn;
@@ -29,19 +29,38 @@ class UserManipulator
         $this->bindDn = $bindDn;
         $this->bindPassword = $bindPassword;
 
-        $this->client->bind($this->bindDn,$this->bindPassword);
+        $this->client->bind($this->bindDn, $this->bindPassword);
     }
 
     public function create(User $user)
     {
         $errors = $this->validator->validate($user);
         if (count($errors) > 0) {
-            throw new InvalidArgumentException((string) $errors);
+            throw new InvalidArgumentException((string)$errors);
         }
 
-        $userTransformer = new UserToLdapArrayTransformer();
-        
-        $this->client->add('uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn, $userTransformer->transform($user));
+        $transformer = new LdapArrayToObjectTransformer();
+
+        $this->client->add('uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn, $transformer->transform($user));
+        foreach ($user->getServices() as $service) {
+
+            $dn = 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
+            if ($service->isEnabled()) {
+                $this->client->add($dn,
+                    $transformer->transform($service));
+            }
+        }
+    }
+
+    public function createUser($username)
+    {
+        $user = new User($username);
+
+        foreach($user->getObjectClasses() as $objectClass) {
+            $user->addObject($objectClass);
+        }
+        dump($username,$user);
+        return $user;
     }
 
     public function activate(User $user, $service = null)
@@ -59,44 +78,45 @@ class UserManipulator
         dump($user);
         $errors = $this->validator->validate($user);
         if (count($errors) > 0) {
-            throw new InvalidArgumentException((string) $errors);
+            throw new InvalidArgumentException((string)$errors);
         }
 
         $transformer = new LdapArrayToObjectTransformer(null);
 
         dump($transformer->transform($user));
         $this->client->replace('uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn, $transformer->transform($user));
-        
+
         foreach ($user->getServices() as $service) {
 
-            $dn='uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
-            if($service->isEnabled()) {
-                if($this->client->isEntityExist($dn)) {
+            $dn = 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
+            if ($service->isEnabled()) {
+                if ($this->client->isEntityExist($dn)) {
                     $this->client->replace($dn,
                         $transformer->transform($service));
-                }else {
+                } else {
                     $this->client->add($dn,
                         $transformer->transform($service));
                 }
-            }else {
-                if($this->client->isEntityExist($dn)) {
+            } else {
+                if ($this->client->isEntityExist($dn)) {
                     $this->client->delete($dn);
                 }
             }
         }
     }
-    
-    public function delete(User $user) {
 
-        $dn='uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn;
-        if($this->client->isEntityExist($dn)) {
+    public function delete(User $user)
+    {
+
+        $dn = 'uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn;
+        if ($this->client->isEntityExist($dn)) {
             $this->client->delete($dn);
         }
         foreach ($user->getServices() as $service) {
 
-            $dn='uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
+            $dn = 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
 
-            if($this->client->isEntityExist($dn)) {
+            if ($this->client->isEntityExist($dn)) {
                 $this->client->delete($dn);
             }
         }

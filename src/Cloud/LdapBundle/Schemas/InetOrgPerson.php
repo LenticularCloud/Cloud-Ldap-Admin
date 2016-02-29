@@ -45,12 +45,6 @@ class InetOrgPerson extends OrganizationalPerson
      */
     private $mobile;
 
-    /**
-     * @var Attribute
-     * @LDAP\Attribute(type="string")
-     */
-    private $uid;
-
     public function __construct()
     {
         parent::__construct();
@@ -58,7 +52,6 @@ class InetOrgPerson extends OrganizationalPerson
         $this->givenName = new Attribute();
         $this->mail = new Attribute();
         $this->mobile = new Attribute();
-        $this->uid = new Attribute();
     }
 
     /**
@@ -123,21 +116,5 @@ class InetOrgPerson extends OrganizationalPerson
     public function setMobile($mobile)
     {
         $this->mobile->set($mobile);
-    }
-
-    /**
-     * @return string
-     */
-    public function getUid()
-    {
-        return $this->uid->get();
-    }
-
-    /**
-     * @param string $uid
-     */
-    public function setUid($uid)
-    {
-        $this->uid->set($uid);
     }
 }

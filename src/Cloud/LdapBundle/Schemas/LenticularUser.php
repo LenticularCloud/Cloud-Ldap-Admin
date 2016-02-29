@@ -7,7 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * DESC ''
- * SUP top STRUCTURAL
+ * SUP top AUXILIARY
  * MUST uid
  * MAY (
  *  authRole
@@ -30,10 +30,20 @@ class LenticularUser
      */
     private $authRoles;
 
+    /**
+     * Alternative Email address
+     *
+     * @var Attribute
+     *
+     * @LDAP\Attribute(type="string")
+     */
+    private $altMail;
+
     public function __construct()
     {
         $this->uid = new Attribute();
         $this->authRoles = new ArrayCollection();
+        $this->altMail = new Attribute();
     }
 
     /**
@@ -41,7 +51,7 @@ class LenticularUser
      */
     public function getUid()
     {
-        return $this->uid;
+        return $this->uid->get();
     }
 
     /**
@@ -50,7 +60,7 @@ class LenticularUser
      */
     public function setUid($uid)
     {
-        $this->uid = $uid;
+        $this->uid->set($uid);
         return $this;
     }
 
@@ -90,5 +100,21 @@ class LenticularUser
         return $this;
     }
 
+    /**
+     * @return Attribute
+     */
+    public function getAltMail()
+    {
+        return $this->altMail->get();
+    }
 
+    /**
+     * @param Attribute $altMail
+     * @return LenticularUser
+     */
+    public function setAltMail($altMail)
+    {
+        $this->altMail->set($altMail);
+        return $this;
+    }
 }

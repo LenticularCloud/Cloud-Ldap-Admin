@@ -3,7 +3,8 @@
 namespace Cloud\RegistrationBundle\Controller;
 
 use Cloud\LdapBundle\Entity\Password;
-use Cloud\RegistrationBundle\Entity\User;
+use Cloud\LdapBundle\Entity\User;
+use Cloud\RegistrationBundle\Entity\User as RegUser;
 use Cloud\RegistrationBundle\Form\Type\EditType;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -33,7 +34,7 @@ class AdminController extends Controller
     /**
      * @Route("/edit/{user}",name="registration_admin_edit")
      */
-    public function editAction(Request $request, User $user)
+    public function editAction(Request $request, RegUser $user)
     {
         $response = new Response();
         $form=$this->createForm(EditType::class);
@@ -43,13 +44,15 @@ class AdminController extends Controller
             $data=$form->getData();
             $em=$this->getDoctrine()->getManager();
             if($data['action'] ===true ) {
-                $userLdap=new \Cloud\LdapBundle\Entity\User($user->getUsername());
-                $password=new Password();
+                $userLdap=$this->get('cloud.ldap.util.usermanipulator')->createUser($user->getUsername());
 
+                $password=new Password();
                 $password->setHash($user->getPasswordHash());
                 $password->setId('default');
                 $userLdap->addPassword($password);
 
+                $userLdap->setAltEmail($user->getAltEmail());
+                dump($user->getAltEmail(),$userLdap);
                 $this->get('cloud.ldap.util.usermanipulator')->create($userLdap);
                 $em->remove($user);
 

@@ -24,13 +24,18 @@ class OrganizationalPerson extends Person
      */
     private $registeredAddress;
 
+    public function __construct()
+    {
+        parent::__construct();
+        $this->registeredAddress=new Attribute();
+    }
+
     /**
      * @return Attribute
      */
     public function getRegisteredAddress()
     {
-        parent::__construct();
-        return $this->registeredAddress;
+        return $this->registeredAddress->get();
     }
 
     /**
@@ -39,7 +44,7 @@ class OrganizationalPerson extends Person
      */
     public function setRegisteredAddress($registeredAddress)
     {
-        $this->registeredAddress = $registeredAddress;
+        $this->registeredAddress->set($registeredAddress);
         return $this;
     }
 
