@@ -5,6 +5,7 @@ namespace Cloud\RegistrationBundle\Controller;
 use Cloud\LdapBundle\Entity\Password;
 use Cloud\RegistrationBundle\Entity\User;
 use Cloud\RegistrationBundle\Form\Type\EditType;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
@@ -13,6 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @Route("/admin")
+ * @Security("has_role('ROLE_ADMIN_REG')")
  */
 class AdminController extends Controller
 {

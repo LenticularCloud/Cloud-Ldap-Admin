@@ -89,8 +89,9 @@ class LdapUserProvider implements UserProviderInterface
 
         $user = $transformer->reverseTransform($search[0], new User(null));
 
-        foreach ($this->defaultRoles as $defaultRole) {
-            $user->addRoles($defaultRole);
+        if ($user->getObject(Schemas\LenticularUser::class) === null) {
+            $user->addObject(Schemas\LenticularUser::class);
+            $user->addRole('ROLE_USER');
         }
 
         foreach ($this->getServices() as $serviceName => $service) {
@@ -99,11 +100,12 @@ class LdapUserProvider implements UserProviderInterface
             if ($search !== null) {
                 $serviceObject = $transformer->reverseTransform($search[0], $serviceObject);
             }
-            $user->addService($serviceObject);
-            if ($serviceObject->isEnabled() && $serviceObject->getObject(Schemas\CloudService::class) === null) {
-                //$serviceObject->addObject(Schemas\CloudService::class);
+            if ($serviceObject->getObject(Schemas\LenticularUser::class) === null && $serviceObject->isEnabled()) {
+                $serviceObject->addObject(Schemas\LenticularUser::class);
             }
+            $user->addService($serviceObject);
         }
+
         dump($user);
         return $user;
     }
@@ -139,6 +141,7 @@ class LdapUserProvider implements UserProviderInterface
             throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', get_class($user)));
         }
         $_user = $this->loadUserByUsername($user->getUsername());
+
         return $_user;
     }
 

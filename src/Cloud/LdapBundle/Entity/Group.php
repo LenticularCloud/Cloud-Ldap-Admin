@@ -1,10 +1,12 @@
 <?php
 namespace Cloud\LdapBundle\Entity;
 
+use Cloud\LdapBundle\Entity\Ldap\AbstractEntity;
 use Symfony\Component\Validator\Constraints as Assert;
+use Cloud\LdapBundle\Schemas;
 use InvalidArgumentException;
 
-class Group
+class Group extends AbstractEntity
 {
 
     /**
@@ -16,11 +18,11 @@ class Group
      * @var String $username
      */
     private $name;
-    
+
     /**
-     * 
+     *
      */
-    private $roles=array();
+    private $roles = array();
 
     /**
      * @TODO think about that
@@ -29,10 +31,19 @@ class Group
      */
     private $enable;
 
-    public function __construct($name, array $roles = array(), $enabled = true) {
-        $this->name=$name;
-        $this->roles=$roles;
-        $this->enable=$enabled;
+    public function __construct($name, array $roles = array(), $enabled = true)
+    {
+        $this->name = $name;
+        $this->roles = $roles;
+        $this->enable = $enabled;
+    }
+
+    public function getObjectClasses()
+    {
+        return [
+            'groupofnames' => Schemas\GroupOfNames::class,
+            'lenticulargroup' => Schemas\LenticularGroup::class,
+        ];
     }
 
     /**
@@ -40,7 +51,7 @@ class Group
      */
     public function getName()
     {
-        return $this->name;
+        return $this->getObject(Schemas\GroupOfNames::class)->getCn();
     }
 
     /**
@@ -49,7 +60,7 @@ class Group
      */
     public function setName($name)
     {
-        $this->name = $name;
+        $this->getObject(Schemas\GroupOfNames::class)->setCn($name);
         return $this;
     }
 
@@ -58,7 +69,7 @@ class Group
      */
     public function getRoles()
     {
-        return $this->roles;
+        return $this->getObject(Schemas\LenticularGroup::class)->getAuthRoles();
     }
 
     /**
@@ -67,7 +78,7 @@ class Group
      */
     public function addRoles($role)
     {
-        $this->roles[$role]=$role;
+        $this->getObject(Schemas\LenticularGroup::class)->addAuthRole($role);
         return $this;
     }
 

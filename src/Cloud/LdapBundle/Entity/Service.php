@@ -68,7 +68,6 @@ class Service extends AbstractEntity
 
     public function afterAddObject($class)
     {
-
         if ($class === Schemas\ShadowAccount::class) {
             $encoder = new CryptEncoder();
             $this->passwords = [];

@@ -1,6 +1,10 @@
 <?php
-
 namespace Cloud\LdapBundle\Schemas;
+
+use Cloud\LdapBundle\Entity\Ldap\Attribute;
+use Cloud\LdapBundle\Mapper as LDAP;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * DESC 'Abstraction of a group of accounts'
@@ -9,18 +13,80 @@ namespace Cloud\LdapBundle\Schemas;
  * MAY ( userPassword $ memberUid $ description ) )
  * @LDAP\Schema()
  */
-interface PosixGroup
+class PosixGroup
 {
-    public function getCn();
-    public function setCn($cn);
+    /**
+     * @var string
+     *
+     * @LDAP\Attribute(type="string")
+     */
+    private $cn;
 
-    public function getGidNumber();
-    public function setGidNumber();
+    /**
+     * @var int
+     *
+     * @LDAP\Attribute(type="number")
+     */
+    private $gidNumber;
 
-    public function getMemberUids();
-    public function addMemberUids($uid);
-    public function removeMemberUids($uid);
+    /**
+     * @var ArrayCollection
+     *
+     * @LDAP\Attribute(type="array")
+     */
+    private $memberUid;
 
-    public function getDescription();
-    public function setDescription($description);
+    /**
+     * @return string
+     */
+    public function getCn()
+    {
+        return $this->cn;
+    }
+
+    /**
+     * @param string $cn
+     * @return PosixGroup
+     */
+    public function setCn($cn)
+    {
+        $this->cn = $cn;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getGidNumber()
+    {
+        return $this->gidNumber;
+    }
+
+    /**
+     * @param int $gidNumber
+     * @return PosixGroup
+     */
+    public function setGidNumber($gidNumber)
+    {
+        $this->gidNumber = $gidNumber;
+        return $this;
+    }
+
+    /**
+     * @return ArrayCollection
+     */
+    public function getMemberUid()
+    {
+        return $this->memberUid;
+    }
+
+    /**
+     * @param ArrayCollection $memberUid
+     * @return PosixGroup
+     */
+    public function setMemberUid($memberUid)
+    {
+        $this->memberUid = $memberUid;
+        return $this;
+    }
 }

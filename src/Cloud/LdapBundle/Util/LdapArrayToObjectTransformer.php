@@ -77,7 +77,6 @@ class LdapArrayToObjectTransformer
         }
         $ldapArray=$tmp;
 
-        $objects=new ArrayCollection();
         foreach ($ldapArray["objectclass"] as $key => $objectClass) {
             if ($key === 'count') {
                 continue;

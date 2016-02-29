@@ -56,6 +56,7 @@ class UserManipulator
 
     public function update(User $user)
     {
+        dump($user);
         $errors = $this->validator->validate($user);
         if (count($errors) > 0) {
             throw new InvalidArgumentException((string) $errors);
@@ -63,14 +64,13 @@ class UserManipulator
 
         $transformer = new LdapArrayToObjectTransformer(null);
 
+        dump($transformer->transform($user));
         $this->client->replace('uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn, $transformer->transform($user));
         
         foreach ($user->getServices() as $service) {
 
             $dn='uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
-            dump($service,$service->isEnabled());
             if($service->isEnabled()) {
-                dump($transformer->transform($service));
                 if($this->client->isEntityExist($dn)) {
                     $this->client->replace($dn,
                         $transformer->transform($service));

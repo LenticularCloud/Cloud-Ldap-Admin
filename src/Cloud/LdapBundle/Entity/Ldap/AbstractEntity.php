@@ -2,8 +2,8 @@
 namespace Cloud\LdapBundle\Entity\Ldap;
 
 
+use Cloud\LdapBundle\Util\Annotation\AnnotationHelper;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Annotations\AnnotationReader;
 use Cloud\LdapBundle\Mapper;
 
 abstract class AbstractEntity
@@ -18,14 +18,11 @@ abstract class AbstractEntity
      */
     protected $attributes;
 
-    private $reader;
-
     public function __construct()
     {
         $this->objects = new ArrayCollection();
         $this->attributes = new ArrayCollection();
 
-        $this->reader = new AnnotationReader();
     }
 
     public function getObject($type)
@@ -35,7 +32,6 @@ abstract class AbstractEntity
                 return $object;
             }
         }
-        dump($this->objects, $type);
         return null;
     }
 
@@ -64,7 +60,7 @@ abstract class AbstractEntity
         $reflectionObject = new \ReflectionObject($object);
         do {
             foreach ($reflectionObject->getProperties() as $reflectionProperty) {
-                $annotation = $this->reader->getPropertyAnnotation($reflectionProperty, Mapper\Attribute::class);
+                $annotation = AnnotationHelper::getReader()->getPropertyAnnotation($reflectionProperty, Mapper\Attribute::class);
                 if ($annotation instanceof Mapper\Attribute) {
                     $name = strtolower(isset($annotation->name) ? $annotation->name : $reflectionProperty->name);
 
@@ -131,7 +127,7 @@ abstract class AbstractEntity
                                     $attribute->set($value);
                                 }
                             } else {
-                                $attribute = new Attribute("false");
+                                $attribute = new Attribute("FALSE");
                             }
                             break;
                         default:

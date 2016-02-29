@@ -27,13 +27,26 @@
 			</div>
 			<div id="navbar" class="collapse navbar-collapse">
 				<ul class="nav navbar-nav">
-					<li class="active"><a href="#">Home</a></li>
-					<li><a href="#about">About</a></li>
-					<li><a href="#contact">Contact</a></li>
+					{% if is_granted('ROLE_USER') %}
+					<li{% if app.request.get('_route')  matches '{^profile}' %} class="active"{% endif %}><a href="{{ path('profile') }}">Profile</a></li>
+					<li{% if app.request.get('_route')  matches '{^password}' %} class="active"{% endif %}><a href="{{ path('password') }}">Password</a></li>
+					{% endif %}
+					{% if is_granted('ROLE_ADMIN') %}
+						<li{% if app.request.get('_route')  matches '{^admin}' %} class="active"{% endif %}><a href="{{ path('admin_index') }}">Admin</a></li>
+					{% endif %}
+					{% if is_granted('ROLE_ADMIN_REG') %}
+						<li{% if app.request.get('_route')  matches '{^reg}' %} class="active"{% endif %}><a href="{{ path('registration_admin_index') }}">Reg. Admin</a></li>
+					{% endif %}
+					{% if not app.user %}
+					<li{% if app.request.get('_route')  matches '{^reg}' %} class="active"{% endif %}><a href="{{ path('registration_index') }}">Sign Up</a></li>
+					{% endif %}
 				</ul>
-				<ul class="nav pull-right">
+
+				{% if app.user %}
+				<ul class="nav navbar-nav pull-right">
 					<li><a href="/logout">Logout</a></li>
 				</ul>
+				{% endif %}
 			</div>
 			<!--/.nav-collapse -->
 		</div>

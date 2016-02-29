@@ -1,104 +1,14 @@
 {% extends "CloudFrontBundle::base.html.twig" %}
 
 {% block content %}
-{% if errors %}
-<ul class="alert alert-danger" role="alert">
-    {% for error in errors %}
-       {{ error|raw }}
-    {% endfor %}
-</ul>
-{% endif %}
-<ul class="nav nav-tabs">
-  <li role="presentation" class="active"><a href="#main" aria-controls="home" role="tab" data-toggle="tab">Main</a></li>
-{% for service in app.user.getServices %}
-  <li role="presentation"><a href="#{{ service.getName }}" aria-controls="profile" role="tab" data-toggle="tab">{{ service.getName }}</a></li>
-{% endfor %}
-</ul>
-<div class="tab-content">
-    <div role="tabpanel" class="tab-pane active" id="main">
-        {% for formEditPassword in formEditMasterPasswords %}
-        <div class="row">
-            {{ form_start(formEditPassword) }}
-                {{ form_widget(formEditPassword._token) }}
-                
-                <div class="col-md-3">
-                    {{ form_row(formEditPassword.id) }}
-                </div>
-                <div class="col-md-3">
-                    {{ form_row(formEditPassword.passwordPlain.first) }}
-                </div>
-                <div class="col-md-3">
-                    {{ form_row(formEditPassword.passwordPlain.second) }}
-                </div>
-                <div class="col-md-3">
-                    <div class="col-xs-4">
-                    {% if formEditPassword.add is defined %}
-                        {{ form_row(formEditPassword.add) }}
-                    {% else %}
-                        {{ form_row(formEditPassword.save) }}
-                    {% endif %}
-                    </div>
-                    <div class="col-xs-8">
-                    {% if formEditPassword.remove is defined %}
-                        {{ form_row(formEditPassword.remove) }}
-                    {% endif %}
-                    {{ form_errors(formEditPassword) }}
-                    </div>
-                </div>
-            {{ form_end(formEditPassword) }}
-        </div>
-        {% endfor %}
-    </div>
-    {% for serviceName,formEditServiceMasterPassword in formEditServiceMasterPasswords %}
-      <div role="tabpanel" class="tab-pane" id="{{ serviceName }}">
-        <div class="row">
-            {{ form_start(formEditServiceMasterPassword) }}
-                {{ form_widget(formEditServiceMasterPassword._token) }}
-                <div class="col-md-4">
-                {{ form_row(formEditServiceMasterPassword.masterPasswordEnabled) }}
-                </div>
-                <div class="col-md-4">
-                {{ form_row(formEditServiceMasterPassword.enabled) }}
-                </div>
-                <div class="col-md-4">
-                {{ form_row(formEditServiceMasterPassword.save) }}
-                </div>
-            {{ form_end(formEditServiceMasterPassword) }}
-        </div>
-        {% for formEditPassword in attribute(formEdit,serviceName) %}
-        <div class="row">
-            {{ form_start(formEditPassword) }}
-                {{ form_widget(formEditPassword._token) }}
-                
-                <div class="col-md-3">
-                    {{ form_row(formEditPassword.id) }}
-                </div>
-                <div class="col-md-3">
-                    {{ form_row(formEditPassword.passwordPlain.first) }}
-                </div>
-                <div class="col-md-3">
-                    {{ form_row(formEditPassword.passwordPlain.second) }}
-                </div>
-                <div class="col-md-3">
-                    <div class="col-xs-4">
-                    {% if formEditPassword.add is defined %}
-                        {{ form_row(formEditPassword.add) }}
-                    {% else %}
-                        {{ form_row(formEditPassword.save) }}
-                    {% endif %}
-                    </div>
-                    <div class="col-xs-8">
-                    {% if formEditPassword.remove is defined %}
-                        {{ form_row(formEditPassword.remove) }}
-                    {% endif %}
-                    {{ form_errors(formEditPassword) }}
-                    </div>
-                </div>
-            {{ form_end(formEditPassword) }}
-        </div>
-        {% endfor %}
-      </div>
-    {% endfor %}
+<div class="row" >
+    {{ form(form) }}
 </div>
+<div class="row">
+    <h2>Infos</h2>
+    Roles: {{ app.user.getRoles|join(',') }}
+</div>
+
+
 
 {% endblock %}

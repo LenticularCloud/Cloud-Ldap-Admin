@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
+ *
  * DESC 'RFC2256: a person'
  * SUP top STRUCTURAL
  * MUST ( sn $ cn )
@@ -39,9 +40,9 @@ class Person
 
     public function __construct()
     {
-        $this->sn=new Attribute();
-        $this->cn=new Attribute();
-        $this->userPasswords=new ArrayCollection();
+        $this->sn = new Attribute();
+        $this->cn = new Attribute();
+        $this->userPasswords = new ArrayCollection();
     }
 
     /**
@@ -95,6 +96,7 @@ class Person
     {
         $this->userPasswords->remove($userPasswords);
     }
+
     /**
      * @param string $userPasswords
      */

@@ -1,7 +1,7 @@
 cloud_registration:
     resource: "@CloudRegistrationBundle/Controller/"
     type:     annotation
-    prefix:   /registration
+    prefix:   /reg
 
 cloud_front:
     resource: "@CloudFrontBundle/Controller/"

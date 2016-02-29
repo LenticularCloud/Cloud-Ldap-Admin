@@ -18,16 +18,29 @@ class CloudService
     /**
      * @var Attribute
      *
+     * @LDAP\Attribute(type="string")
+     */
+    private $uid;
+
+    /**
+     * @var Attribute
+     *
      * @LDAP\Attribute(type="bool")
      */
     private $masterPasswordEnable;
+
+    public function __construct()
+    {
+        $this->uid = new Attribute();
+        $this->masterPasswordEnable = new Attribute();
+    }
 
     /**
      * @return Attribute
      */
     public function isMasterPasswordEnabled()
     {
-        return $this->masterPasswordEnable->get() === "true";
+        return $this->masterPasswordEnable->get() === "TRUE";
     }
 
     /**
@@ -36,11 +49,12 @@ class CloudService
      */
     public function setMasterPasswordEnabled($masterPasswordEnable)
     {
-        if($masterPasswordEnable) {
+        if ($masterPasswordEnable) {
             $this->masterPasswordEnable->set("TRUE");
-        }else {
+        } else {
             $this->masterPasswordEnable->set("FALSE");
         }
+        dump($this->masterPasswordEnable);
         return $this;
     }
 }

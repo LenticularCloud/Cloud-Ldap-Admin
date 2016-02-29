@@ -2,7 +2,11 @@
 namespace Cloud\LdapBundle\Entity;
 
 use Cloud\LdapBundle\Entity\Ldap\AbstractEntity;
+use Cloud\LdapBundle\Entity\Ldap\Attribute;
+use Cloud\LdapBundle\Mapper as LDAP;
 use Cloud\LdapBundle\Security\CryptEncoder;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Security\Core\User\AdvancedUserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use \Cloud\LdapBundle\Entity\Password;
 use \Cloud\LdapBundle\Entity\Service;
@@ -12,7 +16,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Cloud\LdapBundle\Schemas;
 use InvalidArgumentException;
 
-class User extends AbstractEntity implements UserInterface
+class User extends AbstractEntity implements AdvancedUserInterface
 {
 
     private $username;
@@ -42,11 +46,10 @@ class User extends AbstractEntity implements UserInterface
     private $services = array();
 
     /**
-     * @TODO think about that
      *
      * @var boolean
      */
-    private $enable;
+    private $enable=false;
 
     public function __construct($username, array $roles = array(), $enabled = true, $userNonExpired = true, $credentialsNonExpired = true, $userNonLocked = true)
     {
@@ -64,6 +67,7 @@ class User extends AbstractEntity implements UserInterface
             'inetorgperson' => Schemas\InetOrgPerson::class,
             'posixaccount' => Schemas\PosixAccount::class,
             'shadowaccount' => Schemas\ShadowAccount::class,
+            'lenticularuser' => Schemas\LenticularUser::class,
         ];
     }
 
@@ -81,17 +85,34 @@ class User extends AbstractEntity implements UserInterface
                 $this->passwords[$password->getId()] = $password;
             }
         }
+        if($class === Schemas\LenticularUser::class) {
+            $this->enable=$this->getRoles()>0;
+        }
+    }
+
+    public function __sleep()
+    {
+        return array('username','enable');
     }
 
     public function getRoles()
     {
-        //return $this->roles;
-        return ['ROLE_USER'];
+        if($this->getObject(Schemas\LenticularUser::class) !==null) {
+            return $this->getObject(Schemas\LenticularUser::class)->getAuthRoles();
+        }
+        return ["ROLE_USER"];
     }
 
-    public function addRoles($role)
+    public function addRole($role)
     {
-        $this->roles[] = $role;
+        $this->getObject(Schemas\LenticularUser::class)->addAuthRole($role);
+        return $this;
+    }
+
+    public function removeRole($role)
+    {
+        $this->getObject(Schemas\LenticularUser::class)->removeAuthRole($role);
+        return $this;
     }
 
     public function getSalt()
@@ -171,8 +192,8 @@ class User extends AbstractEntity implements UserInterface
     {
         $this->attributes->removeElement($this->passwords[$password->getId()]->getAttribute());
 
-        foreach($this->services as $service) {
-            if($service->isMasterPasswordEnabled()) {
+        foreach ($this->services as $service) {
+            if ($service->isMasterPasswordEnabled()) {
                 $service->removePassword($password);
             }
         }
@@ -209,7 +230,7 @@ class User extends AbstractEntity implements UserInterface
     public function removeService(Service $service)
     {
         if (!isset($this->services[$service->getName()])) {
-            throw \InvalidArgumentException("service not in the list");
+            throw InvalidArgumentException("service not in the list");
         }
         unset($this->services[$service->getName()]);
         if ($service->getUser() === $this) {
@@ -263,5 +284,65 @@ class User extends AbstractEntity implements UserInterface
     public function setEmail($email)
     {
         return $this->getObject(Schemas\InetOrgPerson::class)->setMail($email);
+    }
+
+    /**
+     * Checks whether the user's account has expired.
+     *
+     * Internally, if this method returns false, the authentication system
+     * will throw an AccountExpiredException and prevent login.
+     *
+     * @return bool true if the user's account is non expired, false otherwise
+     *
+     * @see AccountExpiredException
+     */
+    public function isAccountNonExpired()
+    {
+        return true;
+    }
+
+    /**
+     * Checks whether the user is locked.
+     *
+     * Internally, if this method returns false, the authentication system
+     * will throw a LockedException and prevent login.
+     *
+     * @return bool true if the user is not locked, false otherwise
+     *
+     * @see LockedException
+     */
+    public function isAccountNonLocked()
+    {
+        return true;
+    }
+
+    /**
+     * Checks whether the user's credentials (password) has expired.
+     *
+     * Internally, if this method returns false, the authentication system
+     * will throw a CredentialsExpiredException and prevent login.
+     *false
+     * @return bool true if the user's credentials are non expired, false otherwise
+     *
+     * @see CredentialsExpiredException
+     */
+    public function isCredentialsNonExpired()
+    {
+        return true;
+    }
+
+    /**
+     * Checks whether the user is enabled.
+     *
+     * Internally, if this method returns false, the authentication system
+     * will throw a DisabledException and prevent login.
+     *
+     * @return bool true if the user is enabled, false otherwise
+     *
+     * @see DisabledException
+     */
+    public function isEnabled()
+    {
+        return $this->enable;
     }
 }

@@ -2,8 +2,9 @@
 namespace Cloud\LdapBundle\Util\Annotation;
 
 use Cloud\LdapBundle\Schemas;
+use Doctrine\Common\Annotations\AnnotationReader;
 
-class AnnotationIndex
+class AnnotationHelper
 {
 
     private static $schemas = [
@@ -18,6 +19,11 @@ class AnnotationIndex
         'ShadowAccount',
     ];
 
+    /**
+     * @var AnnotationReader
+     */
+    private static $reader = null;
+
     public static function getSchemas()
     {
         $schemas=[];
@@ -25,5 +31,14 @@ class AnnotationIndex
             $schemas[strtolower($schema)]=Schemas::class.'\\'.$schema;
         }
         return $schemas;
+    }
+
+
+    public static function getReader() {
+
+        if( self::$reader === null) {
+            self::$reader = new AnnotationReader();
+        }
+        return self::$reader;
     }
 }

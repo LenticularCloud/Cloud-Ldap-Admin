@@ -27,7 +27,7 @@ class GroupOfNames
     /**
      * @var ArrayCollection
      *
-     * @LDAP/Attribute(type="array")
+     * @LDAP/Attribute(name="member",type="array")
      * @Assert\NotBlank()
      */
     private $members;
@@ -55,11 +55,11 @@ class GroupOfNames
 
 
     /**
-     * @return array
+     * @return ArrayCollection
      */
     public function getMembers()
     {
-        return $this->members->getValues();
+        return $this->members);
     }
 
     /**
@@ -72,5 +72,13 @@ class GroupOfNames
         return $this;
     }
 
-
+    /**
+     * @param string $member
+     * @return GroupOfNames
+     */
+    public function removeMember($member)
+    {
+        $this->members->remove($member);
+        return $this;
+    }
 }

@@ -1,243 +1,52 @@
 <?php
+
 namespace Cloud\FrontBundle\Controller;
 
+use Cloud\FrontBundle\Form\Type\ProfileType;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
-use Cloud\LdapBundle\Entity\Password;
-use Cloud\FrontBundle\Form\Type\PasswordType;
-use Symfony\Component\BrowserKit\Request;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Cloud\FrontBundle\Form\Type\ServiceType;
-use Cloud\LdapBundle\Entity\Service;
-use Cloud\FrontBundle\Form\Type\NewPasswordType;
-use Symfony\Component\Form\FormError;
-use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @Route("/profile")
  */
 class ProfileController extends Controller
 {
-
     /**
      * @Route("/",name="profile")
      * @Template()
      */
     public function indexAction()
     {
-        
-        //--- services ---
-        $formEdit = array();
-        $formEditServiceMasterPassword = array();
-        foreach ($this->getUser()->getServices() as $service) {
-            //-- service settings --
-            $form = $this->createForm(new ServiceType(), $service, array(
-                'action' => $this->generateUrl('profile_service_edit', array(
-                    'service' => $service->getName()
-                )),
-                'method' => 'POST'
-            ));
-            $formEditServiceMasterPassword[$service->getName()] = $form->createView();
-
-            //--- service passwords ---
-            $formEdit[$service->getName()] = array();
-            
-            if(!$service->isEnabled())  {
-                continue;
-            }
-            
-            foreach ($service->getPasswords() as $password) {
-                if (! $password->isMasterPassword()) {
-                    $form = $this->createForm(new PasswordType(), $password, array(
-                        'action' => $this->generateUrl('profile_service_password_edit', array(
-                            'serviceName' => $service->getName(),
-                            'passwordId' => $password->getId()
-                        )),
-                        'method' => 'POST'
-                    ));
-                    $form->get('id_old')->setData($password->getId());
-                    $formEdit[$service->getName()][] = $form->createView();
-                }
-            }
-            $newPassword = new Password();
-            $newPassword->setService($service);
-            $formEdit[$service->getName()][] = $this->createForm(new NewPasswordType(), $newPassword, array(
-                'action' => $this->generateUrl('profile_service_password_new', array(
-                    'serviceName' => $service->getName()
-                )),
-                'method' => 'POST'
-            ))
-                ->createView();
-        }
-        
-        //---- master ---
-        $formEditMaster = array();
-        dump($this->getUser());
-        foreach ($this->getUser()->getPasswords() as $password) {
-            $form = $this->createForm(new PasswordType(), $password, array(
-                'action' => $this->generateUrl('profile_password_edit', array(
-                    'passwordId' => $password->getId()
-                )),
-                'method' => 'POST'
-            ));
-            $form->get('id_old')->setData($password->getId());
-            $formEditMaster[] = $form->createView();
-        }
-        $newPassword = new Password();
-        $formEditMaster[] = $this->createForm(new NewPasswordType(), $newPassword, array(
-            'action' => $this->generateUrl('profile_password_new'),
+        $form = $this->createForm(new ProfileType(), $this->getUser(), array(
+            'action' => $this->generateUrl('profile_edit'),
             'method' => 'POST'
-        ))
-            ->createView();
-        
-        
-        $errors = $this->getRequest()
-            ->getSession()
-            ->getFlashBag()
-            ->get('errors', array());
-        
-        return array(
-            'errors' => $errors,
-            'formEdit' => $formEdit,
-            'formEditMasterPasswords' => $formEditMaster,
-            'formEditServiceMasterPasswords' => $formEditServiceMasterPassword
-        );
+        ));
+
+        return ['form' => $form->createView()];
     }
 
     /**
-     * @Route("/service/{serviceName}/password/{passwordId}/edit",name="profile_service_password_edit")
-     * @Route("/password/{passwordId}/edit",name="profile_password_edit")
-     * @Method("POST")
-     * @Template()
+     * @Route("/edit",name="profile_edit")
+     *
+     * @param $request Request
      */
-    public function passwordEditAction($passwordId, $serviceName = null)
+    public function editAction(Request $request)
     {
-        $user = $this->getUser();
-        
-        if ($serviceName === null) {
-            $password = $user->getPassword($passwordId);
-        } else {
-            $password = $user->getService($serviceName)->getPassword($passwordId);
-        }
-        
-        $form = $this->createForm(new PasswordType(), $password);
-        $form->bind($this->getRequest());
-        
-        if ($form->get('remove')->isClicked()) {
-            if ($serviceName == null) {
-                $user->removePassword($password);
-            } else {
-                $user->getService($serviceName)->removePassword($password);
-            }
-        }
-        
-        $errors = $this->get('validator')->validate($user);
-        
-        if (count($errors) === 0) {
-            $this->get('cloud.ldap.util.usermanipulator')->update($user);
-        } else {
-            $this->getRequest()
-                ->getSession()
-                ->getFlashBag()
-                ->set('errors', $this->render('CloudFrontBundle::error.html.twig', array(
-                'errors' => $errors
-            )));
-        }
-        
-        return $this->redirect($this->generateUrl('profile'));
-    }
+        $response = new Response();
+        $form = $this->createForm(new ProfileType(), $this->getUser());
 
-    /**
-     * @Route("/service/{serviceName}/password/new",name="profile_service_password_new")
-     * @Route("/password/new",name="profile_password_new")
-     * @Method("POST")
-     * @Template()
-     */
-    public function passwordNewAction($serviceName = null)
-    {
-        $user = $this->getUser();
-        $form = $this->createForm(new NewPasswordType());
-        
-        $form->bind($this->getRequest());
-        $password = $form->getData();
-        try {
-            if ($serviceName === null) {
-                $user->getPassword($password->getId());
-            }else {
-                $user->getService($serviceName)->getPassword($password->getId());
-            }
-            $form->addError(new FormError("Password Id is in use"));
-        }catch(InvalidArgumentException $e) {}
-        
+        $form->handleRequest($request);
+
         if ($form->isValid()) {
-            
-            if ($serviceName === null) {
-                $password->setMasterPassword(true);
-                $user->addPassword($password);
-            } else {
-                $user->getService($serviceName)->addPassword($password);
-            }
-            
-            $errors = $this->get('validator')->validate($user);
-            if (count($errors) === 0) {
-                $this->get('cloud.ldap.util.usermanipulator')->update($user);
-                
-                return $this->redirect($this->generateUrl('profile'));
-            }
-        }else {
-            $errors=$form->getErrors(true);
-        }
-        
-        $this->getRequest()
-            ->getSession()
-            ->getFlashBag()
-            ->set('errors', $this->get('twig')->render('CloudFrontBundle::error.html.twig', array(
-            'errors' => $errors
-        )));
-        
-        return $this->redirect($this->generateUrl('profile'));
-    }
-
-    /**
-     * @Route("/service/{serviceName}/password/{passwordID}/delete",name="profile_password_delete")
-     * @Route("/password/{passwordID}/delete",name="profile_password_delete")
-     * @Method("POST")
-     * @Template()
-     */
-    public function passwordDeleteAction($passwordID, $serviceName = null)
-    {
-        $user = $this->getUser();
-        
-        if ($serviceName == null) {
-            $password = $user->getPassword($passwordID);
-            $user->removePassword($password);
+            $this->get('cloud.ldap.util.usermanipulator')->update($this->getUser());
+            $response->setContent(json_encode(['successfully' => true]));
         } else {
-            $password = $user->getService($serviceName)->getPassword($passwordID);
-            $user->getService($serviceName)->removePassword($password);
+            $response->setContent(json_encode(['successfully' => false]));
         }
-        
-        $this->get('cloud.ldap.util.usermanipulator')->update($user);
-        
-        return $this->redirect($this->generateUrl('profile'));
-    }
 
-    /**
-     * @Route("/service/{service}/edit",name="profile_service_edit")
-     * @Method("POST")
-     * @Template()
-     */
-    public function serviceMasterPasswordEditAction($service)
-    {
-        $user = $this->getUser();
-        $service = $user->getService($service);
-        
-        $form = $this->createForm(new ServiceType(), $service);
-        $form->bind($this->getRequest());
-        if ($form->isValid()) {
-            $this->get('cloud.ldap.util.usermanipulator')->update($user);
-        }
-        
-        return $this->redirect($this->generateUrl('profile'));
+        return $response;
     }
 }
