@@ -25,7 +25,7 @@ class NewPasswordType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('id',Type\EmailType::class)
+            ->add('id',Type\TextType::class)
             ->add('passwordPlain',Type\RepeatedType::class,array(
                 'invalid_message' => 'The password fields must match.',
                 'type'=>Type\PasswordType::class,

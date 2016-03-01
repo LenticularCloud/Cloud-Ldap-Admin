@@ -25,6 +25,13 @@ class CloudService
     /**
      * @var Attribute
      *
+     * @LDAP\Attribute(type="string")
+     */
+    private $mail;
+
+    /**
+     * @var Attribute
+     *
      * @LDAP\Attribute(type="bool")
      */
     private $masterPasswordEnable;
@@ -33,6 +40,24 @@ class CloudService
     {
         $this->uid = new Attribute();
         $this->masterPasswordEnable = new Attribute();
+    }
+
+    /**
+     * @return Attribute
+     */
+    public function getUid()
+    {
+        return $this->uid->get();
+    }
+
+    /**
+     * @param Attribute $uid
+     * @return CloudService
+     */
+    public function setUid($uid)
+    {
+        $this->uid->set($uid);
+        return $this;
     }
 
     /**
@@ -54,6 +79,24 @@ class CloudService
         } else {
             $this->masterPasswordEnable->set("FALSE");
         }
+        return $this;
+    }
+
+    /**
+     * @return Attribute
+     */
+    public function getEmail()
+    {
+        return $this->mail->get();
+    }
+
+    /**
+     * @param Attribute $email
+     * @return CloudService
+     */
+    public function setEmail($email)
+    {
+        $this->mail->set($email);
         return $this;
     }
 }

@@ -91,6 +91,7 @@ class UserManipulator
 
             $dn = 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
             if ($service->isEnabled()) {
+                $service->getAttributes()->get('mail')->set($user->getEmail());
                 if ($this->client->isEntityExist($dn)) {
                     $this->client->replace($dn,
                         $transformer->transform($service));
