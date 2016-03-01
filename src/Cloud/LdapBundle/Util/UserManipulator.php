@@ -62,7 +62,7 @@ class UserManipulator
         foreach($user->getObjectClasses() as $objectClass) {
             $user->addObject($objectClass);
         }
-        $user->getObject(Schemas\InetOrgPerson::class)->setEmail($username.'@'.$this->domain);
+        $user->getObject(Schemas\InetOrgPerson::class)->setMail($username.'@'.$this->domain);
         return $user;
     }
 
