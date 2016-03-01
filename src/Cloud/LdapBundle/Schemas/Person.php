@@ -17,6 +17,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Person
 {
     /**
+     * olcAttributeTypes: ( 2.5.4.4 NAME ( 'sn' 'surname' )
+     * DESC 'RFC2256: last (family) name(s) for which the entity is known by'
+     * SUP name )
+     *
      * @var Attribute
      *
      * @LDAP\Attribute(type="string")
@@ -24,6 +28,10 @@ class Person
     private $sn;
 
     /**
+     * olcAttributeTypes: ( 2.5.4.3 NAME ( 'cn' 'commonName' )
+     * DESC 'RFC2256: common name(s) for which the entity is known by'
+     * SUP name )
+     *
      * @var Attribute
      *
      * @LDAP\Attribute(type="string")

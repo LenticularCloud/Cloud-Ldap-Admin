@@ -49,9 +49,9 @@ class LdapArrayToObjectTransformer
                     foreach($attribute as $_attribute) {
                         $data[$key][]=$_attribute->get();
                     }
-                    /*if(count($data[$key]) === 0) {
+                    if(count($data[$key]) === 0) {
                         unset($data[$key]);
-                    }*/
+                    }
                     break;
                 default:
                     throw new \InvalidArgumentException();

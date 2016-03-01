@@ -23,11 +23,23 @@ class InetOrgPerson extends OrganizationalPerson
 {
 
     /**
+     * attributetype ( 2.16.840.1.113730.3.1.241
+     * NAME 'displayName'
+     * DESC 'RFC2798: preferred name to be used when displaying entries'
+     * EQUALITY caseIgnoreMatch
+     * SUBSTR caseIgnoreSubstringsMatch
+     * SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+     * SINGLE-VALUE )
+     *
      * @var Attribute
      * @LDAP\Attribute(type="string")
      */
     private $displayName;
     /**
+     * attributetype ( 2.5.4.42 NAME ( 'givenName' 'gn' )
+     * DESC 'RFC2256: first name(s) for which the entity is known by'
+     * SUP name )
+     *
      * @var Attribute
      * @LDAP\Attribute(type="string")
      */

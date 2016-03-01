@@ -69,7 +69,7 @@ class User extends AbstractEntity implements AdvancedUserInterface
             'inetorgperson' => Schemas\InetOrgPerson::class,
             'shadowaccount' => Schemas\ShadowAccount::class,
             'lenticularuser' => Schemas\LenticularUser::class,
-            'posixaccount' => Schemas\PosixAccount::class,
+            //'posixaccount' => Schemas\PosixAccount::class,
         ];
     }
 

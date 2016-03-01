@@ -4,6 +4,7 @@ namespace Cloud\RegistrationBundle\Controller;
 
 use Cloud\LdapBundle\Entity\Password;
 use Cloud\LdapBundle\Entity\User;
+use Cloud\LdapBundle\Security\CryptEncoder;
 use Cloud\RegistrationBundle\Entity\User as RegUser;
 use Cloud\RegistrationBundle\Form\Type\EditType;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
@@ -49,6 +50,7 @@ class AdminController extends Controller
                 $password=new Password();
                 $password->setHash($user->getPasswordHash());
                 $password->setId('default');
+                $password->setEncoder(CryptEncoder::class);
                 $userLdap->addPassword($password);
 
                 $userLdap->setAltEmail($user->getAltEmail());
