@@ -105,4 +105,21 @@ class AdminController extends Controller
         $response->setContent(json_encode(['successfully'=>true]));
         return $response;
     }
+    /**
+     * @Route("/user/{username}/delete",name="admin_user_delete")
+     */
+    public function userDeleteAction(Request $request, $username)
+    {
+        $user = $this->get('cloud.ldap.userprovider')->loadUserByUsername($username);
+        if ($user === null) {
+            throw $this->createNotFoundException('The user does not exist');
+        }
+        $response=new Response();
+        $response->headers->set( 'Content-Type', 'text/javascript' );
+
+        $this->get('cloud.ldap.util.usermanipulator')->delete($user);
+
+        $response->setContent(json_encode(['successfully'=>true]));
+        return $response;
+    }
 }
