@@ -89,19 +89,12 @@ class LdapUserProvider implements UserProviderInterface
 
         $user = $transformer->reverseTransform($search[0], new User(null));
 
-        if ($user->getObject(Schemas\LenticularUser::class) === null) {
-            $user->addObject(Schemas\LenticularUser::class);
-            $user->addRole('ROLE_USER');
-        }
-
         foreach ($this->getServices() as $serviceName => $service) {
-            $serviceObject = New Service($serviceName);
+            $class=$service['data_object'];
+            $serviceObject = new $class($serviceName);
             $search = $this->ldap->find("ou=Users,dc=" . $serviceName . "," . $this->baseDn, $query);
             if ($search !== null) {
                 $serviceObject = $transformer->reverseTransform($search[0], $serviceObject);
-            }
-            if ($serviceObject->getObject(Schemas\LenticularUser::class) === null && $serviceObject->isEnabled()) {
-                $serviceObject->addObject(Schemas\LenticularUser::class);
             }
             $user->addService($serviceObject);
         }

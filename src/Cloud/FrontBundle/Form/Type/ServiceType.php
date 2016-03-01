@@ -22,7 +22,7 @@ class ServiceType extends AbstractType
     public function setDefaultOptions(\Symfony\Component\OptionsResolver\OptionsResolverInterface $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => 'Cloud\LdapBundle\Entity\Service',
+            'data_class' => 'Cloud\LdapBundle\Entity\AbstractService',
             'validation_groups' => array(
                 'Default'
             )

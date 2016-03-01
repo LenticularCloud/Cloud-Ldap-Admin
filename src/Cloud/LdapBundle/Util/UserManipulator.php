@@ -5,6 +5,7 @@ use Cloud\LdapBundle\Services\LdapClient;
 use Cloud\LdapBundle\Entity\User;
 use InvalidArgumentException;
 use Cloud\LdapBundle\Security\LdapPasswordEncoderInterface;
+use Cloud\LdapBundle\Schemas;
 
 class UserManipulator
 {
@@ -19,8 +20,9 @@ class UserManipulator
     protected $validator;
     protected $bindDn;
     protected $bindPassword;
+    protected $domain;
 
-    public function __construct(LdapClient $client, LdapPasswordEncoderInterface $encoder, $validator, $baseDn, $bindDn, $bindPassword)
+    public function __construct(LdapClient $client, LdapPasswordEncoderInterface $encoder, $validator, $baseDn, $bindDn, $bindPassword,$domain)
     {
         $this->client = $client;
         $this->baseDn = $baseDn;
@@ -28,6 +30,7 @@ class UserManipulator
         $this->validator = $validator;
         $this->bindDn = $bindDn;
         $this->bindPassword = $bindPassword;
+        $this->domain = $domain;
 
         $this->client->bind($this->bindDn, $this->bindPassword);
     }
@@ -59,6 +62,7 @@ class UserManipulator
         foreach($user->getObjectClasses() as $objectClass) {
             $user->addObject($objectClass);
         }
+        $user->getObject(Schemas\InetOrgPerson::class)->setEmail($username.'@'.$this->domain);
         dump($username,$user);
         return $user;
     }

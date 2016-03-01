@@ -41,7 +41,7 @@ class User extends AbstractEntity implements AdvancedUserInterface
      *
      * @Assert\Valid(deep=true)
      *
-     * @var AssoziativArray<Service> @Assert\Valid(deep=true)
+     * @var array<Service>
      */
     private $services = array();
 
@@ -50,6 +50,11 @@ class User extends AbstractEntity implements AdvancedUserInterface
      * @var boolean
      */
     private $enable = false;
+
+    /**
+     * @var string
+     */
+    private $passwordEncoder= CryptEncoder::class;
 
     public function __construct($username, array $roles = array(), $enabled = true, $userNonExpired = true, $credentialsNonExpired = true, $userNonLocked = true)
     {
@@ -181,21 +186,32 @@ class User extends AbstractEntity implements AdvancedUserInterface
      */
     public function addPassword(Password $password)
     {
+        foreach ($this->services as $service) {
+            if ($service->isMasterPasswordEnabled()) {
+                $service->addPassword(clone $password);
+            }
+        }
+
+        if($password->getPasswordPlain()===null) {
+            if($password->getEncoder()!==$this->passwordEncoder) {
+                throw new \InvalidArgumentException();
+            }
+        }else{
+            $att=new Attribute();
+            $password->setAttribute($att);
+            call_user_func($this->passwordEncoder.'::encodePassword',$password);
+        }
+
         if (isset($this->passwords[$password->getId()])) {
             $this->removePassword($this->passwords[$password->getId()]);
         }
         $this->passwords[$password->getId()] = $password;
-        $this->getAttributes()->get('userpassword')->add($this->passwords[$password->getId()]);
+        $this->getAttributes()->get('userpassword')->add($password->getAttribute());
         if ($password->getUser() !== $this) {
             $password->setUser($this);
         }
         if (!$password->isMasterPassword()) {
             $password->setMasterPassword(true);
-        }
-        foreach ($this->services as $service) {
-            if ($service->isMasterPasswordEnabled()) {
-                $service->addPassword($password);
-            }
         }
         return $this;
     }
@@ -227,7 +243,7 @@ class User extends AbstractEntity implements AdvancedUserInterface
      * @param Service $service
      * @return \Cloud\LdapBundle\Entity\Service
      */
-    public function addService(Service $service)
+    public function addService(AbstractService $service)
     {
         if (strlen($service->getName()) <= 0) {
             throw new \InvalidArgumentException("service name can't be null");
@@ -244,7 +260,7 @@ class User extends AbstractEntity implements AdvancedUserInterface
      *
      * @param Service $service
      */
-    public function removeService(Service $service)
+    public function removeService(AbstractService $service)
     {
         if (!isset($this->services[$service->getName()])) {
             throw InvalidArgumentException("service not in the list");
@@ -258,7 +274,7 @@ class User extends AbstractEntity implements AdvancedUserInterface
 
     /**
      *
-     * @return AssoziativArray<Service>
+     * @return array<AbstractService>
      */
     public function getServices()
     {

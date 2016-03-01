@@ -11,6 +11,7 @@ namespace Cloud\LdapBundle\Util;
 
 use Cloud\LdapBundle\Services\LdapClient;
 use Symfony\Component\HttpKernel\Log\LoggerInterface;
+use Cloud\LdapBundle\Schemas;
 
 class SchemaManipulator
 {
@@ -51,11 +52,17 @@ class SchemaManipulator
         $this->addOuIfNotExist($this->baseDn, 'users');
         $this->addOuIfNotExist($this->baseDn, 'groups');
 
-        foreach ($this->services as $service) {
-            $this->addDcIfNotExist('dc=' . $service . ',' . $this->baseDn, $service);
-            $this->addOuIfNotExist('dc=' . $service . ',' . $this->baseDn, 'users');
-            $this->addOuIfNotExist('dc=' . $service . ',' . $this->baseDn, 'groups');
+        foreach ($this->services as $serviceName => $service) {
+            $this->addDcIfNotExist('dc=' . $serviceName . ',' . $this->baseDn, $serviceName);
+            $this->addOuIfNotExist('dc=' . $serviceName . ',' . $this->baseDn, 'users');
+            $this->addOuIfNotExist('dc=' . $serviceName . ',' . $this->baseDn, 'groups');
         }
+
+        /*
+        if ($user->getObject(Schemas\LenticularUser::class) === null) {
+            $user->addObject(Schemas\LenticularUser::class);
+            $user->addRole('ROLE_USER');
+        }*/
     }
 
     public function addOuIfNotExist($dn, $name)

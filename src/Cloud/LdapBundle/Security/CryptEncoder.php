@@ -17,21 +17,22 @@ class CryptEncoder implements LdapPasswordEncoderInterface
      *
      * @see \Symfony\Component\Security\Core\Encoder\PasswordEncoderInterface::encodePassword()
      */
-    public function encodePassword(Password $password)
+    static public function encodePassword(Password $password)
     {
         $rounds = 60000; // incresed rounds for harder bruteforce
 
         $salt = "";
         if ($password->getId() != null && $password->getId() != "") {
-            $salt = $this->getRandomeSalt(16 - strlen($password->getId()));
+            $salt = self::getRandomeSalt(16 - strlen($password->getId()));
             $salt = $password->getId() . ($password->isMasterPassword() ? '+' : '=') . $salt;
         } else {
-            $salt = 'default=' . $this->getRandomeSalt();
+            $salt = 'default=' . self::getRandomeSalt();
         }
 
         $hash = crypt($password->getPasswordPlain(), '$6$rounds=' . $rounds . '$' . $salt . '$');
         $password->setHash('{crypt}' . $hash);
         $password->setPasswordPlain(null);
+        $password->setEncoder(CryptEncoder::class);
     }
 
     /**
@@ -39,7 +40,7 @@ class CryptEncoder implements LdapPasswordEncoderInterface
      *
      * @param number $length
      */
-    private function getRandomeSalt($length = 9)
+    static private function getRandomeSalt($length = 9)
     {
         //@TODO use openssl_random_pseudo_bytes as random
 
@@ -58,7 +59,7 @@ class CryptEncoder implements LdapPasswordEncoderInterface
      * (non-PHPdoc)
      * @see \Symfony\Component\Security\Core\Encoder\PasswordEncoderInterface::isPasswordValid()
      */
-    public function isPasswordValid(Password $password)
+    static public function isPasswordValid(Password $password)
     {
         if (substr($password->getHash(), 0, 7) != '{crypt}')
             return false;
@@ -75,7 +76,7 @@ class CryptEncoder implements LdapPasswordEncoderInterface
      * (non-PHPdoc)
      * @see \Cloud\LdapBundle\Security\PasswordEncoderInterface::parsePassword()
      */
-    public function parsePassword(Attribute $password_hash)
+    static public function parsePassword(Attribute $password_hash)
     {
         $password = new Password();
         $password->setAttribute($password_hash);
@@ -87,6 +88,7 @@ class CryptEncoder implements LdapPasswordEncoderInterface
         } else {
             return null;
         }
+        $password->setEncoder(CryptEncoder::class);
         return $password;
     }
 }

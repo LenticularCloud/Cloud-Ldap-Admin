@@ -2,6 +2,7 @@
 namespace Cloud\LdapBundle\Entity;
 
 use Cloud\LdapBundle\Entity\Ldap\AbstractAttribute;
+use Cloud\LdapBundle\Entity\Ldap\Attribute;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
@@ -41,8 +42,16 @@ class Password extends  AbstractAttribute
      * @var User    $user
      */
     private $user;
-    
-    private $isMasterPassword;
+
+    /**
+     * @var bool
+     */
+    private $masterPassword;
+
+    /**
+     * @var string classname
+     */
+    private $encoder;
     
     /**
      * @Assert\Valid(deep=true)
@@ -56,7 +65,7 @@ class Password extends  AbstractAttribute
         parent::__construct();
         $this->password_plain = $password_plain;
         $this->id = $id;
-        $this->isMasterPassword=$isMasterPassword;
+        $this->masterPassword=$isMasterPassword;
     }
 
     /**
@@ -73,7 +82,7 @@ class Password extends  AbstractAttribute
 
     /**
      *
-     * @return the String
+     * @return String
      */
     public function getHash()
     {
@@ -82,8 +91,7 @@ class Password extends  AbstractAttribute
 
     /**
      *
-     * @param
-     *            $hash
+     * @param $hash
      */
     public function setHash($hash)
     {
@@ -121,7 +129,7 @@ class Password extends  AbstractAttribute
 
     /**
      *
-     * @return the String
+     * @return String
      */
     public function getPasswordPlain()
     {
@@ -130,8 +138,7 @@ class Password extends  AbstractAttribute
 
     /**
      *
-     * @param
-     *            $password_plain
+     * @param $password_plain
      */
     public function setPasswordPlain($password_plain)
     {
@@ -141,12 +148,12 @@ class Password extends  AbstractAttribute
 
     public function isMasterPassword()
     {
-        return $this->isMasterPassword;
+        return $this->masterPassword;
     }
 
     public function setMasterPassword($isMasterPassword)
     {
-        $this->isMasterPassword = $isMasterPassword;
+        $this->masterPassword = $isMasterPassword;
         return $this;
     }
 
@@ -189,7 +196,29 @@ class Password extends  AbstractAttribute
         
         return $this;
     }
- 
- 
- 
+
+    /**
+     * @return string
+     */
+    public function getEncoder()
+    {
+        return $this->encoder;
+    }
+
+    /**
+     * @param string $encoder
+     * @return Password
+     */
+    public function setEncoder($encoder)
+    {
+        $this->encoder = $encoder;
+        return $this;
+    }
+
+    public function __clone()
+    {
+        $password=new Password($this->id,$this->password_plain,$this->password_plain);
+        $password->setHash($this->getHash());
+        return $password;
+    }
 } 

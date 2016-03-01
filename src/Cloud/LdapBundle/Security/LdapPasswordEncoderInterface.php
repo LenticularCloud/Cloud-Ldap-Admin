@@ -12,7 +12,7 @@ interface LdapPasswordEncoderInterface {
      *
      * @param Password $password
      */
-    public function encodePassword(Password $password);
+    static public function encodePassword(Password $password);
     
     /**
      * 
@@ -20,7 +20,7 @@ interface LdapPasswordEncoderInterface {
      * @param Password $password
      * @return boolean true if password is correct
      */
-    public function isPasswordValid(Password $password);
+    static public function isPasswordValid(Password $password);
     
     
     /**
@@ -29,5 +29,5 @@ interface LdapPasswordEncoderInterface {
      * @param Attribute $password_hash
      * @return Password|null if can't be parsed return null
      */
-    public function parsePassword(Attribute $password_hash);
+    static public function parsePassword(Attribute $password_hash);
 }

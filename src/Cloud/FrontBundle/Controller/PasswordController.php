@@ -61,7 +61,6 @@ class PasswordController extends Controller
                 }
             }
             $newPassword = new Password();
-            $newPassword->setService($service);
             $formEdit[$service->getName()][] = $this->createForm(new NewPasswordType(), $newPassword, array(
                 'action' => $this->generateUrl('password_service_password_new', array(
                     'serviceName' => $service->getName()
@@ -230,7 +229,7 @@ class PasswordController extends Controller
     {
         $user = $this->getUser();
         $service = $user->getService($service);
-        
+
         $form = $this->createForm(new ServiceType(), $service);
         $form->handleRequest($request);
         if ($form->isValid()) {

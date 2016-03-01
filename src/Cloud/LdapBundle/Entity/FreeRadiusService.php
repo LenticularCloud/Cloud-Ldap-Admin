@@ -1,15 +1,15 @@
 <?php
 namespace Cloud\LdapBundle\Entity;
 
-use Cloud\LdapBundle\Entity\Ldap\AbstractEntity;
-use Doctrine\Common\Collections\ArrayCollection;
+use Cloud\LdapBundle\Entity\Ldap\Attribute;
+use Cloud\LdapBundle\Security\NtEncoder;
 use Symfony\Component\Validator\Constraints as Assert;
 use \InvalidArgumentException;
 use Cloud\LdapBundle\Security\LdapPasswordEncoderInterface;
 use Cloud\LdapBundle\Security\CryptEncoder;
 use Cloud\LdapBundle\Schemas;
 
-class Service extends AbstractService
+class FreeRadiusService extends AbstractService
 {
 
     /**
@@ -17,9 +17,9 @@ class Service extends AbstractService
      *
      * @Assert\Valid(deep=true)
      *
-     * @var array<Password> $passwords
+     * @var Password $passwords
      */
-    protected $passwords = array();
+    protected $password = null;
 
     /**
      * @var boolean $masterPasswordEnabled
@@ -28,9 +28,9 @@ class Service extends AbstractService
 
     /**
      *
-     * @var LdapPasswordEncoderInterface $encoder
+     * @var string $encoder
      */
-    protected $encoder;
+    protected $encoder = NtEncoder::class;
 
     /**
      *
@@ -39,25 +39,32 @@ class Service extends AbstractService
     public function __construct($name)
     {
         parent::__construct($name);
-        $this->encoder = new CryptEncoder();
     }
 
     public function getObjectClasses()
     {
         $classes = parent::getObjectClasses();
-        $classes['shadowaccount'] = Schemas\ShadowAccount::class;
+        $classes['sambasamaccount'] = Schemas\SambaSamAccount::class;
 
         return $classes;
     }
 
     public function afterAddObject($class)
     {
-        if ($class === Schemas\ShadowAccount::class) {
-            $this->passwords = [];
+        if ($this->getObject(Schemas\SambaSamAccount::class)!==null && $this->getObject(Schemas\CloudService::class)!==null) {
+            $attr=$this->getAttributes()->get('sambalmpassword');
+            if($attr->get()!==null) {
+                $this->password=call_user_func($this->encoder.'::parsePassword',$attr);
+                if($this->isMasterPasswordEnabled()) {
+                    $this->password->setMasterPassword(true);
+                }
+            }
+
+            /*$this->passwords = [];
             foreach ($this->getObject(Schemas\ShadowAccount::class)->getUserPasswords() as $password) {
                 $password = $this->encoder->parsePassword($password);
                 $this->passwords[$password->getId()] = $password;
-            }
+            }*/
         }
     }
 
@@ -67,35 +74,29 @@ class Service extends AbstractService
      */
     public function getPasswords()
     {
-        return $this->passwords;
+        if ($this->password === null) {
+            return [];
+        }
+        return [$this->password];
+    }
+
+    /**
+     * @param   string $passwordId
+     * @return Password
+     */
+    public function getPassword($passwordId = null)
+    {
+        return $this->password;
     }
 
     /**
      *
      * @return Password
      */
-    public function getPassword($passwordId=null)
+    public function hasPassword($passwordId = null)
     {
-        if($passwordId===null) {
-            throw new InvalidArgumentException("passwordId not found");
-        }
-        if (!isset($this->passwords[$passwordId])) {
-            throw new InvalidArgumentException("passwordId not found");
-        }
 
-        return $this->passwords[$passwordId];
-    }
-
-    /**
-     *
-     * @return Password
-     */
-    public function hasPassword($passwordId=null)
-    {
-        if($passwordId===null) {
-            return false;
-        }
-        return isset($this->passwords[$passwordId]);
+        return $passwordId === null || $this->passwordObject->getId() == $passwordId;
     }
 
     /**
@@ -105,12 +106,20 @@ class Service extends AbstractService
      */
     public function addPassword(Password $password)
     {
-        if (isset($this->passwords[$password->getId()]))
-            throw new InvalidArgumentException("passwordId is in use");
-        $this->passwords[$password->getId()] = $password;
-        if ($password->getService() !== $this) {
-            $password->setService($this);
+        if ($password->getEncoder() === $this->encoder) {
+            $attr=$this->getAttributes()->get('sambalmpassword');
+            $attr->set($password->getAttribute()->get());
+            $password->setAttribute($attr);
+            $this->password=$password;
+            return $this;
         }
+        dump($password);
+        if($password->getPasswordPlain()===null) {
+            throw new \InvalidArgumentException("can't store false encoded password");
+        }
+
+        $password->setAttribute($this->getAttributes()->get('sambalmpassword'));
+        call_user_func($this->encoder.'::encodePassword',$password);
         return $this;
     }
 
@@ -121,10 +130,6 @@ class Service extends AbstractService
      */
     public function removePassword(Password $password)
     {
-        if (!isset($this->passwords[$password->getId()])) {
-            return $this;
-        }
-        unset($this->passwords[$password->getId()]);
         return $this;
     }
 
@@ -153,9 +158,12 @@ class Service extends AbstractService
 
     protected function serviceEnabled()
     {
-        $this->passwords = $this->getUser()->getPasswords();
-        foreach ($this->passwords as $password) {
+
+        $this->getObject(Schemas\SambaSamAccount::class)->setSambaSID($this->getUser()->getUsername());
+        dump($this);
+        //$this->passwords = $this->getUser()->getPasswords();
+        /*foreach ($this->passwords as $password) {
             $this->attributes['userpassword']->add($password->getAttribute());
-        }
+        }*/
     }
 }
