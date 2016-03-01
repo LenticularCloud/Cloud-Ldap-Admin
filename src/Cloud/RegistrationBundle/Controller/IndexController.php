@@ -35,28 +35,31 @@ class IndexController extends Controller
      */
     public function registrationAction(Request $request)
     {
-        $response=new Response();
-        $form = $this->createForm(RegistrationType::class,new User());
+        $response = new Response();
+        $form = $this->createForm(RegistrationType::class, new User());
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $em = $this->getDoctrine()->getManager();
+
             $user = $form->getData();
-            if(in_array($user->getUsername(),$this->get('cloud.ldap.userprovider')->getUsernames())) {
-                return $response->setContent(json_encode(['successfully'=> false,'errors'=>['message'=>'user exiests']]));
+            if (in_array($user->getUsername(), $this->get('cloud.ldap.userprovider')->getUsernames()) ||
+                $em->getRepository('CloudRegistrationBundle:User')->findOneByUsername($user->getUsername())
+            ) {
+                return $response->setContent(json_encode(['successfully' => false, 'errors' => ['message' => 'user exiests']]));
             }
 
-            $password=new Password();
+            $password = new Password();
             $password->setPasswordPlain($user->getPassword());
-            $encoder=new CryptEncoder();
+            $encoder = new CryptEncoder();
             $encoder->encodePassword($password);
             $user->setPasswordHash($password->getHash());
-            $em=$this->getDoctrine()->getManager();
             $em->persist($user);
             $em->flush();
-        }else {
-            return $response->setContent(json_encode(['successfully'=> false,'errors'=>['message'=>$form->getErrors(true)->__toString()]]));
+        } else {
+            return $response->setContent(json_encode(['successfully' => false, 'errors' => ['message' => $form->getErrors(true)->__toString()]]));
         }
 
-        return $response->setContent(json_encode(['successfully'=> true]));
+        return $response->setContent(json_encode(['successfully' => true]));
     }
 }

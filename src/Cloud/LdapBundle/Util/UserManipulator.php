@@ -63,8 +63,6 @@ class UserManipulator
             $user->addObject($objectClass);
         }
         $user->getObject(Schemas\InetOrgPerson::class)->setMail($username.'@'.$this->domain);
-        $user->getObject(Schemas\InetOrgPerson::class)->setDisplayName($username);
-        $user->getObject(Schemas\InetOrgPerson::class)->setGivenName($username);
         return $user;
     }
 
