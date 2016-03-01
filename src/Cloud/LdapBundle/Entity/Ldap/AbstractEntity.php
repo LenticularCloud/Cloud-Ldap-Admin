@@ -146,4 +146,13 @@ abstract class AbstractEntity
         $this->objects[] = $object;
         $this->afterAddObject($class);
     }
+
+
+    public function removeObject($class,$removeAttrs=[])
+    {
+        foreach($removeAttrs as $attr) {
+            $this->attributes[$attr]->set(null);
+        }
+        $this->objects->removeElement($this->getObject($class));
+    }
 }

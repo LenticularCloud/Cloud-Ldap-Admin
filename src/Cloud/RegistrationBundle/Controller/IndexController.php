@@ -29,6 +29,8 @@ class IndexController extends Controller
 
 
     /**
+     * @param   Request $request
+     * @return  Response
      * @Route("/do",name="registraion_do")
      */
     public function registrationAction(Request $request)
@@ -39,6 +41,10 @@ class IndexController extends Controller
 
         if ($form->isSubmitted() && $form->isValid()) {
             $user = $form->getData();
+            if(in_array($user->getUsername(),$this->get('cloud.ldap.userprovider')->getUsernames())) {
+                return $response->setContent(json_encode(['successfully'=> false,'errors'=>['message'=>'user exiests']]));
+            }
+
             $password=new Password();
             $password->setPasswordPlain($user->getPassword());
             $encoder=new CryptEncoder();
@@ -48,9 +54,9 @@ class IndexController extends Controller
             $em->persist($user);
             $em->flush();
         }else {
-            var_dump($form->getErrors(true)->__toString());
-            var_dump($form->getData());
+            return $response->setContent(json_encode(['successfully'=> false,'errors'=>['message'=>$form->getErrors(true)->__toString()]]));
         }
-        return $response;
+
+        return $response->setContent(json_encode(['successfully'=> true]));
     }
 }

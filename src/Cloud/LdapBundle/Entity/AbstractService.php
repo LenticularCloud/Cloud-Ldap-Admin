@@ -108,6 +108,19 @@ abstract class AbstractService extends AbstractEntity
 
     public function setMasterPasswordEnabled($masterPasswordEnabled)
     {
+        if ($masterPasswordEnabled == false && $this->isMasterPasswordEnabled()) {
+            foreach($this->getPasswords() as $password) {
+                if($password->isMasterPassword()) {
+                    $this->removePassword($password);
+                }
+            }
+        }elseif($masterPasswordEnabled && $this->isMasterPasswordEnabled() == false) {
+            foreach($this->getUser()->getPasswords() as $password) {
+                if($password->getEncoder() == $this->getEncoder()) {
+                    $this->addPassword(clone $password);
+                }
+            }
+        }
         $this->getObject(Schemas\CloudService::class)->setMasterPasswordEnabled($masterPasswordEnabled);
         return $this;
     }
@@ -147,6 +160,8 @@ abstract class AbstractService extends AbstractEntity
     {
 
     }
+
+    abstract public function maxPasswords();
 
     /**
      *

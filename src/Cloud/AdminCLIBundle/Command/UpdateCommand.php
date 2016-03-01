@@ -18,26 +18,24 @@ class UpdateCommand extends ContainerAwareCommand
     {
         $this->setName('cloud:update')
             ->setDescription('updates database, to add new services')
-            ->addOption('force', '-f', InputOption::VALUE_NONE, 'force deletes an user without asking')
+            //->addOption('force', '-f', InputOption::VALUE_NONE, 'force deletes an user without asking')
             ->setHelp('');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $helper = $this->getHelper('question');
-        
-        if (! $input->getOption('force')) {
-            $question = new ConfirmationQuestion('You realy whant to delete this user? [y/N]:', false);
-            if (! $helper->ask($input, $output, $question)) {
-                $output->writeln('<error>canceled by user, if you use a script use \'-f\' to force delete</error>');
-                return 1;
-            }
+
+        try {
+            $this->getContainer()->get('cloud.ldap.schema.manipulator');
+        } catch (\Exception $e) {
+            $output->writeln("<error>Can't connect to database</error>");
+            return 255;
         }
-        
+
         $this->getContainer()
-            ->get('cloud.ldap.schema.manipulator')
-            ->updateSchema();
-        
+            ->get('cloud.ldap.schema.manipulator')->updateSchema();
+
         return 0;
     }
 }

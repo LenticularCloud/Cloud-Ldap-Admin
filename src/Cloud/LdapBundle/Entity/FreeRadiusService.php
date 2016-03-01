@@ -113,7 +113,6 @@ class FreeRadiusService extends AbstractService
             $this->password=$password;
             return $this;
         }
-        dump($password);
         if($password->getPasswordPlain()===null) {
             throw new \InvalidArgumentException("can't store false encoded password");
         }
@@ -133,20 +132,6 @@ class FreeRadiusService extends AbstractService
         return $this;
     }
 
-    public function isMasterPasswordEnabled()
-    {
-        if ($this->getObject(Schemas\CloudService::class) !== null) {
-            return $this->getObject(Schemas\CloudService::class)->isMasterPasswordEnabled();
-        }
-        return false;
-    }
-
-    public function setMasterPasswordEnabled($masterPasswordEnabled)
-    {
-        $this->getObject(Schemas\CloudService::class)->setMasterPasswordEnabled($masterPasswordEnabled);
-        return $this;
-    }
-
     /**
      * @return LdapPasswordEncoderInterface
      */
@@ -158,12 +143,11 @@ class FreeRadiusService extends AbstractService
 
     protected function serviceEnabled()
     {
-
         $this->getObject(Schemas\SambaSamAccount::class)->setSambaSID($this->getUser()->getUsername());
-        dump($this);
-        //$this->passwords = $this->getUser()->getPasswords();
-        /*foreach ($this->passwords as $password) {
-            $this->attributes['userpassword']->add($password->getAttribute());
-        }*/
+    }
+
+    public function maxPasswords()
+    {
+        return 1;
     }
 }

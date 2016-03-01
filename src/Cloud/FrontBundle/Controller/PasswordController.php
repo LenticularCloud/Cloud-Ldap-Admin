@@ -24,9 +24,9 @@ class PasswordController extends Controller
      * @Route("/",name="password")
      * @Template()
      */
-    public function indexAction()
+    public function indexAction(Request $request)
     {
-        
+
         //--- services ---
         $formEdit = array();
         $formEditServiceMasterPassword = array();
@@ -42,13 +42,13 @@ class PasswordController extends Controller
 
             //--- service passwords ---
             $formEdit[$service->getName()] = array();
-            
-            if(!$service->isEnabled())  {
+
+            if (!$service->isEnabled()) {
                 continue;
             }
-            
+
             foreach ($service->getPasswords() as $password) {
-                if (! $password->isMasterPassword()) {
+                if (!$password->isMasterPassword()) {
                     $form = $this->createForm(new PasswordType(), $password, array(
                         'action' => $this->generateUrl('password_service_password_edit', array(
                             'serviceName' => $service->getName(),
@@ -60,16 +60,18 @@ class PasswordController extends Controller
                     $formEdit[$service->getName()][] = $form->createView();
                 }
             }
-            $newPassword = new Password();
-            $formEdit[$service->getName()][] = $this->createForm(new NewPasswordType(), $newPassword, array(
-                'action' => $this->generateUrl('password_service_password_new', array(
-                    'serviceName' => $service->getName()
-                )),
-                'method' => 'POST'
-            ))
-                ->createView();
+            if (count($service->getPasswords()) < $service->maxPasswords()) {
+                $newPassword = new Password();
+                $formEdit[$service->getName()][] = $this->createForm(new NewPasswordType(), $newPassword, array(
+                    'action' => $this->generateUrl('password_service_password_new', array(
+                        'serviceName' => $service->getName()
+                    )),
+                    'method' => 'POST'
+                ))
+                    ->createView();
+            }
         }
-        
+
         //---- master ---
         $formEditMaster = array();
         foreach ($this->getUser()->getPasswords() as $password) {
@@ -82,19 +84,13 @@ class PasswordController extends Controller
             $form->get('id_old')->setData($password->getId());
             $formEditMaster[] = $form->createView();
         }
-        $newPassword = new Password();
-        $formEditMaster[] = $this->createForm(new NewPasswordType(), $newPassword, array(
-            'action' => $this->generateUrl('password_password_new'),
-            'method' => 'POST'
-        ))
-            ->createView();
-        
-        
-        $errors = $this->getRequest()
+
+
+        $errors = $request
             ->getSession()
             ->getFlashBag()
             ->get('errors', array());
-        
+
         return array(
             'errors' => $errors,
             'formEdit' => $formEdit,
@@ -109,40 +105,46 @@ class PasswordController extends Controller
      * @Method("POST")
      * @Template()
      */
-    public function passwordEditAction($passwordId, $serviceName = null)
+    public function passwordEditAction(Request $request,$passwordId, $serviceName = null)
     {
         $user = $this->getUser();
-        
+
         if ($serviceName === null) {
             $password = $user->getPassword($passwordId);
         } else {
             $password = $user->getService($serviceName)->getPassword($passwordId);
         }
-        
+
         $form = $this->createForm(new PasswordType(), $password);
-        $form->bind($this->getRequest());
-        
+        $form->handleRequest($request);
+
         if ($form->get('remove')->isClicked()) {
             if ($serviceName == null) {
                 $user->removePassword($password);
             } else {
                 $user->getService($serviceName)->removePassword($password);
             }
+        }else {
+            if ($serviceName == null) {
+                $user->addPassword($password);
+            } else {
+                $user->getService($serviceName)->addPassword($password);
+            }
         }
-        
+
         $errors = $this->get('validator')->validate($user);
-        
+
         if (count($errors) === 0) {
             $this->get('cloud.ldap.util.usermanipulator')->update($user);
         } else {
-            $this->getRequest()
+            $request
                 ->getSession()
                 ->getFlashBag()
                 ->set('errors', $this->render('CloudFrontBundle::error.html.twig', array(
-                'errors' => $errors
-            )));
+                    'errors' => $errors
+                )));
         }
-        
+
         return $this->redirect($this->generateUrl('password'));
     }
 
@@ -156,44 +158,45 @@ class PasswordController extends Controller
     {
         $user = $this->getUser();
         $form = $this->createForm(new NewPasswordType());
-        
+
         $form->bind($this->getRequest());
         $password = $form->getData();
         try {
             if ($serviceName === null) {
                 $user->getPassword($password->getId());
-            }else {
+            } else {
                 $user->getService($serviceName)->getPassword($password->getId());
             }
             $form->addError(new FormError("Password Id is in use"));
-        }catch(InvalidArgumentException $e) {}
-        
+        } catch (InvalidArgumentException $e) {
+        }
+
         if ($form->isValid()) {
-            
+
             if ($serviceName === null) {
                 $password->setMasterPassword(true);
                 $user->addPassword($password);
             } else {
                 $user->getService($serviceName)->addPassword($password);
             }
-            
+
             $errors = $this->get('validator')->validate($user);
             if (count($errors) === 0) {
                 $this->get('cloud.ldap.util.usermanipulator')->update($user);
-                
+
                 return $this->redirect($this->generateUrl('password'));
             }
-        }else {
-            $errors=$form->getErrors(true);
+        } else {
+            $errors = $form->getErrors(true);
         }
-        
+
         $this->getRequest()
             ->getSession()
             ->getFlashBag()
             ->set('errors', $this->get('twig')->render('CloudFrontBundle::error.html.twig', array(
-            'errors' => $errors
-        )));
-        
+                'errors' => $errors
+            )));
+
         return $this->redirect($this->generateUrl('password'));
     }
 
@@ -206,7 +209,7 @@ class PasswordController extends Controller
     public function passwordDeleteAction($passwordID, $serviceName = null)
     {
         $user = $this->getUser();
-        
+
         if ($serviceName == null) {
             $password = $user->getPassword($passwordID);
             $user->removePassword($password);
@@ -214,7 +217,7 @@ class PasswordController extends Controller
             $password = $user->getService($serviceName)->getPassword($passwordID);
             $user->getService($serviceName)->removePassword($password);
         }
-        
+
         $this->get('cloud.ldap.util.usermanipulator')->update($user);
 
         return $this->redirect($this->generateUrl('password'));
@@ -225,7 +228,7 @@ class PasswordController extends Controller
      * @Method("POST")
      * @Template()
      */
-    public function serviceMasterPasswordEditAction(Request $request,$service)
+    public function serviceMasterPasswordEditAction(Request $request, $service)
     {
         $user = $this->getUser();
         $service = $user->getService($service);
@@ -235,7 +238,7 @@ class PasswordController extends Controller
         if ($form->isValid()) {
             $this->get('cloud.ldap.util.usermanipulator')->update($user);
         }
-        
+
         return $this->redirect($this->generateUrl('password'));
     }
 }

@@ -1,1 +1,10 @@
 {% extends "CloudFrontBundle::base.html.twig" %}
+
+
+{% block content %}
+    <ul>
+    {% for user in users %}
+        <li><a href="{{ path('admin_user',{'username':user}) }}">{{ user }}</a></li>
+    {% endfor %}
+    </ul>
+{% endblock %}

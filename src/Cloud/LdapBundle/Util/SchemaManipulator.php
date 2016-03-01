@@ -9,6 +9,7 @@
 namespace Cloud\LdapBundle\Util;
 
 
+use Cloud\LdapBundle\Security\LdapUserProvider;
 use Cloud\LdapBundle\Services\LdapClient;
 use Symfony\Component\HttpKernel\Log\LoggerInterface;
 use Cloud\LdapBundle\Schemas;
@@ -20,7 +21,7 @@ class SchemaManipulator
      */
     private $baseDn;
     /**
-     * @var string
+     * @var array
      */
     private $services;
     /**
@@ -33,12 +34,30 @@ class SchemaManipulator
      */
     private $logger;
 
-    public function __construct(LoggerInterface $logger,LdapClient $client, $bindDn, $bindPw, $baseDn, $services)
+    /**
+     * @var LdapUserProvider
+     */
+    private $userProvider;
+
+    /**
+     * @var UserManipulator
+     */
+    private $userManipulator;
+
+    /**
+     * @var string
+     */
+    private $domain;
+
+    public function __construct(LoggerInterface $logger, LdapUserProvider $userProvider, UserManipulator $userManipulator, LdapClient $client, $bindDn, $bindPw, $baseDn, $services,$domain)
     {
-        $this->logger=$logger;
+        $this->logger = $logger;
+        $this->userProvider = $userProvider;
+        $this->userManipulator = $userManipulator;
         $this->ldap = $client;
         $this->baseDn = $baseDn;
         $this->services = $services;
+        $this->domain = $domain;
 
         $this->ldap->bind($bindDn, $bindPw);
     }
@@ -58,11 +77,43 @@ class SchemaManipulator
             $this->addOuIfNotExist('dc=' . $serviceName . ',' . $this->baseDn, 'groups');
         }
 
-        /*
-        if ($user->getObject(Schemas\LenticularUser::class) === null) {
-            $user->addObject(Schemas\LenticularUser::class);
-            $user->addRole('ROLE_USER');
-        }*/
+        foreach ($this->userProvider->getUsernames() as $username) {
+            $user = $this->userProvider->loadUserByUsername($username);
+
+            $user->setEmail($user->getUsername().'@'.$this->domain);
+
+            if ($user->getObject(Schemas\LenticularUser::class) === null) {
+                $user->addObject(Schemas\LenticularUser::class);
+                $user->addRole('ROLE_USER');
+            }
+
+            if ($user->getObject(Schemas\PosixAccount::class) !== null) {
+                $user->removeObject(Schemas\PosixAccount::class,
+                    ['uidnumber', 'gidnumber', 'homedirectory', 'gecos', 'loginshell']);
+            }
+
+            foreach ($user->getServices() as $service) {
+                if ($service->isEnabled()) {
+                    foreach ($service->getObjectClasses() as $objectClass) {
+                        if ($service->getObject($objectClass) === null) {
+                            $service->addObject($objectClass);
+                        }
+                    }
+
+                    if ($service->getObject(Schemas\PosixAccount::class) !== null && in_array(Schemas\PosixAccount::class, $service->getObjectClasses())) {
+                        $service->removeObject(Schemas\PosixAccount::class,
+                            ['uidnumber', 'gidnumber', 'homedirectory', 'gecos', 'loginshell']);
+                    }
+
+                    $attr=$service->getAttributes()->get('mail');
+                    if($attr!==null) {
+                        $attr->set($user->getEmail());
+                    }
+                }
+            }
+
+            $this->userManipulator->update($user);
+        }
     }
 
     public function addOuIfNotExist($dn, $name)
@@ -75,7 +126,7 @@ class SchemaManipulator
                 'organizationalUnit'
             ];
             $this->ldap->add("ou=" . $name . "," . $dn, $data);
-            $this->logger->info("Created Ou:'"."ou=" . $name . "," . $dn."''");
+            $this->logger->info("Created Ou:'" . "ou=" . $name . "," . $dn . "''");
         }
     }
 
@@ -91,7 +142,7 @@ class SchemaManipulator
                 'dcObject'
             );
             $this->ldap->add($dn, $data);
-            $this->logger->info("Created Dc:'".$dn."''");
+            $this->logger->info("Created Dc:'" . $dn . "''");
         }
     }
 }

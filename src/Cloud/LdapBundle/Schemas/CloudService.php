@@ -54,7 +54,6 @@ class CloudService
         } else {
             $this->masterPasswordEnable->set("FALSE");
         }
-        dump($this->masterPasswordEnable);
         return $this;
     }
 }

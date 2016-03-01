@@ -223,7 +223,12 @@ class LdapClient implements LdapClientInterface
     public function replace($dn,array $entity)
     {
         if (true != @ldap_mod_replace($this->connection, $dn, $entity)) {
-            throw new LdapException(ldap_error($this->connection));
+            if(ldap_errno($this->connection)) { //Cannot modify object class
+                $this->delete($dn);
+                $this->add($dn,$entity);
+            }else {
+                throw new LdapException(ldap_error($this->connection));
+            }
         }
     }
     

@@ -217,8 +217,8 @@ class Password extends  AbstractAttribute
 
     public function __clone()
     {
-        $password=new Password($this->id,$this->password_plain,$this->password_plain);
-        $password->setHash($this->getHash());
-        return $password;
+        $hash=$this->getHash();
+        $this->setAttribute(new Attribute());
+        $this->getAttribute()->set($hash);
     }
 } 

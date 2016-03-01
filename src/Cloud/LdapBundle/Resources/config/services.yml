@@ -45,10 +45,13 @@ services:
         class: Cloud\LdapBundle\Util\SchemaManipulator
         arguments:
           - "@logger"
+          - "@cloud.ldap.userprovider"
+          - "@cloud.ldap.util.usermanipulator"
           - "@cloud.ldap.client.root"
           - "%ldap_bind_rdn%"
           - "%ldap_bind_pw%"
           - "%ldap_base_dn%"
           - "%cloud_ldap.services%"
+          - "%domain%"
     cloud.ldap.annation.reader:
         class: Doctrine\Common\Annotations\AnnotationReader

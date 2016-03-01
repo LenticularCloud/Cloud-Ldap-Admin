@@ -64,6 +64,7 @@ class LdapUserProvider implements UserProviderInterface
 
     /**
      * {@inheritDoc}
+     * @return User
      */
     public function loadUserByUsername($username)
     {
@@ -99,7 +100,6 @@ class LdapUserProvider implements UserProviderInterface
             $user->addService($serviceObject);
         }
 
-        dump($user);
         return $user;
     }
 

@@ -1,7 +1,7 @@
 <?php
 namespace Cloud\LdapBundle\Entity;
 
-use Cloud\LdapBundle\Entity\Ldap\AbstractEntity;
+use Cloud\LdapBundle\Entity\Ldap\Attribute;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 use \InvalidArgumentException;
@@ -22,15 +22,10 @@ class Service extends AbstractService
     protected $passwords = array();
 
     /**
-     * @var boolean $masterPasswordEnabled
-     */
-    protected $masterPasswordEnabled = true;
-
-    /**
      *
-     * @var LdapPasswordEncoderInterface $encoder
+     * @var string $encoder
      */
-    protected $encoder;
+    protected $encoder = CryptEncoder::class;
 
     /**
      *
@@ -39,7 +34,6 @@ class Service extends AbstractService
     public function __construct($name)
     {
         parent::__construct($name);
-        $this->encoder = new CryptEncoder();
     }
 
     public function getObjectClasses()
@@ -54,8 +48,9 @@ class Service extends AbstractService
     {
         if ($class === Schemas\ShadowAccount::class) {
             $this->passwords = [];
-            foreach ($this->getObject(Schemas\ShadowAccount::class)->getUserPasswords() as $password) {
-                $password = $this->encoder->parsePassword($password);
+            foreach ($this->getAttributes()->get('userpassword') as $attribute) {
+
+                $password = call_user_func($this->encoder . '::parsePassword', $attribute);
                 $this->passwords[$password->getId()] = $password;
             }
         }
@@ -74,9 +69,9 @@ class Service extends AbstractService
      *
      * @return Password
      */
-    public function getPassword($passwordId=null)
+    public function getPassword($passwordId = null)
     {
-        if($passwordId===null) {
+        if ($passwordId === null) {
             throw new InvalidArgumentException("passwordId not found");
         }
         if (!isset($this->passwords[$passwordId])) {
@@ -90,9 +85,9 @@ class Service extends AbstractService
      *
      * @return Password
      */
-    public function hasPassword($passwordId=null)
+    public function hasPassword($passwordId = null)
     {
-        if($passwordId===null) {
+        if ($passwordId === null) {
             return false;
         }
         return isset($this->passwords[$passwordId]);
@@ -105,11 +100,26 @@ class Service extends AbstractService
      */
     public function addPassword(Password $password)
     {
-        if (isset($this->passwords[$password->getId()]))
-            throw new InvalidArgumentException("passwordId is in use");
+        if ($password->getPasswordPlain() === null) {
+            if ($password->getEncoder() !== $this->getEncoder()) {
+                throw new \InvalidArgumentException();
+            }
+        } else {
+            $att = new Attribute();
+            $password->setAttribute($att);
+            call_user_func($this->getEncoder() . '::encodePassword', $password);
+        }
+
+        if (isset($this->passwords[$password->getId()])) {
+            $this->removePassword($this->passwords[$password->getId()]);
+        }
         $this->passwords[$password->getId()] = $password;
+        $this->getAttributes()->get('userpassword')->add($password->getAttribute());
         if ($password->getService() !== $this) {
             $password->setService($this);
+        }
+        if ($password->isMasterPassword()) {
+            $password->setMasterPassword(false);
         }
         return $this;
     }
@@ -124,26 +134,13 @@ class Service extends AbstractService
         if (!isset($this->passwords[$password->getId()])) {
             return $this;
         }
+        $this->getAttributes()->get('userpassword')->removeElement($this->passwords[$password->getId()]->getAttribute());
         unset($this->passwords[$password->getId()]);
         return $this;
     }
 
-    public function isMasterPasswordEnabled()
-    {
-        if ($this->getObject(Schemas\CloudService::class) !== null) {
-            return $this->getObject(Schemas\CloudService::class)->isMasterPasswordEnabled();
-        }
-        return false;
-    }
-
-    public function setMasterPasswordEnabled($masterPasswordEnabled)
-    {
-        $this->getObject(Schemas\CloudService::class)->setMasterPasswordEnabled($masterPasswordEnabled);
-        return $this;
-    }
-
     /**
-     * @return LdapPasswordEncoderInterface
+     * @return string
      */
     public function getEncoder()
     {
@@ -157,5 +154,10 @@ class Service extends AbstractService
         foreach ($this->passwords as $password) {
             $this->attributes['userpassword']->add($password->getAttribute());
         }
+    }
+
+    public function maxPasswords()
+    {
+        return PHP_INT_MAX;
     }
 }

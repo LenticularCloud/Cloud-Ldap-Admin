@@ -54,7 +54,7 @@ class User extends AbstractEntity implements AdvancedUserInterface
     /**
      * @var string
      */
-    private $passwordEncoder= CryptEncoder::class;
+    private $passwordEncoder = CryptEncoder::class;
 
     public function __construct($username, array $roles = array(), $enabled = true, $userNonExpired = true, $credentialsNonExpired = true, $userNonLocked = true)
     {
@@ -95,11 +95,11 @@ class User extends AbstractEntity implements AdvancedUserInterface
                 }
                 break;
             case Schemas\InetOrgPerson::class:
-                $object=$this->getObject(Schemas\InetOrgPerson::class);
-                if($object->getSn()==null) {
+                $object = $this->getObject(Schemas\InetOrgPerson::class);
+                if ($object->getSn() == null) {
                     $object->setSn($this->username);
                 }
-                if($object->getCn()==null) {
+                if ($object->getCn() == null) {
                     $object->setCn($this->username);
                 }
         }
@@ -121,6 +121,15 @@ class User extends AbstractEntity implements AdvancedUserInterface
     public function addRole($role)
     {
         $this->getObject(Schemas\LenticularUser::class)->addAuthRole($role);
+        return $this;
+    }
+
+    public function setRoles(array $roles)
+    {
+        $array = $this->getAttributes('userpassword')->clear();
+        foreach ($roles as $role) {
+            $this->getObject(Schemas\LenticularUser::class)->addAuthRole($role);
+        }
         return $this;
     }
 
@@ -192,14 +201,14 @@ class User extends AbstractEntity implements AdvancedUserInterface
             }
         }
 
-        if($password->getPasswordPlain()===null) {
-            if($password->getEncoder()!==$this->passwordEncoder) {
+        if ($password->getPasswordPlain() === null) {
+            if ($password->getEncoder() !== $this->passwordEncoder) {
                 throw new \InvalidArgumentException();
             }
-        }else{
-            $att=new Attribute();
+        } else {
+            $att = new Attribute();
             $password->setAttribute($att);
-            call_user_func($this->passwordEncoder.'::encodePassword',$password);
+            call_user_func($this->passwordEncoder . '::encodePassword', $password);
         }
 
         if (isset($this->passwords[$password->getId()])) {
@@ -222,8 +231,7 @@ class User extends AbstractEntity implements AdvancedUserInterface
      */
     public function removePassword(Password $password)
     {
-        $this->getAttributes()->get('userpassword')->removeElement($this->passwords[$password->getId()]);
-        $this->attributes->removeElement($this->passwords[$password->getId()]->getAttribute());
+        $this->getAttributes()->get('userpassword')->removeElement($this->passwords[$password->getId()]->getAttribute());
 
         foreach ($this->services as $service) {
             if ($service->isMasterPasswordEnabled()) {
@@ -231,10 +239,10 @@ class User extends AbstractEntity implements AdvancedUserInterface
             }
         }
 
-        unset($this->passwords[$password->getId()]);
-        if ($password->getUser() === $this) {
-            $password->setUser(null);
+        if ($this->passwords[$password->getId()]->getUser() === $this) {
+            $this->passwords[$password->getId()]->setUser(null);
         }
+        unset($this->passwords[$password->getId()]);
         return $this;
     }
 

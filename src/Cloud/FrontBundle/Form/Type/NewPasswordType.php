@@ -3,14 +3,7 @@ namespace Cloud\FrontBundle\Form\Type;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
-
-use Symfony\Component\Validator\Constraints\Length;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\NotBlankValidator;
-use Symfony\Component\Validator\Constraints\File;
-use Symfony\Component\Validator\Constraints\FileValidator;
-use Symfony\Component\Form\CallbackTransformer;
-use Cloud\LdapBundle\Entity\Service;
+use Symfony\Component\Form\Extension\Core\Type;
 
 class NewPasswordType extends AbstractType
 {
@@ -32,14 +25,14 @@ class NewPasswordType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('id','text')
-            ->add('passwordPlain','repeated',array(
+            ->add('id',Type\EmailType::class)
+            ->add('passwordPlain',Type\RepeatedType::class,array(
                 'invalid_message' => 'The password fields must match.',
-                'type'=>'password',
+                'type'=>Type\PasswordType::class,
                 'first_options'  => array('label' => 'Password'),
                 'second_options' => array('label' => 'Repeat Password'),
             ))
-            ->add('save', 'submit',array('attr'=>['class'=>'btn-success']));
+            ->add('save', Type\SubmitType::class,array('attr'=>['class'=>'btn-success']));
     }
 
     public function getName()
