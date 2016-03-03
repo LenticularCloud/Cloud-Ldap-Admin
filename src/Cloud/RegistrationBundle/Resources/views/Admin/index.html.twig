@@ -2,9 +2,9 @@
 
 {% block content %}
 
-    {% for user in users %}
-        {{ user.getUsername }}
-        {{ form(form_edit,{'action':path('registration_admin_edit',{'user':user.getId})}) }}
+    {% for username,form in forms %}
+        {{ username }}
+        {{ form(form,{'action':path('registration_admin_edit',{'user':username})}) }}
     {% endfor %}
 
 {% endblock %}

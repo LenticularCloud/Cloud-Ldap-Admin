@@ -27,9 +27,14 @@ class AdminController extends Controller
     public function indexAction()
     {
         $users = $this->getDoctrine()->getManager()->getRepository("CloudRegistrationBundle:User")->findAll();
-        $form = $this->createForm(EditType::class);
 
-        return ['users' => $users, 'form_edit' => $form->createView()];
+        $forms=[];
+        foreach($users as $user) {
+            $form = $this->createForm(EditType::class);
+            $forms[$user->getUsername()]=$form->createView();
+        }
+
+        return ['forms' => $forms];
     }
 
     /**
