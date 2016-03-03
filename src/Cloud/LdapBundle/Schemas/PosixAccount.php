@@ -30,8 +30,13 @@ class PosixAccount
     private $uid;
 
     /**
+     * attributetype ( 1.3.6.1.1.1.1.0 NAME 'uidNumber'
+     * DESC 'An integer uniquely identifying a user in an administrative domain'
+     * EQUALITY integerMatch
+     * SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE )
+     *
      * @var Attribute
-     * @LDAP\Attribute(type="number")
+     * @LDAP\Attribute(type="number")\
      */
     private $uidNumber;
 
@@ -42,6 +47,11 @@ class PosixAccount
     private $gidNumber;
 
     /**
+     * attributetype ( 1.3.6.1.1.1.1.3 NAME 'homeDirectory'
+     * DESC 'The absolute path to the home directory'
+     * EQUALITY caseExactIA5Match
+     * SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE )
+     *
      * @var Attribute
      * @LDAP\Attribute(type="string")
      */
@@ -54,6 +64,11 @@ class PosixAccount
     private $userPasswords;
 
     /**
+     * attributetype ( 1.3.6.1.1.1.1.4 NAME 'loginShell'
+     * DESC 'The path to the login shell'
+     * EQUALITY caseExactIA5Match
+     * SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE )
+     *
      * @var Attribute
      * @LDAP\Attribute(type="string")
      */
@@ -88,6 +103,8 @@ class PosixAccount
 
     /**
      * @return mixed
+     *
+     * @Assert\NotBlank()
      */
     public function getCn()
     {
@@ -106,6 +123,8 @@ class PosixAccount
 
     /**
      * @return mixed
+     *
+     * @Assert\NotBlank()
      */
     public function getUid()
     {
@@ -142,6 +161,8 @@ class PosixAccount
 
     /**
      * @return mixed
+     *
+     * @Assert\NotBlank()
      */
     public function getUidNumber()
     {
@@ -160,6 +181,8 @@ class PosixAccount
 
     /**
      * @return mixed
+     *
+     * @Assert\NotBlank()
      */
     public function getGidNumber()
     {
@@ -178,6 +201,8 @@ class PosixAccount
 
     /**
      * @return mixed
+     *
+     * @Assert\NotBlank()
      */
     public function getHomeDirectory()
     {

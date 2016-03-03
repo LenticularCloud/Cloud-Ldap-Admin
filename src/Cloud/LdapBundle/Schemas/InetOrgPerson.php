@@ -3,6 +3,7 @@ namespace Cloud\LdapBundle\Schemas;
 
 use Cloud\LdapBundle\Entity\Ldap\Attribute;
 use Cloud\LdapBundle\Mapper as LDAP;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * DESC 'RFC2798: Internet Organizational Person'
@@ -100,6 +101,8 @@ class InetOrgPerson extends OrganizationalPerson
 
     /**
      * @return string
+     *
+     * @Assert\Email()
      */
     public function getMail()
     {

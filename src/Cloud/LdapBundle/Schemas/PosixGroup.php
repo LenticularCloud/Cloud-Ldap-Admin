@@ -38,6 +38,8 @@ class PosixGroup
 
     /**
      * @return string
+     *
+     * @Assert\NotBlank()
      */
     public function getCn()
     {
@@ -56,6 +58,8 @@ class PosixGroup
 
     /**
      * @return int
+     *
+     * @Assert\NotBlank()
      */
     public function getGidNumber()
     {
@@ -74,6 +78,8 @@ class PosixGroup
 
     /**
      * @return ArrayCollection
+     *
+     * @Assert\NotBlank()
      */
     public function getMemberUid()
     {

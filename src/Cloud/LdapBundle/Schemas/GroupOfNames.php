@@ -20,7 +20,6 @@ class GroupOfNames
      * @var Attribute
      *
      * @LDAP\Attribute(type="string")
-     * @Assert\NotBlank()
      */
     private $cn;
 
@@ -28,7 +27,6 @@ class GroupOfNames
      * @var ArrayCollection
      *
      * @LDAP/Attribute(name="member",type="array")
-     * @Assert\NotBlank()
      */
     private $members;
 
@@ -41,6 +39,8 @@ class GroupOfNames
 
     /**
      * @return string
+     *
+     * @Assert\NotBlank()
      */
     public function getCn() {
         return $this->cn->get();
@@ -56,6 +56,7 @@ class GroupOfNames
 
     /**
      * @return array
+     * @Assert\Count(min="1",minMessage="member not set")
      */
     public function getMembers()
     {

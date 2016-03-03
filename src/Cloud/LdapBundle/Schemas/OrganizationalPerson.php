@@ -3,6 +3,7 @@ namespace Cloud\LdapBundle\Schemas;
 
 use Cloud\LdapBundle\Entity\Ldap\Attribute;
 use Cloud\LdapBundle\Mapper as LDAP;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * DESC 'RFC2256: an organizational person'

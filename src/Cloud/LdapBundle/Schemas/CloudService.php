@@ -44,6 +44,8 @@ class CloudService
 
     /**
      * @return Attribute
+     *
+     * @Assert\NotBlank()
      */
     public function getUid()
     {

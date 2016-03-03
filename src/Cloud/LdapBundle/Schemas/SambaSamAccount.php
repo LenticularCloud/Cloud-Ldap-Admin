@@ -70,6 +70,8 @@ class SambaSamAccount
 
     /**
      * @return Attribute
+     *
+     * @Assert\NotBlank()
      */
     public function getUid()
     {
@@ -88,6 +90,8 @@ class SambaSamAccount
 
     /**
      * @return Attribute
+     *
+     * @Assert\NotBlank()
      */
     public function getSambaSID()
     {

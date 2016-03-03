@@ -55,6 +55,8 @@ class Person
 
     /**
      * @return mixed
+     *
+     * @Assert\NotBlank()
      */
     public function getSn()
     {
@@ -73,6 +75,8 @@ class Person
 
     /**
      * @return mixed
+     *
+     * @Assert\NotBlank()
      */
     public function getCn()
     {

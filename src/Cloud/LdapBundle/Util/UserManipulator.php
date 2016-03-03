@@ -6,6 +6,7 @@ use Cloud\LdapBundle\Entity\User;
 use InvalidArgumentException;
 use Cloud\LdapBundle\Security\LdapPasswordEncoderInterface;
 use Cloud\LdapBundle\Schemas;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserManipulator
 {
@@ -15,18 +16,19 @@ class UserManipulator
      * @var LdapClient $client
      */
     protected $client;
-    protected $encoder;
     protected $baseDn;
+    /**
+     * @var ValidatorInterface
+     */
     protected $validator;
     protected $bindDn;
     protected $bindPassword;
     protected $domain;
 
-    public function __construct(LdapClient $client, LdapPasswordEncoderInterface $encoder, $validator, $baseDn, $bindDn, $bindPassword,$domain)
+    public function __construct(LdapClient $client, ValidatorInterface $validator, $baseDn, $bindDn, $bindPassword,$domain)
     {
         $this->client = $client;
         $this->baseDn = $baseDn;
-        $this->encoder = $encoder;
         $this->validator = $validator;
         $this->bindDn = $bindDn;
         $this->bindPassword = $bindPassword;
@@ -41,7 +43,6 @@ class UserManipulator
         if (count($errors) > 0) {
             throw new InvalidArgumentException((string)$errors);
         }
-
         $transformer = new LdapArrayToObjectTransformer();
 
         $this->client->add('uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn, $transformer->transform($user));
@@ -63,6 +64,7 @@ class UserManipulator
             $user->addObject($objectClass);
         }
         $user->getObject(Schemas\InetOrgPerson::class)->setMail($username.'@'.$this->domain);
+        $user->addRole('ROLE_USER');
         return $user;
     }
 
@@ -83,6 +85,14 @@ class UserManipulator
             throw new InvalidArgumentException((string)$errors);
         }
 
+        // validate ldap schemas
+        foreach($user->getObjects() as $object) {
+            $errors = $this->validator->validate($object);
+            if (count($errors) > 0) {
+                throw new InvalidArgumentException((string)$errors);
+            }
+        }
+
         $transformer = new LdapArrayToObjectTransformer(null);
 
         $this->client->replace('uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn, $transformer->transform($user));
@@ -91,6 +101,14 @@ class UserManipulator
 
             $dn = 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
             if ($service->isEnabled()) {
+                // validate ldap schemas
+                foreach($service->getObjects() as $object) {
+                    $errors = $this->validator->validate($object);
+                    if (count($errors) > 0) {
+                        throw new InvalidArgumentException($service->getName().": ".(string)$errors);
+                    }
+                }
+
                 $service->getAttributes()->get('mail')->set($user->getEmail());
                 if ($this->client->isEntityExist($dn)) {
                     $this->client->replace($dn,
@@ -122,15 +140,5 @@ class UserManipulator
                 $this->client->delete($dn);
             }
         }
-    }
-
-    public function addRole(User $user, $role)
-    {
-        // @TODO
-    }
-
-    public function removeRole(User $user, $role)
-    {
-        // @TODO
     }
 }

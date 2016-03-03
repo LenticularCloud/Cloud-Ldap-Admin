@@ -21,7 +21,6 @@ class ShadowAccount
      * @var Attribute
      *
      * @LDAP\Attribute(type="string")
-     * @Assert\NotNull()
      */
     private $uid;
 
@@ -48,14 +47,16 @@ class ShadowAccount
 
     public function __construct()
     {
-        $this->uid=new Attribute();
-        $this->userPasswords=new ArrayCollection();
-        $this->shadowLastChange=new Attribute();
-        $this->shadowExpire=new Attribute();
+        $this->uid = new Attribute();
+        $this->userPasswords = new ArrayCollection();
+        $this->shadowLastChange = new Attribute();
+        $this->shadowExpire = new Attribute();
     }
 
     /**
      * @return Attribute
+     *
+     * @Assert\NotNull()
      */
     public function getUid()
     {
@@ -63,12 +64,12 @@ class ShadowAccount
     }
 
     /**
-     * @param Attribute $uid
+     * @param string $uid
      * @return ShadowAccount
      */
     public function setUid($uid)
     {
-        $this->uid = $uid;
+        $this->uid->set($uid);
         return $this;
     }
 
@@ -101,38 +102,38 @@ class ShadowAccount
     }
 
     /**
-     * @return Attribute
+     * @return string
      */
     public function getShadowLastChange()
     {
-        return $this->shadowLastChange;
+        return $this->shadowLastChange->get();
     }
 
     /**
-     * @param Attribute $shadowLastChange
+     * @param string $shadowLastChange
      * @return ShadowAccount
      */
     public function setShadowLastChange($shadowLastChange)
     {
-        $this->shadowLastChange = $shadowLastChange;
+        $this->shadowLastChange->set($shadowLastChange);
         return $this;
     }
 
     /**
-     * @return Attribute
+     * @return string
      */
     public function getShadowExpire()
     {
-        return $this->shadowExpire;
+        return $this->shadowExpire->get();
     }
 
     /**
-     * @param Attribute $shadowExpire
+     * @param string $shadowExpire
      * @return ShadowAccount
      */
     public function setShadowExpire($shadowExpire)
     {
-        $this->shadowExpire = $shadowExpire;
+        $this->shadowExpire->set($shadowExpire);
         return $this;
     }
 
