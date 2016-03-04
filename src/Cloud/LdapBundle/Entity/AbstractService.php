@@ -1,15 +1,13 @@
 <?php
 namespace Cloud\LdapBundle\Entity;
 
-use Cloud\LdapBundle\Entity\Ldap\AbstractEntity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
-use \InvalidArgumentException;
 use Cloud\LdapBundle\Security\LdapPasswordEncoderInterface;
 use Cloud\LdapBundle\Security\CryptEncoder;
 use Cloud\LdapBundle\Schemas;
 
-abstract class AbstractService extends AbstractEntity
+abstract class AbstractService extends AbstractUser
 {
     /**
      * @var User $user
@@ -144,7 +142,7 @@ abstract class AbstractService extends AbstractEntity
         foreach ($this->getObjectClasses() as $class) {
             $this->addObject($class);
         }
-        $this->attributes['uid'] = $this->user->getAttributes()->get('uid');
+        $this->attributes['uid']->set($this->user->getUsername());
 
         $this->serviceEnabled();
 

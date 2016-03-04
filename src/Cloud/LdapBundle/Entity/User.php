@@ -1,22 +1,15 @@
 <?php
 namespace Cloud\LdapBundle\Entity;
 
-use Cloud\LdapBundle\Entity\Ldap\AbstractEntity;
 use Cloud\LdapBundle\Entity\Ldap\Attribute;
 use Cloud\LdapBundle\Mapper as LDAP;
 use Cloud\LdapBundle\Security\CryptEncoder;
-use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Security\Core\User\AdvancedUserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
-use \Cloud\LdapBundle\Entity\Password;
-use \Cloud\LdapBundle\Entity\Service;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
-use Symfony\Component\Security\Core\User\User as BaseUser;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Cloud\LdapBundle\Schemas;
 use InvalidArgumentException;
 
-class User extends AbstractEntity implements AdvancedUserInterface
+class User extends AbstractUser implements AdvancedUserInterface
 {
 
     private $username;
@@ -126,7 +119,7 @@ class User extends AbstractEntity implements AdvancedUserInterface
 
     public function setRoles(array $roles)
     {
-        $array = $this->getAttributes('userpassword')->clear();
+        $this->getAttributes('userpassword')->clear();
         foreach ($roles as $role) {
             $this->getObject(Schemas\LenticularUser::class)->addAuthRole($role);
         }
@@ -282,7 +275,7 @@ class User extends AbstractEntity implements AdvancedUserInterface
 
     /**
      *
-     * @return array<AbstractService>
+     * @return AbstractService[]
      */
     public function getServices()
     {

@@ -18,11 +18,25 @@ abstract class AbstractEntity
      */
     protected $attributes;
 
+    /**
+     * @var string
+     */
+    protected $dn=null;
+
     public function __construct()
     {
         $this->objects = new ArrayCollection();
         $this->attributes = new ArrayCollection();
 
+    }
+
+    public function getDn() {
+        return $this->dn;
+    }
+
+    public function setDn($dn) {
+        $this->dn=$dn;
+        return $this;
     }
 
     public function getObject($type)
@@ -38,6 +52,9 @@ abstract class AbstractEntity
         return null;
     }
 
+    /**
+     * @return ArrayCollection
+     */
     public function getObjects()
     {
         return $this->objects;

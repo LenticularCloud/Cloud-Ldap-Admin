@@ -7,6 +7,7 @@ use Cloud\LdapBundle\Entity\User;
 use Cloud\LdapBundle\Security\CryptEncoder;
 use Cloud\RegistrationBundle\Entity\User as RegUser;
 use Cloud\RegistrationBundle\Form\Type\EditType;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -28,31 +29,34 @@ class AdminController extends Controller
     {
         $users = $this->getDoctrine()->getManager()->getRepository("CloudRegistrationBundle:User")->findAll();
 
-        $forms=[];
-        foreach($users as $user) {
+        $data = [];
+        foreach ($users as $user) {
             $form = $this->createForm(EditType::class);
-            $forms[$user->getUsername()]=$form->createView();
+            $data[] = ['form' => $form->createView(), 'user' => $user];
+
         }
 
-        return ['forms' => $forms];
+        return ['data' => $data];
     }
 
     /**
      * @Route("/edit/{user}",name="registration_admin_edit")
      */
-    public function editAction(Request $request, RegUser $user)
+    public function editAction(Request $request, $user)
     {
         $response = new Response();
-        $form=$this->createForm(EditType::class);
+        $em = $this->getDoctrine()->getManager();
+        $form = $this->createForm(EditType::class);
         $form->handleRequest($request);
 
-        if($form->isValid()) {
-            $data=$form->getData();
-            $em=$this->getDoctrine()->getManager();
-            if($data['action'] ===true ) {
-                $userLdap=$this->get('cloud.ldap.util.usermanipulator')->createUser($user->getUsername());
+        $user=$em->getRepository(\Cloud\RegistrationBundle\Entity\User::class)->findOneByUsername($user);
 
-                $password=new Password();
+        if ($form->isValid()) {
+            $data = $form->getData();
+            if ($data['action'] === true) {
+                $userLdap = $this->get('cloud.ldap.util.usermanipulator')->createUser($user->getUsername());
+
+                $password = new Password();
                 $password->setHash($user->getPasswordHash());
                 $password->setId('default');
                 $password->setEncoder(CryptEncoder::class);
@@ -62,14 +66,19 @@ class AdminController extends Controller
                 $this->get('cloud.ldap.util.usermanipulator')->create($userLdap);
                 $em->remove($user);
 
-            }elseif($data['action'] ===false ) {
+            } elseif ($data['action'] === false) {
                 $em->remove($user);
-            }else {
+            } else {
                 $response->setStatusCode(400);
                 return $response;
             }
             $em->flush();
+        }else {
+            $response->setContent(json_encode(['successfully'=>false,'error'=>$form->getErrors(true)->__toString()]));
+            return $response;
         }
+
+        $response->setContent(json_encode(['successfully'=>true]));
 
         return $response;
     }

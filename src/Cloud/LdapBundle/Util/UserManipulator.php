@@ -1,6 +1,7 @@
 <?php
 namespace Cloud\LdapBundle\Util;
 
+use Cloud\LdapBundle\Entity\AbstractService;
 use Cloud\LdapBundle\Services\LdapClient;
 use Cloud\LdapBundle\Entity\User;
 use InvalidArgumentException;
@@ -25,7 +26,7 @@ class UserManipulator
     protected $bindPassword;
     protected $domain;
 
-    public function __construct(LdapClient $client, ValidatorInterface $validator, $baseDn, $bindDn, $bindPassword,$domain)
+    public function __construct(LdapClient $client, ValidatorInterface $validator, $baseDn, $bindDn, $bindPassword, $domain)
     {
         $this->client = $client;
         $this->baseDn = $baseDn;
@@ -60,10 +61,10 @@ class UserManipulator
     {
         $user = new User($username);
 
-        foreach($user->getObjectClasses() as $objectClass) {
+        foreach ($user->getObjectClasses() as $objectClass) {
             $user->addObject($objectClass);
         }
-        $user->getObject(Schemas\InetOrgPerson::class)->setMail($username.'@'.$this->domain);
+        $user->getObject(Schemas\InetOrgPerson::class)->setMail($username . '@' . $this->domain);
         $user->addRole('ROLE_USER');
         return $user;
     }
@@ -86,10 +87,10 @@ class UserManipulator
         }
 
         // validate ldap schemas
-        foreach($user->getObjects() as $object) {
+        foreach ($user->getObjects() as $object) {
             $errors = $this->validator->validate($object);
             if (count($errors) > 0) {
-                throw new InvalidArgumentException((string)$errors);
+                throw new InvalidArgumentException($this->getUsername() . '(User):' . (string)$errors);
             }
         }
 
@@ -102,14 +103,12 @@ class UserManipulator
             $dn = 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
             if ($service->isEnabled()) {
                 // validate ldap schemas
-                foreach($service->getObjects() as $object) {
+                foreach ($service->getObjects() as $object) {
                     $errors = $this->validator->validate($object);
                     if (count($errors) > 0) {
-                        throw new InvalidArgumentException($service->getName().": ".(string)$errors);
+                        throw new InvalidArgumentException($service->getName() . "(Service): " . (string)$errors);
                     }
                 }
-
-                $service->getAttributes()->get('mail')->set($user->getEmail());
                 if ($this->client->isEntityExist($dn)) {
                     $this->client->replace($dn,
                         $transformer->transform($service));
@@ -117,7 +116,30 @@ class UserManipulator
                     $this->client->add($dn,
                         $transformer->transform($service));
                 }
-            } else {
+
+                //add groups
+                foreach ($service->getGroups() as $group) {
+                    $dnGroup = 'uid=' . $user->getUsername() . ',ou=groups,dc=' . $service->getName() . ',' . $this->baseDn;
+                    $errors = $this->validator->validate($group);
+                    if (count($errors) > 0) {
+                        throw new InvalidArgumentException($group->getName() . "(Group): " . (string)$errors);
+                    }
+                    if ($group->isEnabled()) {
+
+                        if ($this->client->isEntityExist($dnGroup)) {
+                            $this->client->replace($dnGroup,
+                                $transformer->transform($service));
+                        } else {
+                            $this->client->add($dnGroup,
+                                $transformer->transform($service));
+                        }
+                    } else {
+                        if ($this->client->isEntityExist($dnGroup)) {
+                            $this->client->delete($dnGroup);
+                        }
+                    }
+                }
+            } else { // !$service->isEnabled()
                 if ($this->client->isEntityExist($dn)) {
                     $this->client->delete($dn);
                 }
@@ -125,7 +147,8 @@ class UserManipulator
         }
     }
 
-    public function delete(User $user)
+    public
+    function delete(User $user)
     {
 
         $dn = 'uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn;

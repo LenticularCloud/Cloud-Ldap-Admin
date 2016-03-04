@@ -30,11 +30,16 @@ class PosixGroup
     private $gidNumber;
 
     /**
+     * attributetype ( 1.3.6.1.1.1.1.12 NAME 'memberUid'
+     * EQUALITY caseExactIA5Match
+     * SUBSTR caseExactIA5SubstringsMatch
+     * SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
+     *
      * @var ArrayCollection
      *
-     * @LDAP\Attribute(type="array")
+     * @LDAP\Attribute(name="memberUid"type="array")
      */
-    private $memberUid;
+    private $memberUids;
 
     /**
      * @return string
@@ -81,18 +86,34 @@ class PosixGroup
      *
      * @Assert\NotBlank()
      */
-    public function getMemberUid()
+    public function getMemberUids()
     {
-        return $this->memberUid;
+        return $this->memberUids;
     }
 
     /**
      * @param ArrayCollection $memberUid
      * @return PosixGroup
      */
-    public function setMemberUid($memberUid)
+    public function addMemberUid($memberUid)
     {
-        $this->memberUid = $memberUid;
+        $this->removeMemberUid($memberUid);
+        $this->memberUids->add(new Attribute($memberUid));
+        return $this;
+    }
+
+    /**
+     * @param ArrayCollection $memberUid
+     * @return PosixGroup
+     */
+    public function removeMemberUid($memberUid)
+    {
+        foreach($this->memberUids as $attr) {
+            if($attr->get() == $memberUid) {
+                $this->memberUids->remove($attr);
+                return $this;
+            }
+        }
         return $this;
     }
 }

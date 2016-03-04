@@ -5,7 +5,6 @@ services:
         class: Cloud\LdapBundle\Util\UserManipulator
         arguments:
             - "@cloud.ldap.client.root"
-            - "@cloud.encoder.crypt"
             - "@validator"
             - "%ldap_base_dn%"
             - "%ldap_bind_rdn%"

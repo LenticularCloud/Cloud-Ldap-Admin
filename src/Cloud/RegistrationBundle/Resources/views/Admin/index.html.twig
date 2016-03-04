@@ -2,9 +2,24 @@
 
 {% block content %}
 
-    {% for username,form in forms %}
-        {{ username }}
-        {{ form(form,{'action':path('registration_admin_edit',{'user':username})}) }}
+    {% for datarow in data %}
+        <div class="row">
+            <div class="col-md-4">
+                {{ datarow.user.getUsername }}
+            </div>
+            <div class="col-md-4">
+                {{ datarow.user.getCreateAt|date }}
+            </div>
+            <div class="col-md-4">
+                {{ form(datarow.form,{'action':path('registration_admin_edit',{'user':datarow.user.getUsername})}) }}
+            </div>
+        </div>
     {% endfor %}
+
+    {% if data is empty %}
+        <div class="row">
+            no new users registrated
+        </div>
+    {% endif %}
 
 {% endblock %}

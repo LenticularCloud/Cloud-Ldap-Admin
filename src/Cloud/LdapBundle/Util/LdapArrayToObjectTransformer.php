@@ -11,6 +11,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use InvalidArgumentException;
 use Cloud\LdapBundle\Entity\Service;
 use Cloud\LdapBundle\Schemas;
+use Symfony\Component\Validator\Validation;
 
 class LdapArrayToObjectTransformer
 {
@@ -65,9 +66,9 @@ class LdapArrayToObjectTransformer
      * @param AbstractEntity $entity
      * @return AbstractEntity
      */
-    public function reverseTransform($ldapArray,AbstractEntity $entity)
+    public function reverseTransform($ldapArray,AbstractEntity $entity,$dn)
     {
-        $attributes = new ArrayCollection();
+        $entity->setDn($dn);
         $schemaClasses=$entity->getObjectClasses();
 
         //force lower keynames

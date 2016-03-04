@@ -39,9 +39,19 @@ class User
 
     /**
      * @Assert\Email()
-     * @ORM\Column(type="string",length=100)
+     * @ORM\Column(type="string",length=100,nullable=true)
      */
     protected $altEmail;
+
+    /**
+     * @ORM\Column(type="datetime")
+     */
+    protected $createAt;
+
+    public function __construct()
+    {
+        $this->createAt=new \DateTime();
+    }
 
     /**
      * @return mixed
@@ -135,6 +145,21 @@ class User
         return $this;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getCreateAt()
+    {
+        return $this->createAt;
+    }
 
-
+    /**
+     * @param \DateTime $createAt
+     * @return User
+     */
+    public function setCreateAt(\DateTime $createAt)
+    {
+        $this->createAt = $createAt;
+        return $this;
+    }
 }

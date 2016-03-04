@@ -2,6 +2,8 @@
 namespace Cloud\LdapBundle\Security;
 
 
+use Cloud\LdapBundle\Entity\AbstractUser;
+use Cloud\LdapBundle\Entity\PosixService;
 use Cloud\LdapBundle\Entity\Service;
 use Cloud\LdapBundle\Util\LdapArrayToObjectTransformer;
 use Doctrine\Common\Annotations\Reader;
@@ -71,9 +73,10 @@ class LdapUserProvider implements UserProviderInterface
         $username = $this->ldap->escape($username, '', LDAP_ESCAPE_FILTER);
         $query = str_replace('{username}', $username, str_replace('{uid_key}', $this->uidKey, $this->filter));
 
+        $dn="ou=Users," . $this->baseDn;
         try {
 
-            $search = $this->ldap->find("ou=Users," . $this->baseDn, $query);
+            $search = $this->ldap->find($dn, $query);
         } catch (ConnectionException $e) {
             throw new UsernameNotFoundException(sprintf('User "%s" not found.', $username), 0, $e);
         }
@@ -88,25 +91,27 @@ class LdapUserProvider implements UserProviderInterface
 
         $transformer = new LdapArrayToObjectTransformer($this->reader);
 
-        $user = $transformer->reverseTransform($search[0], new User(null));
+        $user = $transformer->reverseTransform($search[0], new User(null),$dn);
 
         foreach ($this->getServices() as $serviceName => $service) {
             $class=$service['data_object'];
             $serviceObject = new $class($serviceName);
-            $search = $this->ldap->find("ou=Users,dc=" . $serviceName . "," . $this->baseDn, $query);
+            $dn="ou=Users,dc=" . $serviceName . "," . $this->baseDn;
+            $search = $this->ldap->find($dn, $query);
             if ($search !== null) {
-                $serviceObject = $transformer->reverseTransform($search[0], $serviceObject);
+                $serviceObject = $transformer->reverseTransform($search[0], $serviceObject,$dn);
             }
             $user->addService($serviceObject);
         }
 
+        dump($user);
         return $user;
     }
 
     /**
      * get an array of all users
      *
-     * @return Array<User>
+     * @return User[]
      * @throws LdapQueryException
      */
     public function getUsers()
@@ -142,5 +147,15 @@ class LdapUserProvider implements UserProviderInterface
     public function getServices()
     {
         return $this->services;
+    }
+
+    public function getGroupNames(AbstractUser $user) {
+        //@TODO this is only a tmp hack
+        switch(get_class($user)) {
+            case PosixService::class:
+                return [$user->getName()];
+                break;
+        }
+        return [];
     }
 }

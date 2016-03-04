@@ -28,7 +28,6 @@ class SambaSamAccount
      * @var Attribute
      *
      * @LDAP\Attribute(type="string")
-     * @Assert\NotBlank()
      */
     private $uid;
 
@@ -41,7 +40,6 @@ class SambaSamAccount
      * @var Attribute
      *
      * @LDAP\Attribute(type="string")
-     * @Assert\NotBlank()
      */
     private $sambaSID;
 
