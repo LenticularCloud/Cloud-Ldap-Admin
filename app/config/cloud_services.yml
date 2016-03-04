@@ -22,3 +22,7 @@ cloud_ldap:
       enable: true
       default: false
       data_object: 'Cloud\LdapBundle\Entity\FreeRadiusService'
+    posix:
+      enable: true
+      default: false
+      data_object: 'Cloud\LdapBundle\Entity\PosixService'
