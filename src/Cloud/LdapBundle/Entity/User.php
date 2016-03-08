@@ -219,8 +219,21 @@ class User extends AbstractUser implements AdvancedUserInterface
         return $this;
     }
 
+    // compatible reason
     public function addPassword(Password $password) {
         return $this->setPassword($password);
+    }
+
+    public function getPasswords() {
+        if($this->getPassword() !== null ){
+            return [$this->getPassword()];
+        }else {
+            return [];
+        }
+    }
+
+    public function getServices() {
+        return [];
     }
 
     /**

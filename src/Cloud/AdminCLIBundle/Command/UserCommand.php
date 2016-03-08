@@ -138,7 +138,7 @@ class UserCommand extends ContainerAwareCommand
             $password->setId('default');
             $password->setPasswordPlain($passwordPlain);
             CryptEncoder::encodePassword($password);
-            $userLdap->addPassword($password);
+            $userLdap->setPassword($password);
 
             $password = new Password();
             $password->setId('default');

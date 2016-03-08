@@ -33,7 +33,7 @@ class ProfileType extends AbstractType
     {
         $builder
             ->add('email','email',['required'=>false])
-            ->add('altEmail','email',['required'=>false])
+//            ->add('altEmail','email',['required'=>false])
             ->add('givenName','text',['required'=>false])
             ->add('sureName','text',['required'=>false])
             ->add('displayName','text')
