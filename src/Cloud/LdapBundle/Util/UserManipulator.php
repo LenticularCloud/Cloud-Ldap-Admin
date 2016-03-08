@@ -70,6 +70,8 @@ class UserManipulator
             $user->addObject($objectClass);
         }
         $user->getObject(Schemas\InetOrgPerson::class)->setMail($username . '@' . $this->domain);
+        $user->setHomeDirectory('/home/users/'.$username);
+        $user->getObject(Schemas\InetOrgPerson::class)->setCn($username );
         $user->addRole('ROLE_USER');
         return $user;
     }

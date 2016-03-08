@@ -285,6 +285,38 @@ class User extends AbstractUser implements AdvancedUserInterface
         return $this->getObject(Schemas\InetOrgPerson::class)->setCn($cn);
     }
 
+    // ---- posix account ----
+
+    public function getUidNumber()
+    {
+        return $this->getObject(Schemas\PosixAccount::class)->getUidNumber();
+    }
+
+    public function setUidNumber($uidNumber)
+    {
+        return $this->getObject(Schemas\PosixAccount::class)->setUidNumber($uidNumber);
+    }
+
+    public function getGidNumber()
+    {
+        return $this->getObject(Schemas\PosixAccount::class)->getGidNumber();
+    }
+
+    public function setGidNumber($gidNumber)
+    {
+        return $this->getObject(Schemas\PosixAccount::class)->setGidNumber($gidNumber);
+    }
+
+    public function getHomeDirectory()
+    {
+        return $this->getObject(Schemas\PosixAccount::class)->getHomeDirectory();
+    }
+
+    public function setHomeDirectory($homeDirectory)
+    {
+        return $this->getObject(Schemas\PosixAccount::class)->setHomeDirectory($homeDirectory);
+    }
+
     /**
      * Checks whether the user's account has expired.
      *

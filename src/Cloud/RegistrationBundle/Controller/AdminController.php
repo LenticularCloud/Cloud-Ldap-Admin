@@ -2,6 +2,7 @@
 
 namespace Cloud\RegistrationBundle\Controller;
 
+use Cloud\LdapBundle\Entity\Doctrine\Setting;
 use Cloud\LdapBundle\Entity\Password;
 use Cloud\LdapBundle\Entity\User;
 use Cloud\LdapBundle\Security\CryptEncoder;
@@ -55,7 +56,16 @@ class AdminController extends Controller
         if ($form->isValid()) {
             $data = $form->getData();
             if ($data['action'] === true) {
+                $uid=$em->getRepository(\Cloud\LdapBundle\Entity\Doctrine\Setting::class)->findOneByKey('posixAccount.nextUid');
+                if($uid===null) {
+                    $uid=new Setting('posixAccount.nextUid');
+                    $uid->setValue('20000');
+                    $em->persist($uid);
+                }
+
                 $userLdap = $this->get('cloud.ldap.util.usermanipulator')->createUser($user->getUsername());
+                $userLdap->setUidNumber($uid);
+                $uid->setValue($uid->getValue()+1);
 
                 $password = new Password();
                 $password->setHash($user->getPasswordHash());
