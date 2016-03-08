@@ -35,6 +35,7 @@ services:
             - true
     cloud.ldap.client:
         class: Cloud\LdapBundle\Services\LdapClient
+        arguments: [ "%ldap_host%" ]
     cloud.ldap.client.root:
         class: Cloud\LdapBundle\Services\LdapClient
         arguments: [ "%ldap_host%" ]
