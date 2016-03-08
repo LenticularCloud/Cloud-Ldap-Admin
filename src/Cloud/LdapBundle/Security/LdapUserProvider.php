@@ -103,7 +103,6 @@ class LdapUserProvider implements UserProviderInterface
             $user->addService($serviceObject);
         }
 
-        dump($user);
         return $user;
     }
 

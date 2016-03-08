@@ -48,14 +48,6 @@ class UserManipulator
         $transformer = new LdapArrayToObjectTransformer();
 
         $this->client->add('cn=' . $user->getUsername() . ',ou=people,' . $this->baseDn, $transformer->transform($user));
-        foreach ($user->getServices() as $service) {
-
-            $dn = 'cn=' . $user->getUsername() . ',ou=people,dc=' . $service->getName() . ',' . $this->baseDn;
-            if ($service->isEnabled()) {
-                $this->client->add($dn,
-                    $transformer->transform($service));
-            }
-        }
 
         $group = new MagicShaGroup($user);
         $this->client->add('cn=' . $user->getCn() . ',ou=groups,' . $this->baseDn, $transformer->transform($group));
@@ -104,31 +96,6 @@ class UserManipulator
         $transformer = new LdapArrayToObjectTransformer(null);
 
         $this->client->replace('cn=' . $user->getUsername() . ',ou=people,' . $this->baseDn, $transformer->transform($user));
-
-        foreach ($user->getServices() as $service) {
-
-            $dn = 'cn=' . $user->getUsername() . ',ou=people,dc=' . $service->getName() . ',' . $this->baseDn;
-            if ($service->isEnabled()) {
-                // validate ldap schemas
-                foreach ($service->getObjects() as $object) {
-                    $errors = $this->validator->validate($object);
-                    if (count($errors) > 0) {
-                        throw new InvalidArgumentException($service->getName() . "(Service): " . (string)$errors);
-                    }
-                }
-                if ($this->client->isEntityExist($dn)) {
-                    $this->client->replace($dn,
-                        $transformer->transform($service));
-                } else {
-                    $this->client->add($dn,
-                        $transformer->transform($service));
-                }
-            } else { // !$service->isEnabled()
-                if ($this->client->isEntityExist($dn)) {
-                    $this->client->delete($dn);
-                }
-            }
-        }
     }
 
     public
