@@ -64,7 +64,7 @@ class AdminController extends Controller
                 }
 
                 $userLdap = $this->get('cloud.ldap.util.usermanipulator')->createUser($user->getUsername());
-                $userLdap->setUidNumber($uid);
+                $userLdap->setUidNumber($uid->getValue());
                 $uid->setValue($uid->getValue()+1);
 
                 $password = new Password();

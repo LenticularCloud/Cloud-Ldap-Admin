@@ -54,6 +54,21 @@ class SambaSamAccount
      */
     private $sambaLMPassword;
 
+
+    /**
+     * ( 1.3.6.1.4.1.7165.2.1.25
+     * NAME 'sambaNTPassword'
+     * DESC 'MD4 hash of the unicode password'
+     * EQUALITY caseIgnoreIA5Match
+     * SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{32}
+     * SINGLE-VALUE )
+     *
+     * @var Attribute
+     *
+     * @LDAP\Attribute(type="string")
+     */
+    private $sambaNTPassword;
+
     /**
      * @var Attribute
      *
@@ -119,6 +134,24 @@ class SambaSamAccount
      * @return SambaSamAccount
      */
     public function setSambaLMPassword($sambaLMPassword)
+    {
+        $this->sambaLMPassword->set($sambaLMPassword);
+        return $this;
+    }
+
+    /**
+     * @return Attribute
+     */
+    public function getSambaNTPassword()
+    {
+        return $this->sambaLMPassword->get();
+    }
+
+    /**
+     * @param Attribute $sambaLMPassword
+     * @return SambaSamAccount
+     */
+    public function setSambaNTPassword($sambaLMPassword)
     {
         $this->sambaLMPassword->set($sambaLMPassword);
         return $this;

@@ -92,7 +92,7 @@ class User extends AbstractUser implements AdvancedUserInterface
             case Schemas\SambaSamAccount::class:
                 $object = $this->getObject(Schemas\SambaSamAccount::class);
 
-                $password = $this->getAttributes()->get('sambalmpassword');
+                $password = $this->getAttributes()->get('sambantpassword');
                 if ($password !== null) {
                     $password = NtEncoder::parsePassword($password);
                     $this->ntPassword = $password;
@@ -250,10 +250,10 @@ class User extends AbstractUser implements AdvancedUserInterface
             $attr = $this->ntPassword->getAttribute();
             $attr->set($password->getAttribute()->get());
         }else {
-            $attr=$this->getAttributes()->get('userpassword')->get(0);
+            $attr=$this->getAttributes()->get('sambantpassword')->get(0);
             if($attr===null) {
                 $attr = new Attribute();
-                $this->getAttributes()->get('userpassword')->add($attr);
+                $this->getAttributes()->get('sambantpassword')->add($attr);
             }
         }
         $attr->set($password->getAttribute()->get());

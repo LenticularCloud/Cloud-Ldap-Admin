@@ -130,7 +130,7 @@ class UserCommand extends ContainerAwareCommand
             }
 
             $userLdap = $this->getContainer()->get('cloud.ldap.util.usermanipulator')->createUser($userLdap->getUsername());
-            $userLdap->setUidNumber($uid);
+            $userLdap->setUidNumber($uid->getValue());
             $uid->setValue($uid->getValue()+1);
 
             $password = new Password();
