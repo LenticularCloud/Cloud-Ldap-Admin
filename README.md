@@ -43,7 +43,9 @@ The main config file is at `app/config/paramters.yml`.
 
 ### Inital ldap server
 
-`./app/console cloud:init`
+Make a backup before you exceute this command. it will change the database schema!
+
+`./app/console cloud:update`
 
 ###  Configure webserver
 
