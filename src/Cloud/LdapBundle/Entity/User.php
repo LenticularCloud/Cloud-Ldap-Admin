@@ -192,12 +192,20 @@ class User extends AbstractUser implements AdvancedUserInterface
         if ($password->getHash() === null) {
             CryptEncoder::encodePassword($password);
         }
-        //switch attributes
-        $attr = $this->password->getAttribute();
-        $attr->set($password->getAttribute()->get());
+        if($this->password !=null) {
+            //switch attributes
+            $attr = $this->password->getAttribute();
+            $attr->set($password->getAttribute()->get());
+        }else {
+            $attr=$this->getAttributes()->get('userPassword');
+        }
         $password->setAttribute($attr);
         $this->password = $password;
         return $this;
+    }
+
+    public function addPassword(Password $password) {
+        return $this->setPassword($password);
     }
 
     /**
@@ -222,8 +230,13 @@ class User extends AbstractUser implements AdvancedUserInterface
         if ($password->getHash() === null) {
             NtEncoder::encodePassword($password);
         }
-        //switch attributes
-        $attr = $this->ntPassword->getAttribute();
+        if($this->ntPassword !=null) {
+            //switch attributes
+            $attr = $this->ntPassword->getAttribute();
+            $attr->set($password->getAttribute()->get());
+        }else {
+            $attr=$this->getAttributes()->get('userPassword');
+        }
         $attr->set($password->getAttribute()->get());
         $password->setAttribute($attr);
         $this->ntPassword = $password;
