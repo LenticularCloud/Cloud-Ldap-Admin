@@ -4,6 +4,7 @@ namespace Cloud\LdapBundle\Entity;
 use Cloud\LdapBundle\Entity\Ldap\Attribute;
 use Cloud\LdapBundle\Mapper as LDAP;
 use Cloud\LdapBundle\Security\CryptEncoder;
+use Cloud\LdapBundle\Security\NtEncoder;
 use Symfony\Component\Security\Core\User\AdvancedUserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Cloud\LdapBundle\Schemas;
@@ -18,31 +19,27 @@ class User extends AbstractUser implements AdvancedUserInterface
      * main passwords for this user
      *
      * @Assert\Valid(deep=true)
-     * @Assert\NotBlank(message="You have to set at min. one master password.")
+     * @Assert\NotBlank(message="You have to set a password.")
      *
-     * @var Array<Password> $passwords
+     * @var Password $password
      */
-    private $passwords = array();
+    private $password = null;
 
     /**
-     *
-     */
-    private $roles = array();
-
-    /**
-     * assoziativ array with service info
+     * main passwords for this user
      *
      * @Assert\Valid(deep=true)
      *
-     * @var array<Service>
+     * @var Password $password
      */
-    private $services = array();
+    private $ntPassword = null;
+
 
     /**
      *
      * @var boolean
      */
-    private $enable = false;
+    private $enable = true;
 
     /**
      * @var string
@@ -60,31 +57,20 @@ class User extends AbstractUser implements AdvancedUserInterface
     {
         return [
             'inetorgperson' => Schemas\InetOrgPerson::class,
-            'shadowaccount' => Schemas\ShadowAccount::class,
-            'lenticularuser' => Schemas\LenticularUser::class,
-            //'posixaccount' => Schemas\PosixAccount::class,
+            'posixaccount' => Schemas\PosixAccount::class,
+            'qmailuser' => Schemas\QmailUser::class,
         ];
     }
 
     public function afterAddObject($class)
     {
         switch ($class) {
-            case Schemas\ShadowAccount::class:
-
-                $encoder = new CryptEncoder();
-                $this->passwords = [];
-                foreach ($this->getAttributes()->get('userpassword') as $password) {
-                    $password = $encoder->parsePassword($password);
-                    $this->passwords[$password->getId()] = $password;
-                }
-                break;
-            case Schemas\LenticularUser::class:
-                $this->enable = $this->getRoles() > 0;
-
-                if ($this->getObject(Schemas\LenticularUser::class)->getUid() === null) {
-                    $this->getObject(Schemas\LenticularUser::class)->setUid($this->username);
+            case Schemas\PosixAccount::class:
+                $object = $this->getObject(Schemas\PosixAccount::class);
+                if ($object->getUid() === null) {
+                    $object->setUid($this->username);
                 } else {
-                    $this->username = $this->getObject(Schemas\LenticularUser::class)->getUid();
+                    $this->username = $this->getObject(Schemas\PosixAccount::class)->getUid();
                 }
                 break;
             case Schemas\InetOrgPerson::class:
@@ -95,6 +81,14 @@ class User extends AbstractUser implements AdvancedUserInterface
                 if ($object->getCn() == null) {
                     $object->setCn($this->username);
                 }
+
+                $encoder = new CryptEncoder();
+                $password = $this->getAttributes()->get('userpassword')->get(0);
+                if ($password !== null) {
+                    $password = $encoder->parsePassword($password);
+                    $this->password = $password;
+                }
+                break;
         }
     }
 
@@ -105,33 +99,39 @@ class User extends AbstractUser implements AdvancedUserInterface
 
     public function getRoles()
     {
-        if ($this->getObject(Schemas\LenticularUser::class) !== null) {
-            return $this->getObject(Schemas\LenticularUser::class)->getAuthRoles();
-        }
         return ["ROLE_USER"];
     }
 
-    public function addRole($role)
-    {
-        $this->getObject(Schemas\LenticularUser::class)->addAuthRole($role);
-        return $this;
-    }
-
-    public function setRoles(array $roles)
-    {
-        $this->getAttributes('userpassword')->clear();
-        foreach ($roles as $role) {
-            $this->getObject(Schemas\LenticularUser::class)->addAuthRole($role);
+    /*
+        public function getRoles()
+        {
+            if ($this->getObject(Schemas\LenticularUser::class) !== null) {
+                return $this->getObject(Schemas\LenticularUser::class)->getAuthRoles();
+            }
+            return ["ROLE_USER"];
         }
-        return $this;
-    }
 
-    public function removeRole($role)
-    {
-        $this->getObject(Schemas\LenticularUser::class)->removeAuthRole($role);
-        return $this;
-    }
+        public function addRole($role)
+        {
+            $this->getObject(Schemas\LenticularUser::class)->addAuthRole($role);
+            return $this;
+        }
 
+        public function setRoles(array $roles)
+        {
+            $this->getAttributes('userpassword')->clear();
+            foreach ($roles as $role) {
+                $this->getObject(Schemas\LenticularUser::class)->addAuthRole($role);
+            }
+            return $this;
+        }
+
+        public function removeRole($role)
+        {
+            $this->getObject(Schemas\LenticularUser::class)->removeAuthRole($role);
+            return $this;
+        }
+    */
     public function getSalt()
     {
         return "";
@@ -158,27 +158,41 @@ class User extends AbstractUser implements AdvancedUserInterface
 
     /**
      *
-     * @return Array<Password>
+     * @return Password
      */
-    public function getPasswords()
+    public function getPassword()
     {
-        return $this->passwords;
+        return $this->password;
+    }
+
+    /**
+     *
+     * @param Password $password
+     * @return \Cloud\LdapBundle\Entity\Service
+     */
+    public function setPassword(Password $password)
+    {
+        if ($password->getEncoder() !== CryptEncoder::class && $password->getPasswordPlain() === null) {
+            throw new \InvalidArgumentException('can not add other password hash');
+        }
+        if ($password->getHash() === null) {
+            CryptEncoder::encodePassword($password);
+        }
+        //switch attributes
+        $attr = $this->password->getAttribute();
+        $attr->set($password->getAttribute()->get());
+        $password->setAttribute($attr);
+        $this->password = $password;
+        return $this;
     }
 
     /**
      *
      * @return Password
      */
-    public function getPassword($passwordId = null)
+    public function getNtPassword()
     {
-        if ($passwordId == null) {
-            return null;
-        }
-        if (!isset($this->passwords[$passwordId])) {
-            throw new InvalidArgumentException("passwordId not found");
-        }
-
-        return $this->passwords[$passwordId];
+        return $this->ntPassword;
     }
 
     /**
@@ -186,109 +200,20 @@ class User extends AbstractUser implements AdvancedUserInterface
      * @param Password $password
      * @return \Cloud\LdapBundle\Entity\Service
      */
-    public function addPassword(Password $password)
+    public function setNtPassword(Password $password)
     {
-        foreach ($this->services as $service) {
-            if ($service->isMasterPasswordEnabled()) {
-                $service->addPassword(clone $password);
-            }
+        if ($password->getEncoder() !== NtEncoder::class && $password->getPasswordPlain() === null) {
+            throw new \InvalidArgumentException('can not add other password hash');
         }
-
-        if ($password->getPasswordPlain() === null) {
-            if ($password->getEncoder() !== $this->passwordEncoder) {
-                throw new \InvalidArgumentException();
-            }
-        } else {
-            $att = new Attribute();
-            $password->setAttribute($att);
-            call_user_func($this->passwordEncoder . '::encodePassword', $password);
+        if ($password->getHash() === null) {
+            NtEncoder::encodePassword($password);
         }
-
-        if (isset($this->passwords[$password->getId()])) {
-            $this->removePassword($this->passwords[$password->getId()]);
-        }
-        $this->passwords[$password->getId()] = $password;
-        $this->getAttributes()->get('userpassword')->add($password->getAttribute());
-        if ($password->getUser() !== $this) {
-            $password->setUser($this);
-        }
-        if (!$password->isMasterPassword()) {
-            $password->setMasterPassword(true);
-        }
+        //switch attributes
+        $attr = $this->ntPassword->getAttribute();
+        $attr->set($password->getAttribute()->get());
+        $password->setAttribute($attr);
+        $this->ntPassword = $password;
         return $this;
-    }
-
-    /**
-     *
-     * @param Password $password
-     */
-    public function removePassword(Password $password)
-    {
-        $this->getAttributes()->get('userpassword')->removeElement($this->passwords[$password->getId()]->getAttribute());
-
-        foreach ($this->services as $service) {
-            if ($service->isMasterPasswordEnabled()) {
-                $service->removePassword($password);
-            }
-        }
-
-        if ($this->passwords[$password->getId()]->getUser() === $this) {
-            $this->passwords[$password->getId()]->setUser(null);
-        }
-        unset($this->passwords[$password->getId()]);
-        return $this;
-    }
-
-    /**
-     *
-     * @param Service $service
-     * @return \Cloud\LdapBundle\Entity\Service
-     */
-    public function addService(AbstractService $service)
-    {
-        if (strlen($service->getName()) <= 0) {
-            throw new \InvalidArgumentException("service name can't be null");
-        }
-        $this->services[$service->getName()] = $service;
-        if ($service->getUser() !== $this) {
-            $service->setUser($this);
-        }
-
-        return $this;
-    }
-
-    /**
-     *
-     * @param Service $service
-     */
-    public function removeService(AbstractService $service)
-    {
-        if (!isset($this->services[$service->getName()])) {
-            throw InvalidArgumentException("service not in the list");
-        }
-        unset($this->services[$service->getName()]);
-        if ($service->getUser() === $this) {
-            $service->setUser(null);
-        }
-        return $this;
-    }
-
-    /**
-     *
-     * @return AbstractService[]
-     */
-    public function getServices()
-    {
-        return $this->services;
-    }
-
-    /**
-     *
-     * @return Service
-     */
-    public function getService($name)
-    {
-        return isset($this->services[$name]) ? $this->services[$name] : null;
     }
 
     /**
@@ -303,10 +228,10 @@ class User extends AbstractUser implements AdvancedUserInterface
     /**
      *
      * @param boolean $enable
+     * @return User
      */
     public function setEnable($enable)
     {
-        $this->enable = $enable;
         return $this;
     }
 
@@ -318,16 +243,6 @@ class User extends AbstractUser implements AdvancedUserInterface
     public function setEmail($email)
     {
         return $this->getObject(Schemas\InetOrgPerson::class)->setMail($email);
-    }
-
-    public function getAltEmail()
-    {
-        return $this->getObject(Schemas\LenticularUser::class)->getAltMail();
-    }
-
-    public function setAltEmail($altEmail)
-    {
-        return $this->getObject(Schemas\LenticularUser::class)->setAltMail($altEmail);
     }
 
     public function getGivenName()
@@ -358,6 +273,16 @@ class User extends AbstractUser implements AdvancedUserInterface
     public function setDisplayName($displayName)
     {
         return $this->getObject(Schemas\InetOrgPerson::class)->setSn($displayName);
+    }
+
+    public function getCn()
+    {
+        return $this->getObject(Schemas\InetOrgPerson::class)->setCn();
+    }
+
+    public function setCn($cn)
+    {
+        return $this->getObject(Schemas\InetOrgPerson::class)->setCn($cn);
     }
 
     /**

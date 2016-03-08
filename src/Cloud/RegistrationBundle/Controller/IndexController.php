@@ -4,6 +4,7 @@ namespace Cloud\RegistrationBundle\Controller;
 
 use Cloud\LdapBundle\Entity\Password;
 use Cloud\LdapBundle\Security\CryptEncoder;
+use Cloud\LdapBundle\Security\NtEncoder;
 use Cloud\RegistrationBundle\Entity\User;
 use Cloud\RegistrationBundle\Form\Type\RegistrationType;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -54,6 +55,12 @@ class IndexController extends Controller
             $encoder = new CryptEncoder();
             $encoder->encodePassword($password);
             $user->setPasswordHash($password->getHash());
+
+            $password = new Password();
+            $password->setPasswordPlain($user->getPassword());
+            $encoder = new NtEncoder();
+            $encoder->encodePassword($password);
+            $user->setPasswordNtHash($password->getHash());
             $em->persist($user);
             $em->flush();
         } else {

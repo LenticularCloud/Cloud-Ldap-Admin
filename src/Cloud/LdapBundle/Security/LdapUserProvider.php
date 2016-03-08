@@ -73,9 +73,8 @@ class LdapUserProvider implements UserProviderInterface
         $username = $this->ldap->escape($username, '', LDAP_ESCAPE_FILTER);
         $query = str_replace('{username}', $username, str_replace('{uid_key}', $this->uidKey, $this->filter));
 
-        $dn="ou=Users," . $this->baseDn;
+        $dn="ou=people," . $this->baseDn;
         try {
-
             $search = $this->ldap->find($dn, $query);
         } catch (ConnectionException $e) {
             throw new UsernameNotFoundException(sprintf('User "%s" not found.', $username), 0, $e);

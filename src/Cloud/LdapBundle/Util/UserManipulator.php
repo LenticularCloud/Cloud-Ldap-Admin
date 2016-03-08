@@ -2,6 +2,7 @@
 namespace Cloud\LdapBundle\Util;
 
 use Cloud\LdapBundle\Entity\AbstractService;
+use Cloud\LdapBundle\Entity\MagicShaGroup;
 use Cloud\LdapBundle\Services\LdapClient;
 use Cloud\LdapBundle\Entity\User;
 use InvalidArgumentException;
@@ -46,15 +47,19 @@ class UserManipulator
         }
         $transformer = new LdapArrayToObjectTransformer();
 
-        $this->client->add('uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn, $transformer->transform($user));
+        $this->client->add('cn=' . $user->getUsername() . ',ou=people,' . $this->baseDn, $transformer->transform($user));
         foreach ($user->getServices() as $service) {
 
-            $dn = 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
+            $dn = 'cn=' . $user->getUsername() . ',ou=people,dc=' . $service->getName() . ',' . $this->baseDn;
             if ($service->isEnabled()) {
                 $this->client->add($dn,
                     $transformer->transform($service));
             }
         }
+
+        $group = new MagicShaGroup($user);
+        $this->client->add('cn=' . $user->getCn() . ',ou=groups,' . $this->baseDn, $transformer->transform($group));
+
     }
 
     public function createUser($username)
@@ -96,11 +101,11 @@ class UserManipulator
 
         $transformer = new LdapArrayToObjectTransformer(null);
 
-        $this->client->replace('uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn, $transformer->transform($user));
+        $this->client->replace('cn=' . $user->getUsername() . ',ou=people,' . $this->baseDn, $transformer->transform($user));
 
         foreach ($user->getServices() as $service) {
 
-            $dn = 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
+            $dn = 'cn=' . $user->getUsername() . ',ou=people,dc=' . $service->getName() . ',' . $this->baseDn;
             if ($service->isEnabled()) {
                 // validate ldap schemas
                 foreach ($service->getObjects() as $object) {
@@ -116,29 +121,6 @@ class UserManipulator
                     $this->client->add($dn,
                         $transformer->transform($service));
                 }
-
-                //add groups
-                foreach ($service->getGroups() as $group) {
-                    $dnGroup = 'uid=' . $user->getUsername() . ',ou=groups,dc=' . $service->getName() . ',' . $this->baseDn;
-                    $errors = $this->validator->validate($group);
-                    if (count($errors) > 0) {
-                        throw new InvalidArgumentException($group->getName() . "(Group): " . (string)$errors);
-                    }
-                    if ($group->isEnabled()) {
-
-                        if ($this->client->isEntityExist($dnGroup)) {
-                            $this->client->replace($dnGroup,
-                                $transformer->transform($service));
-                        } else {
-                            $this->client->add($dnGroup,
-                                $transformer->transform($service));
-                        }
-                    } else {
-                        if ($this->client->isEntityExist($dnGroup)) {
-                            $this->client->delete($dnGroup);
-                        }
-                    }
-                }
             } else { // !$service->isEnabled()
                 if ($this->client->isEntityExist($dn)) {
                     $this->client->delete($dn);
@@ -151,13 +133,13 @@ class UserManipulator
     function delete(User $user)
     {
 
-        $dn = 'uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn;
+        $dn = 'cn=' . $user->getUsername() . ',ou=people,' . $this->baseDn;
         if ($this->client->isEntityExist($dn)) {
             $this->client->delete($dn);
         }
         foreach ($user->getServices() as $service) {
 
-            $dn = 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
+            $dn = 'cn=' . $user->getUsername() . ',ou=people,dc=' . $service->getName() . ',' . $this->baseDn;
 
             if ($this->client->isEntityExist($dn)) {
                 $this->client->delete($dn);

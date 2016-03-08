@@ -8,7 +8,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * DESC 'Abstraction of a group of accounts'
- * SUP top STRUCTURAL
+ * SUP top AUXILIARY
  * MUST ( cn $ gidNumber )
  * MAY ( userPassword $ memberUid $ description ) )
  * @LDAP\Schema()

@@ -38,6 +38,11 @@ class User
     protected $passwordHash;
 
     /**
+     * @ORM\Column(type="string",length=200)
+     */
+    protected $passwordNTHash;
+
+    /**
      * @Assert\Email()
      * @ORM\Column(type="string",length=100,nullable=true)
      */
@@ -160,6 +165,24 @@ class User
     public function setCreateAt(\DateTime $createAt)
     {
         $this->createAt = $createAt;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPasswordNTHash()
+    {
+        return $this->passwordNTHash;
+    }
+
+    /**
+     * @param mixed $passwordNTHash
+     * @return User
+     */
+    public function setPasswordNTHash($passwordNTHash)
+    {
+        $this->passwordNTHash = $passwordNTHash;
         return $this;
     }
 }
