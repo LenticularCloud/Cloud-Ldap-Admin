@@ -101,6 +101,20 @@ class User extends AbstractUser implements AdvancedUserInterface
     {
         return ["ROLE_USER"];
     }
+    public function addRole($role)
+    {
+        return $this;
+    }
+
+    public function setRoles(array $roles)
+    {
+        return $this;
+    }
+
+    public function removeRole($role)
+    {
+        return $this;
+    }
 
     /*
         public function getRoles()

@@ -1,6 +1,8 @@
 <?php
 namespace Cloud\AdminCLIBundle\Command;
 
+use Cloud\LdapBundle\Entity\Doctrine\Setting;
+use Cloud\LdapBundle\Security\CryptEncoder;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -98,7 +100,7 @@ class UserCommand extends ContainerAwareCommand
         }
         
         if ($input->getOption('add')) {
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->getContainer()->get('doctrine')->getManager();
 
             try {
                 $user = $this->getContainer()
@@ -118,8 +120,7 @@ class UserCommand extends ContainerAwareCommand
                 $question->setHidden(true);
                 $password = $helper->ask($input, $output, $question);
             }
-            $user=$this->getContainer()->get('cloud.ldap.util.usermanipulator')->createUser($username);
-            $user->addPassword(new Password('master', $password));
+            $userLdap=$this->getContainer()->get('cloud.ldap.util.usermanipulator')->createUser($username);
             $uid=$em->getRepository(\Cloud\LdapBundle\Entity\Doctrine\Setting::class)->findOneByKey('posixAccount.nextUid');
             if($uid===null) {
                 $uid=new Setting('posixAccount.nextUid');
@@ -127,12 +128,12 @@ class UserCommand extends ContainerAwareCommand
                 $em->persist($uid);
             }
 
-            $userLdap = $this->get('cloud.ldap.util.usermanipulator')->createUser($user->getUsername());
+            $userLdap = $this->get('cloud.ldap.util.usermanipulator')->createUser($userLdap->getUsername());
             $userLdap->setUidNumber($uid);
             $uid->setValue($uid->getValue()+1);
 
             $password = new Password();
-            $password->setHash($user->getPasswordHash());
+            $password->setHash($userLdap->getPasswordHash());
             $password->setEncoder(CryptEncoder::class);
             $userLdap->addPassword($password);
 
@@ -143,7 +144,7 @@ class UserCommand extends ContainerAwareCommand
 
             $this->getContainer()
                 ->get('cloud.ldap.util.usermanipulator')
-                ->create($user);
+                ->create($userLdap);
             return 0;
         }
         
