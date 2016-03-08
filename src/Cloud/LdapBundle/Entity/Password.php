@@ -60,7 +60,7 @@ class Password extends  AbstractAttribute
      */
     private $service;
 
-    public function __construct($id = null, $password_plain = null,$isMasterPassword=false)
+    public function __construct($id = 'default', $password_plain = null,$isMasterPassword=false)
     {
         parent::__construct();
         $this->password_plain = $password_plain;

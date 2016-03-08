@@ -3,6 +3,7 @@ namespace Cloud\AdminCLIBundle\Command;
 
 use Cloud\LdapBundle\Entity\Doctrine\Setting;
 use Cloud\LdapBundle\Security\CryptEncoder;
+use Cloud\LdapBundle\Security\NtEncoder;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -112,13 +113,13 @@ class UserCommand extends ContainerAwareCommand
             }
             
             // read password
-            $password = null;
+            $passwordPlain = null;
             if ($input->getArgument('password')) {
-                $password = $input->getArgument('password');
+                $passwordPlain = $input->getArgument('password');
             } else {
                 $question = new Question('Please enter password:');
                 $question->setHidden(true);
-                $password = $helper->ask($input, $output, $question);
+                $passwordPlain = $helper->ask($input, $output, $question);
             }
             $userLdap=$this->getContainer()->get('cloud.ldap.util.usermanipulator')->createUser($username);
             $uid=$em->getRepository(\Cloud\LdapBundle\Entity\Doctrine\Setting::class)->findOneByKey('posixAccount.nextUid');
@@ -128,18 +129,20 @@ class UserCommand extends ContainerAwareCommand
                 $em->persist($uid);
             }
 
-            $userLdap = $this->get('cloud.ldap.util.usermanipulator')->createUser($userLdap->getUsername());
+            $userLdap = $this->getContainer()->get('cloud.ldap.util.usermanipulator')->createUser($userLdap->getUsername());
             $userLdap->setUidNumber($uid);
             $uid->setValue($uid->getValue()+1);
 
             $password = new Password();
-            $password->setHash($userLdap->getPasswordHash());
-            $password->setEncoder(CryptEncoder::class);
+            $password->setId('default');
+            $password->setPasswordPlain($passwordPlain);
+            CryptEncoder::encodePassword($password);
             $userLdap->addPassword($password);
 
             $password = new Password();
-            $password->setHash($user->getPasswordNTHash());
-            $password->setEncoder(NtEncoder::class);
+            $password->setId('default');
+            $password->setPasswordPlain($passwordPlain);
+            NtEncoder::encodePassword($password);
             $userLdap->setNtPassword($password);
 
             $this->getContainer()
