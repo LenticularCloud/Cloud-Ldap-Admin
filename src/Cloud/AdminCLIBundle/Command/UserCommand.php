@@ -98,6 +98,8 @@ class UserCommand extends ContainerAwareCommand
         }
         
         if ($input->getOption('add')) {
+            $em = $this->getDoctrine()->getManager();
+
             try {
                 $user = $this->getContainer()
                     ->get('cloud.ldap.userprovider')
@@ -118,7 +120,27 @@ class UserCommand extends ContainerAwareCommand
             }
             $user=$this->getContainer()->get('cloud.ldap.util.usermanipulator')->createUser($username);
             $user->addPassword(new Password('master', $password));
-            
+            $uid=$em->getRepository(\Cloud\LdapBundle\Entity\Doctrine\Setting::class)->findOneByKey('posixAccount.nextUid');
+            if($uid===null) {
+                $uid=new Setting('posixAccount.nextUid');
+                $uid->setValue('20000');
+                $em->persist($uid);
+            }
+
+            $userLdap = $this->get('cloud.ldap.util.usermanipulator')->createUser($user->getUsername());
+            $userLdap->setUidNumber($uid);
+            $uid->setValue($uid->getValue()+1);
+
+            $password = new Password();
+            $password->setHash($user->getPasswordHash());
+            $password->setEncoder(CryptEncoder::class);
+            $userLdap->addPassword($password);
+
+            $password = new Password();
+            $password->setHash($user->getPasswordNTHash());
+            $password->setEncoder(NtEncoder::class);
+            $userLdap->setNtPassword($password);
+
             $this->getContainer()
                 ->get('cloud.ldap.util.usermanipulator')
                 ->create($user);
