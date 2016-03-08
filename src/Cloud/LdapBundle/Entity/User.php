@@ -59,6 +59,7 @@ class User extends AbstractUser implements AdvancedUserInterface
             'inetorgperson' => Schemas\InetOrgPerson::class,
             'posixaccount' => Schemas\PosixAccount::class,
             'qmailuser' => Schemas\QmailUser::class,
+            'sambasamaccount'=> Schemas\SambaSamAccount::class,
         ];
     }
 
@@ -82,12 +83,26 @@ class User extends AbstractUser implements AdvancedUserInterface
                     $object->setCn($this->username);
                 }
 
-                $encoder = new CryptEncoder();
                 $password = $this->getAttributes()->get('userpassword')->get(0);
                 if ($password !== null) {
-                    $password = $encoder->parsePassword($password);
+                    $password = CryptEncoder::parsePassword($password);
                     $this->password = $password;
                 }
+                break;
+            case Schemas\SambaSamAccount::class:
+                $object = $this->getObject(Schemas\SambaSamAccount::class);
+
+                $password = $this->getAttributes()->get('sambalmpassword');
+                if ($password !== null) {
+                    $password = NtEncoder::parsePassword($password);
+                    $this->ntPassword = $password;
+                }
+
+                $sid = $this->getAttributes()->get('sambasid');
+                if($sid->get()===null) {
+                    $sid->set('S-1-5-21-2919324557-891694127-41725'.$this->getUidNumber());
+                }
+
                 break;
         }
     }
@@ -235,7 +250,11 @@ class User extends AbstractUser implements AdvancedUserInterface
             $attr = $this->ntPassword->getAttribute();
             $attr->set($password->getAttribute()->get());
         }else {
-            $attr=$this->getAttributes()->get('userPassword');
+            $attr=$this->getAttributes()->get('userpassword')->get(0);
+            if($attr===null) {
+                $attr = new Attribute();
+                $this->getAttributes()->get('userpassword')->add($attr);
+            }
         }
         $attr->set($password->getAttribute()->get());
         $password->setAttribute($attr);
