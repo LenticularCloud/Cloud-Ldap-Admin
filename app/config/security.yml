@@ -30,7 +30,6 @@ security:
             form_login_ldap:
                 service: cloud.ldap.client
                 dn_string: "cn={username},ou=people,%ldap_base_dn%"
-                #dn_string: "cn={username},%ldap_base_dn%"
                 check_path: /login_check
                 login_path: /login
 #            form_login: 
@@ -43,5 +42,5 @@ security:
     # http://symfony.com/doc/current/cookbook/security/access_control.html
     access_control:
         - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: "%auth_required_channel%" }
-        - { path: ^/reg, roles: IS_AUTHENTICATED_ANONYMOUSLY}
+        - { path: ^/reg, roles: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: "%auth_required_channel%" }
         - { path: ^/, roles: ROLE_USER, requires_channel: "%auth_required_channel%" }

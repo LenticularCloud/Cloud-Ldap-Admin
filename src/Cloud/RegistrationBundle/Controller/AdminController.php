@@ -65,6 +65,8 @@ class AdminController extends Controller
 
                 $userLdap = $this->get('cloud.ldap.util.usermanipulator')->createUser($user->getUsername());
                 $userLdap->setUidNumber($uid->getValue());
+                $userLdap->setGidNumber($uid->getValue());
+                $userLdap->setSambaSID('S-1-5-21-2919324557-891694127-41725'.$uid->getValue());
                 $uid->setValue($uid->getValue()+1);
 
                 $password = new Password();

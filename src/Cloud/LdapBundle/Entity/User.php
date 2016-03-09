@@ -83,10 +83,14 @@ class User extends AbstractUser implements AdvancedUserInterface
                     $object->setCn($this->username);
                 }
 
-                $password = $this->getAttributes()->get('userpassword')->get(0);
-                if ($password !== null) {
-                    $password = CryptEncoder::parsePassword($password);
+                $attr = $this->getAttributes()->get('userpassword')->get(0);
+                if ($attr !== null) {
+                    $password = CryptEncoder::parsePassword($attr);
                     $this->password = $password;
+                }
+                if($this->password===null) {
+                    $this->password=new Password();
+                    $this->getAttributes()->get('userpassword')->set(0,$this->password->getAttribute());
                 }
                 break;
             case Schemas\SambaSamAccount::class:
@@ -189,8 +193,11 @@ class User extends AbstractUser implements AdvancedUserInterface
      *
      * @return Password
      */
-    public function getPassword()
+    public function getPassword($id=null)
     {
+        if($id==null) {
+            return null
+        }
         return $this->password;
     }
 
@@ -225,8 +232,8 @@ class User extends AbstractUser implements AdvancedUserInterface
     }
 
     public function getPasswords() {
-        if($this->getPassword() !== null ){
-            return [$this->getPassword()];
+        if($this->getPassword('default') !== null ){
+            return [$this->getPassword('default')];
         }else {
             return [];
         }
@@ -336,7 +343,7 @@ class User extends AbstractUser implements AdvancedUserInterface
 
     public function getCn()
     {
-        return $this->getObject(Schemas\InetOrgPerson::class)->setCn();
+        return $this->getObject(Schemas\InetOrgPerson::class)->getCn();
     }
 
     public function setCn($cn)
@@ -374,6 +381,16 @@ class User extends AbstractUser implements AdvancedUserInterface
     public function setHomeDirectory($homeDirectory)
     {
         return $this->getObject(Schemas\PosixAccount::class)->setHomeDirectory($homeDirectory);
+    }
+
+    public function getSambaSID()
+    {
+        return $this->getObject(Schemas\SambaSamAccount::class)->getSambaSID();
+    }
+
+    public function setSambaSID($sambaSID)
+    {
+        return $this->getObject(Schemas\SambaSamAccount::class)->setSambaSID($sambaSID);
     }
 
     /**
