@@ -25,7 +25,7 @@ class MagicShaGroup extends AbstractGroup
     public function getObjectClasses()
     {
         $classes=parent::getObjectClasses();
-        $classes['posixaccount']= Schemas\PosixAccount::class;
+        $classes['posixgroup']= Schemas\PosixGroup::class;
         //$classes['sambagroupmapping']= Schemas\SambaGroupMapping::class;
         return $classes;
     }
