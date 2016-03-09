@@ -9,10 +9,11 @@ class MagicShaGroup extends AbstractGroup
 
     public function __construct(User $user)
     {
+        parent::__construct($user->getUsername());
         $data=[
             'cn'=>$user->getCn(),
             'gidnumber' => $user->getUidNumber(),
-            'member' => str_replace('ou=people','ou=groups',$user->getDn()),
+            'member' => [ 'cn='.$user->getUsername().','.str_replace('ou=people','ou=groups',$user->getDn()) ],
         ];
         foreach($this->getObjectClasses() as $class) {
             $this->addObject($class,$data);

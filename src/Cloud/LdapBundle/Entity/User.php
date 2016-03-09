@@ -196,7 +196,7 @@ class User extends AbstractUser implements AdvancedUserInterface
     public function getPassword($id=null)
     {
         if($id==null) {
-            return null
+            return null;
         }
         return $this->password;
     }

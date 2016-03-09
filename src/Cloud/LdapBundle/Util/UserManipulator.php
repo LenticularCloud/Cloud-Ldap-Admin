@@ -48,6 +48,7 @@ class UserManipulator
         $transformer = new LdapArrayToObjectTransformer();
 
         $this->client->add('cn=' . $user->getUsername() . ',ou=people,' . $this->baseDn, $transformer->transform($user));
+        $user->setDn('cn=' . $user->getUsername() . ',ou=people,' . $this->baseDn)l
 
         $group = new MagicShaGroup($user);
         $this->client->add('cn=' . $user->getCn() . ',ou=groups,' . $this->baseDn, $transformer->transform($group));

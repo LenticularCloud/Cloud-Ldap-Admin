@@ -90,7 +90,7 @@ class LdapUserProvider implements UserProviderInterface
 
         $transformer = new LdapArrayToObjectTransformer($this->reader);
 
-        $user = $transformer->reverseTransform($search[0], new User(null),$dn);
+        $user = $transformer->reverseTransform($search[0], new User(null),'cn='.$username.','.$dn);
 
         foreach ($this->getServices() as $serviceName => $service) {
             $class=$service['data_object'];
@@ -98,7 +98,7 @@ class LdapUserProvider implements UserProviderInterface
             $dn="ou=Users,dc=" . $serviceName . "," . $this->baseDn;
             $search = $this->ldap->find($dn, $query);
             if ($search !== null) {
-                $serviceObject = $transformer->reverseTransform($search[0], $serviceObject,$dn);
+                $serviceObject = $transformer->reverseTransform($search[0], $serviceObject,.$dn);
             }
             $user->addService($serviceObject);
         }

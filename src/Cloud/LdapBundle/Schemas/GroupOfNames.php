@@ -26,7 +26,7 @@ class GroupOfNames
     /**
      * @var ArrayCollection
      *
-     * @LDAP/Attribute(name="member",type="array")
+     * @LDAP\Attribute(name="member",type="array")
      */
     private $members;
 

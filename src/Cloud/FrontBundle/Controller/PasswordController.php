@@ -13,6 +13,7 @@ use Cloud\LdapBundle\Entity\Service;
 use Cloud\FrontBundle\Form\Type\NewPasswordType;
 use Symfony\Component\Form\FormError;
 use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @Route("/password")
@@ -117,6 +118,13 @@ class PasswordController extends Controller
 
         $form = $this->createForm(new PasswordType(), $password);
         $form->handleRequest($request);
+
+        if(!$form->isValid()) {
+            $errors=$this->render('CloudFrontBundle::error.html.twig', array(
+                'errors' => $form->getErrors(true)
+            ));
+            return new Response($errors);
+        }
 
         if ($form->get('remove')->isClicked()) {
             if ($serviceName == null) {
