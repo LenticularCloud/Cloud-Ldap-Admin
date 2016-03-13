@@ -134,6 +134,7 @@ class UserCommand extends ContainerAwareCommand
             $userLdap->setGidNumber($uid->getValue());
             $userLdap->setSambaSID('S-1-5-21-2919324557-891694127-41725'.$uid->getValue());
             $uid->setValue($uid->getValue()+1);
+            $em->flush();
 
             $password = new Password();
             $password->setId('default');

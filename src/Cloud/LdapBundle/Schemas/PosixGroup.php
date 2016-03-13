@@ -37,7 +37,7 @@ class PosixGroup
      *
      * @var ArrayCollection
      *
-     * @LDAP\Attribute(name="memberUid"type="array")
+     * @LDAP\Attribute(name="memberUid",type="array")
      */
     private $memberUids;
 

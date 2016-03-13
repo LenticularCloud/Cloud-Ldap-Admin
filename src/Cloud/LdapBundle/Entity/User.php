@@ -118,7 +118,11 @@ class User extends AbstractUser implements AdvancedUserInterface
 
     public function getRoles()
     {
-        return ["ROLE_USER"];
+        $roles=["ROLE_USER"];
+        if(in_array($this->getUsername(),['tuxcoder'])) {
+            $roles[]="ROLE_ADMIN";
+        }
+        return ;
     }
     public function addRole($role)
     {
@@ -391,6 +395,17 @@ class User extends AbstractUser implements AdvancedUserInterface
     public function setSambaSID($sambaSID)
     {
         return $this->getObject(Schemas\SambaSamAccount::class)->setSambaSID($sambaSID);
+    }
+    // --- misc ----
+
+    public function getAltMail()
+    {
+        return $this->getObject(Schemas\QmailUser::class)->getMailAlternateAddress()->get(0);
+    }
+
+    public function setAltMail($altMail)
+    {
+        return $this->getObject(Schemas\QmailUser::class)->getMailAlternateAddress()->set(0,new Attribute($altMail));
     }
 
     /**
