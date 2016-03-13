@@ -119,10 +119,10 @@ class User extends AbstractUser implements AdvancedUserInterface
     public function getRoles()
     {
         $roles=["ROLE_USER"];
-        if(in_array($this->getUsername(),['tuxcoder'])) {
+        if(in_array($this->getUsername(),['tuxcoder','mattronix'])) {
             $roles[]="ROLE_ADMIN";
         }
-        return ;
+        return $roles;
     }
     public function addRole($role)
     {
@@ -398,14 +398,19 @@ class User extends AbstractUser implements AdvancedUserInterface
     }
     // --- misc ----
 
-    public function getAltMail()
+    public function getAltEmail()
     {
-        return $this->getObject(Schemas\QmailUser::class)->getMailAlternateAddress()->get(0);
+        $attr=$this->getObject(Schemas\QmailUser::class)->getMailAlternateAddresssCollection()->get(0);
+        if($attr!==null) {
+            return $attr->get();
+        }else {
+            return null;
+        }
     }
 
-    public function setAltMail($altMail)
+    public function setAltEmail($altMail)
     {
-        return $this->getObject(Schemas\QmailUser::class)->getMailAlternateAddress()->set(0,new Attribute($altMail));
+        return $this->getObject(Schemas\QmailUser::class)->getMailAlternateAddresssCollection()->set(0,new Attribute($altMail));
     }
 
     /**

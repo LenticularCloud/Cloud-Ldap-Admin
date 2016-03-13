@@ -219,6 +219,14 @@ class QmailUser
     }
 
     /**
+     * @return ArrayCollection
+     */
+    public function getMailAlternateAddresssCollection()
+    {
+        return $this->mailAlternateAddress;
+    }
+
+    /**
      * @param string $mailAlternateAddress
      * @return QmailUser
      */

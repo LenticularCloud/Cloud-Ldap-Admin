@@ -28,51 +28,6 @@ class PasswordController extends Controller
     public function indexAction(Request $request)
     {
 
-        //--- services ---
-        $formEdit = array();
-        $formEditServiceMasterPassword = array();
-        foreach ($this->getUser()->getServices() as $service) {
-            //-- service settings --
-            $form = $this->createForm(new ServiceType(), $service, array(
-                'action' => $this->generateUrl('password_service_edit', array(
-                    'service' => $service->getName()
-                )),
-                'method' => 'POST'
-            ));
-            $formEditServiceMasterPassword[$service->getName()] = $form->createView();
-
-            //--- service passwords ---
-            $formEdit[$service->getName()] = array();
-
-            if (!$service->isEnabled()) {
-                continue;
-            }
-
-            foreach ($service->getPasswords() as $password) {
-                if (!$password->isMasterPassword()) {
-                    $form = $this->createForm(new PasswordType(), $password, array(
-                        'action' => $this->generateUrl('password_service_password_edit', array(
-                            'serviceName' => $service->getName(),
-                            'passwordId' => $password->getId()
-                        )),
-                        'method' => 'POST'
-                    ));
-                    $form->get('id_old')->setData($password->getId());
-                    $formEdit[$service->getName()][] = $form->createView();
-                }
-            }
-            if (count($service->getPasswords()) < $service->maxPasswords()) {
-                $newPassword = new Password();
-                $formEdit[$service->getName()][] = $this->createForm(new NewPasswordType(), $newPassword, array(
-                    'action' => $this->generateUrl('password_service_password_new', array(
-                        'serviceName' => $service->getName()
-                    )),
-                    'method' => 'POST'
-                ))
-                    ->createView();
-            }
-        }
-
         //---- master ---
         $formEditMaster = array();
         foreach ($this->getUser()->getPasswords() as $password) {
@@ -94,9 +49,7 @@ class PasswordController extends Controller
 
         return array(
             'errors' => $errors,
-            'formEdit' => $formEdit,
             'formEditMasterPasswords' => $formEditMaster,
-            'formEditServiceMasterPasswords' => $formEditServiceMasterPassword
         );
     }
 
