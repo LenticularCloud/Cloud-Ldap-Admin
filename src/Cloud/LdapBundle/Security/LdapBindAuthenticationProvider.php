@@ -57,6 +57,11 @@ class LdapBindAuthenticationProvider extends UserAuthenticationProvider
         $username = $user->getCn();
         $password = $token->getCredentials();
 
+        // prevent from anonymous login
+        if($password == null || $password == '') {
+            throw new BadCredentialsException('The presented password is invalid.');
+        }
+
         try {
             $username = $this->ldap->escape($username, '', LDAP_ESCAPE_DN);
             $dn = str_replace('{username}', $username, $this->dnString);
