@@ -41,6 +41,13 @@ class PasswordController extends Controller
             $formEditMaster[] = $form->createView();
         }
 
+        $formWifiPassword = $this->createForm(new PasswordType(), $this->getUser()->getNtPassword(), array(
+            'action' => $this->generateUrl('password_password_edit', array(
+                'passwordId' => 'default'
+            )),
+            'method' => 'POST'
+        ));
+
 
         $errors = $request
             ->getSession()
@@ -50,6 +57,7 @@ class PasswordController extends Controller
         return array(
             'errors' => $errors,
             'formEditMasterPasswords' => $formEditMaster,
+            'formWifiPassword' => $formWifiPassword,
         );
     }
 

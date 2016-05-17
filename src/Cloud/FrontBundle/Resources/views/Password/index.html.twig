@@ -49,56 +49,31 @@
         </div>
         {% endfor %}
     </div>
-    {% for serviceName,formEditServiceMasterPassword in formEditServiceMasterPasswords %}
-      <div role="tabpanel" class="tab-pane" id="{{ serviceName }}">
-        <div class="row">
-            {{ form_start(formEditServiceMasterPassword) }}
-                {{ form_widget(formEditServiceMasterPassword._token) }}
-                <div class="col-md-4">
-                {{ form_row(formEditServiceMasterPassword.masterPasswordEnabled) }}
+        {{ form_start(formWifiPassword) }}
+            {{ form_widget(formWifiPassword._token) }}
+            <div class="col-md-4">
+                {{ form_row(formWifiPassword.passwordPlain.first) }}
+            </div>
+            <div class="col-md-4">
+                {{ form_row(formWifiPassword.passwordPlain.second) }}
+            </div>
+            <div class="col-md-4">
+                <div class="col-xs-4">
+                {% if formWifiPassword.add is defined %}
+                    {{ form_row(formWifiPassword.add) }}
+                {% else %}
+                    {{ form_row(formWifiPassword.save) }}
+                {% endif %}
                 </div>
-                <div class="col-md-4">
-                {{ form_row(formEditServiceMasterPassword.enabled) }}
+                <div class="col-xs-8">
+                {% if formWifiPassword.remove is defined %}
+                    {{ form_row(formWifiPassword.remove) }}
+                {% endif %}
+                {{ form_errors(formWifiPassword) }}
                 </div>
-                <div class="col-md-4">
-                {{ form_row(formEditServiceMasterPassword.save) }}
-                </div>
-            {{ form_end(formEditServiceMasterPassword) }}
-        </div>
-        {% for formEditPassword in attribute(formEdit,serviceName) %}
-        <div class="row">
-            {{ form_start(formEditPassword) }}
-                {{ form_widget(formEditPassword._token) }}
-                
-                <div class="col-md-3">
-                    {{ form_row(formEditPassword.id) }}
-                </div>
-                <div class="col-md-3">
-                    {{ form_row(formEditPassword.passwordPlain.first) }}
-                </div>
-                <div class="col-md-3">
-                    {{ form_row(formEditPassword.passwordPlain.second) }}
-                </div>
-                <div class="col-md-3">
-                    <div class="col-xs-4">
-                    {% if formEditPassword.add is defined %}
-                        {{ form_row(formEditPassword.add) }}
-                    {% else %}
-                        {{ form_row(formEditPassword.save) }}
-                    {% endif %}
-                    </div>
-                    <div class="col-xs-8">
-                    {% if formEditPassword.remove is defined %}
-                        {{ form_row(formEditPassword.remove) }}
-                    {% endif %}
-                    {{ form_errors(formEditPassword) }}
-                    </div>
-                </div>
-            {{ form_end(formEditPassword) }}
-        </div>
-        {% endfor %}
+            </div>
+        {{ form_end(formEditPassword) }}
       </div>
-    {% endfor %}
 </div>
 
 {% endblock %}
