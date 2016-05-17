@@ -26,5 +26,8 @@ monolog:
         console:
             type:  console
 
+framework:
+    trusted_proxies: "%trusted_proxies%"
+
 parameters:
     auth_required_channel: 'https'
