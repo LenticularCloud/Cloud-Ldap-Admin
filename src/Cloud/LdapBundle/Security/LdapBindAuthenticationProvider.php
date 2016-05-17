@@ -54,7 +54,7 @@ class LdapBindAuthenticationProvider extends UserAuthenticationProvider
      */
     protected function checkAuthentication(UserInterface $user, UsernamePasswordToken $token)
     {
-        $username = $token->getCn();
+        $username = $user->getCn();
         $password = $token->getCredentials();
 
         try {
