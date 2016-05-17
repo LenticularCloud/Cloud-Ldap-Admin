@@ -58,19 +58,11 @@
                 {{ form_row(formWifiPassword.passwordPlain.second) }}
             </div>
             <div class="col-md-4">
-                <div class="col-xs-4">
                 {% if formWifiPassword.add is defined %}
                     {{ form_row(formWifiPassword.add) }}
                 {% else %}
                     {{ form_row(formWifiPassword.save) }}
                 {% endif %}
-                </div>
-                <div class="col-xs-8">
-                {% if formWifiPassword.remove is defined %}
-                    {{ form_row(formWifiPassword.remove) }}
-                {% endif %}
-                {{ form_errors(formWifiPassword) }}
-                </div>
             </div>
         {{ form_end(formEditPassword) }}
       </div>

@@ -43,6 +43,7 @@ class PasswordController extends Controller
 
         $formWifiPassword = $this->createForm(new PasswordType(), $this->getUser()->getNtPassword(), array(
             'action' => $this->generateUrl('password_password_edit', array(
+                'serviceName' => 'wifi',
                 'passwordId' => 'default'
             )),
             'method' => 'POST'
@@ -74,7 +75,11 @@ class PasswordController extends Controller
         if ($serviceName === null) {
             $password = $user->getPassword($passwordId);
         } else {
-            $password = $user->getService($serviceName)->getPassword($passwordId);
+            $password = $this->getUser()->getNtPassword();
+            if($password===null) {
+                $password= new Password();
+                $this->getUser()->setNtPassword();
+            }
         }
 
         $form = $this->createForm(new PasswordType(), $password);
@@ -88,16 +93,20 @@ class PasswordController extends Controller
         }
 
         if ($form->get('remove')->isClicked()) {
-            if ($serviceName == null) {
-                $user->removePassword($password);
-            } else {
-                $user->getService($serviceName)->removePassword($password);
+            switch($serviceName) {
+                case 'wifi':
+                    $user->setNtPassword($password);
+                    break;
+                default:
+                    $user->removePassword($password);
             }
         }else {
-            if ($serviceName == null) {
-                $user->addPassword($password);
-            } else {
-                $user->getService($serviceName)->addPassword($password);
+            switch($serviceName) {
+                case 'wifi':
+                    $this->getUser()->setNtPassword($password);
+                    break;
+                default:
+                    $user->addPassword($password);
             }
         }
 
