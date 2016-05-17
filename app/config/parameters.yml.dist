@@ -16,3 +16,4 @@ parameters:
     locale: en
     secret: ThisTokenIsNotSoSecretChangeIt
     database_path: '%kernel.root_dir%/db.sqlite'
+    trusted_proxies: ~
