@@ -10,6 +10,7 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
 use Cloud\LdapBundle\Exception\UserNotFoundException;
 use Cloud\LdapBundle\Entity\Password;
+use Cloud\LdapBundle\Security\CryptEncoder;
 use Symfony\Component\Console\Command\Command;
 use Cloud\LdapBundle\Entity\User;
 use Symfony\Component\Console\Question\ChoiceQuestion;
@@ -212,9 +213,10 @@ class PasswdCommand extends ContainerAwareCommand
                 $password = $this->user->getPassword($this->passwordId);
             }
             $password->setPasswordPlain($this->password);
+            CryptEncoder::encodePassword($password);
             
             $this->getContainer()
-                ->get('cloud.ldap.usermanipulator')
+                ->get('cloud.ldap.util.usermanipulator')
                 ->update($this->user);
             return 0;
         }

@@ -3,6 +3,7 @@ namespace Cloud\LdapBundle\Entity;
 
 use Cloud\LdapBundle\Entity\Ldap\AbstractAttribute;
 use Cloud\LdapBundle\Entity\Ldap\Attribute;
+use Cloud\LdapBundle\Security\CryptEncoder;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
@@ -51,7 +52,7 @@ class Password extends  AbstractAttribute
     /**
      * @var string classname
      */
-    private $encoder;
+    private $encoder = CryptEncoder::class;
     
     /**
      * @Assert\Valid(deep=true)

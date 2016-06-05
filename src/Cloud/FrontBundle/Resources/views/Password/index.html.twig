@@ -1,50 +1,59 @@
 {% extends "CloudFrontBundle::base.html.twig" %}
 
 {% block content %}
-{% if errors %}
-<ul class="alert alert-danger" role="alert">
-    {% for error in errors %}
-       {{ error|raw }}
-    {% endfor %}
-</ul>
-{% endif %}
-<ul class="nav nav-tabs">
-  <li role="presentation" class="active"><a href="#main" aria-controls="home" role="tab" data-toggle="tab">Main</a></li>
+    {% if errors %}
+        <ul class="alert alert-danger" role="alert">
+            {% for error in errors %}
+                {{ error|raw }}
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <ul class="nav nav-tabs">
+        <li role="presentation" class="active">
+            <a href="#main" aria-controls="home" role="tab" data-toggle="tab">Main</a>
+        </li>
+        <li role="presentation" class="">
+            <a href="#wifi" aria-controls="home" role="tab" data-toggle="tab">Wifi</a>
+        </li>
 
-</ul>
-<div class="tab-content">
-    <div role="tabpanel" class="tab-pane active" id="main">
-        <div class="row">
-            {{ form_start(formEditMasterPasswords) }}
-                {{ form_widget(formEditMasterPasswords._token) }}
-                
-                <div class="col-md-3">
-                    {{ form_row(formEditMasterPasswords.id) }}
-                </div>
-                <div class="col-md-3">
-                    {{ form_row(formEditMasterPasswords.passwordPlain.first) }}
-                </div>
-                <div class="col-md-3">
-                    {{ form_row(formEditMasterPasswords.passwordPlain.second) }}
-                </div>
-                <div class="col-md-3">
-                    <div class="col-xs-4">
-                    {% if formEditMasterPasswords.add is defined %}
-                        {{ form_row(formEditMasterPasswords.add) }}
-                    {% else %}
-                        {{ form_row(formEditMasterPasswords.save) }}
-                    {% endif %}
+    </ul>
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="main">
+            {% for formEditPassword in formEditMasterPasswords %}
+                <div class="row">
+                    {{ form_start(formEditPassword) }}
+                    {{ form_widget(formEditPassword._token) }}
+
+                    <div class="col-md-3">
+                        {{ form_row(formEditPassword.id) }}
                     </div>
-                    <div class="col-xs-8">
-                    {% if formEditMasterPasswords.remove is defined %}
-                        {{ form_row(formEditMasterPasswords.remove) }}
-                    {% endif %}
-                    {{ form_errors(formEditMasterPasswords) }}
+                    <div class="col-md-3">
+                        {{ form_row(formEditPassword.passwordPlain.first) }}
                     </div>
+                    <div class="col-md-3">
+                        {{ form_row(formEditPassword.passwordPlain.second) }}
+                    </div>
+                    <div class="col-md-3">
+                        <div class="col-xs-4">
+                            {% if formEditPassword.add is defined %}
+                                {{ form_row(formEditPassword.add) }}
+                            {% else %}
+                                {{ form_row(formEditPassword.save) }}
+                            {% endif %}
+                        </div>
+                        <div class="col-xs-8">
+                            {% if formEditPassword.remove is defined %}
+                                {{ form_row(formEditPassword.remove) }}
+                            {% endif %}
+                            {{ form_errors(formEditPassword) }}
+                        </div>
+                    </div>
+                    {{ form_end(formEditPassword) }}
                 </div>
-            {{ form_end(formEditMasterPasswords) }}
+            {% endfor %}
         </div>
-        {{ form_start(formWifiPassword) }}
+        <div role="tabpanel" class="tab-pane" id="wifi">
+            {{ form_start(formWifiPassword) }}
             {{ form_widget(formWifiPassword._token) }}
             <div class="col-md-4">
                 {{ form_row(formWifiPassword.passwordPlain.first) }}
@@ -59,8 +68,8 @@
                     {{ form_row(formWifiPassword.save) }}
                 {% endif %}
             </div>
-        {{ form_end(formWifiPassword) }}
-      </div>
-</div>
+            {{ form_end(formWifiPassword) }}
+        </div>
+    </div>
 
 {% endblock %}

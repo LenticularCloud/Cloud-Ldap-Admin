@@ -94,11 +94,12 @@ class AdminController extends Controller
         if(count($user->getPasswords())>0) {
             $password = current($user->getPasswords());
         }else {
-            $password = new Password('master');
+            $password = new Password('default');
         }
         $form_password = $this->createForm(PasswordType::class, $password);
         $form_password->handleRequest($request);
 
+        call_user_func($password->getEncoder() . '::encodePassword',$password);
         $user->addPassword($password);
         $this->get('cloud.ldap.util.usermanipulator')->update($user);
 
