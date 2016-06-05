@@ -47,7 +47,7 @@ class PasswordController extends Controller
                 'passwordId' => 'default'
             )),
             'method' => 'POST'
-        ));
+        ))->createView();
 
 
         $errors = $request
