@@ -214,8 +214,8 @@ class PasswdCommand extends ContainerAwareCommand
             $password->setPasswordPlain($this->password);
             
             $this->getContainer()
-                ->get('cloud.ldap')
-                ->updateUser($this->user);
+                ->get('cloud.ldap.usermanipulator')
+                ->update($this->user);
             return 0;
         }
     }
