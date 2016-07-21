@@ -8,6 +8,7 @@ parameters:
     ldap_bind_rdn: 'cn=root,dc=example,dc=org'
     ldap_bind_pw: password
     ldap_base_dn: 'dc=example,dc=org'
+    ldap_ssl: false
     domain: example.org
     mailer_transport: smtp
     mailer_host: 127.0.0.1
