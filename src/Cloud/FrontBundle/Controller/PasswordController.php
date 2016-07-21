@@ -101,7 +101,7 @@ class PasswordController extends Controller
                     $user->removePassword($password);
             }
         }else {
-            call_user_func($password->getEncoder() . '::encodePassword',[$password]);
+            call_user_func($password->getEncoder() . '::encodePassword',$password);
             switch($serviceName) {
                 case 'wifi':
                     $this->getUser()->setNtPassword($password);
