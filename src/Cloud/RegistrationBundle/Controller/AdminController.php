@@ -3,11 +3,9 @@
 namespace Cloud\RegistrationBundle\Controller;
 
 use Cloud\LdapBundle\Entity\Password;
-use Cloud\LdapBundle\Entity\User;
 use Cloud\LdapBundle\Security\CryptEncoder;
 use Cloud\RegistrationBundle\Entity\User as RegUser;
 use Cloud\RegistrationBundle\Form\Type\EditType;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -49,7 +47,7 @@ class AdminController extends Controller
         $form = $this->createForm(EditType::class);
         $form->handleRequest($request);
 
-        $user=$em->getRepository(\Cloud\RegistrationBundle\Entity\User::class)->findOneByUsername($user);
+        $user = $em->getRepository(RegUser::class)->findOneByUsername($user);
 
         if ($form->isValid()) {
             $data = $form->getData();
@@ -70,15 +68,20 @@ class AdminController extends Controller
                 $em->remove($user);
             } else {
                 $response->setStatusCode(400);
+
                 return $response;
             }
             $em->flush();
-        }else {
-            $response->setContent(json_encode(['successfully'=>false,'error'=>$form->getErrors(true)->__toString()]));
+        } else {
+            $response->setContent(json_encode([
+                'successfully' => false,
+                'error' => $form->getErrors(true)->__toString(),
+            ]));
+
             return $response;
         }
 
-        $response->setContent(json_encode(['successfully'=>true]));
+        $response->setContent(json_encode(['successfully' => true]));
 
         return $response;
     }
