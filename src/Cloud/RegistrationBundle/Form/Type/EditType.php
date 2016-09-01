@@ -15,6 +15,7 @@ class EditType extends AbstractType
             'choices' => [
                 'accept' => true,
                 'deny' => false],
+            'required' => false,
             'choices_as_values' => true])
             ->add('submit', SubmitType::class);
     }
