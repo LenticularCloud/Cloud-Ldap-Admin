@@ -35,9 +35,10 @@ services:
             - true
     cloud.ldap.client:
         class: Cloud\LdapBundle\Services\LdapClient
+        arguments: [ "%ldap_host%", "%ldap_port%", 3, "%ldap_ssl%" ]
     cloud.ldap.client.root:
         class: Cloud\LdapBundle\Services\LdapClient
-        arguments: [ "%ldap_host%" ]
+        arguments: [ "%ldap_host%", "%ldap_port%", 3, "%ldap_ssl%" ]
     cloud.encoder.crypt:
         class: Cloud\LdapBundle\Security\CryptEncoder
     cloud.ldap.schema.manipulator:
