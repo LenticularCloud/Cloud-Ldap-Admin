@@ -60,6 +60,6 @@ class IndexController extends Controller
             return $response->setContent(json_encode(['successfully' => false, 'errors' => ['message' => $form->getErrors(true)->__toString()]]));
         }
 
-        return $response->setContent(json_encode(['successfully' => true]));
+        return $response->setContent(json_encode(['successfully' => true, 'message' => 'Your account need to get activated by a admin']));
     }
 }
