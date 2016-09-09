@@ -123,7 +123,7 @@ class LdapUserProvider implements UserProviderInterface
 
     public function getUsernames()
     {
-        return $this->ldap->getUsernames("ou=Users," . $this->baseDn);
+        return sort($this->ldap->getUsernames("ou=Users," . $this->baseDn));
     }
 
     /**
