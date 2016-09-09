@@ -107,6 +107,10 @@ class AdminController extends Controller
     }
     /**
      * @Route("/user/{username}/delete",name="admin_user_delete")
+     *
+     * @param   $request    Request
+     * @param   $username   string
+     * @return Response
      */
     public function userDeleteAction(Request $request, $username)
     {

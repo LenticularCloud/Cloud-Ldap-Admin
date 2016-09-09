@@ -32,6 +32,7 @@ class ProfileController extends Controller
      * @Route("/edit",name="profile_edit")
      *
      * @param $request Request
+     * @return Response
      */
     public function editAction(Request $request)
     {

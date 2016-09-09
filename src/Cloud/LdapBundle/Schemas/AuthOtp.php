@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * MUST ( AuthLabel $ AuthSecret ) )
  * @LDAP\Schema(name="Service")
  */
-class CloudService
+class AuthOtp
 {
     /**
      * olcAttributeTypes: ( 1.3.6.1.4.1.33578.1.1.4.1

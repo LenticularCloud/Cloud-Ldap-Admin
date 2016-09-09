@@ -57,7 +57,8 @@ abstract class AbstractService extends AbstractUser
      *
      * @return string
      */
-    public function getName(){
+    public function getName()
+    {
         return $this->name;
     }
 
@@ -101,25 +102,27 @@ abstract class AbstractService extends AbstractUser
         if ($this->getObject(Schemas\CloudService::class) !== null) {
             return $this->getObject(Schemas\CloudService::class)->isMasterPasswordEnabled();
         }
+
         return false;
     }
 
     public function setMasterPasswordEnabled($masterPasswordEnabled)
     {
         if ($masterPasswordEnabled == false && $this->isMasterPasswordEnabled()) {
-            foreach($this->getPasswords() as $password) {
-                if($password->isMasterPassword()) {
+            foreach ($this->getPasswords() as $password) {
+                if ($password->isMasterPassword()) {
                     $this->removePassword($password);
                 }
             }
-        }elseif($masterPasswordEnabled && $this->isMasterPasswordEnabled() == false) {
-            foreach($this->getUser()->getPasswords() as $password) {
-                if($password->getEncoder() == $this->getEncoder()) {
+        } elseif ($masterPasswordEnabled && $this->isMasterPasswordEnabled() == false) {
+            foreach ($this->getUser()->getPasswords() as $password) {
+                if ($password->getEncoder() == $this->getEncoder()) {
                     $this->addPassword(clone $password);
                 }
             }
         }
         $this->getObject(Schemas\CloudService::class)->setMasterPasswordEnabled($masterPasswordEnabled);
+
         return $this;
     }
 
@@ -136,6 +139,7 @@ abstract class AbstractService extends AbstractUser
             $this->serviceDisabled();
             $this->objects = new ArrayCollection();
             $this->attributes = new ArrayCollection();
+
             return $this;
         }
         // enable
@@ -151,7 +155,14 @@ abstract class AbstractService extends AbstractUser
 
     protected function serviceEnabled()
     {
-
+        // add masterpaswords
+        if ($this->isMasterPasswordEnabled()) {
+            foreach ($this->getUser()->getPasswords() as $password) {
+                if ($password->getEncoder() == $this->getEncoder()) {
+                    $this->addPassword(clone $password);
+                }
+            }
+        }
     }
 
     protected function serviceDisabled()

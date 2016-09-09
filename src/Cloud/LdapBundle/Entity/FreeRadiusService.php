@@ -143,6 +143,7 @@ class FreeRadiusService extends AbstractService
 
     protected function serviceEnabled()
     {
+        parent::serviceEnabled();
         $this->getObject(Schemas\SambaSamAccount::class)->setSambaSID($this->getUser()->getUsername());
     }
 

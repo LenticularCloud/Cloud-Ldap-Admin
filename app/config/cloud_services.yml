@@ -4,19 +4,23 @@ cloud_ldap:
   services:
     git_gogs:
       enable: true
-      default: false
+      default: true
       data_object: 'Cloud\LdapBundle\Entity\Service'
     mail:
       enable: true
+      default: true
       data_object: 'Cloud\LdapBundle\Entity\Service'
     seafile:
       enable: true
+      default: true
       data_object: 'Cloud\LdapBundle\Entity\Service'
     ampache:
       enable: true
+      default: false
       data_object: 'Cloud\LdapBundle\Entity\Service'
     radicale:
       enable: true
+      default: true
       data_object: 'Cloud\LdapBundle\Entity\Service'
     freeradius:
       enable: true

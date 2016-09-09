@@ -116,8 +116,8 @@ class UserCommand extends ContainerAwareCommand
                 $question->setHidden(true);
                 $password = $helper->ask($input, $output, $question);
             }
-            $user=$this->getContainer()->get('cloud.ldap.util.usermanipulator')->createUser($username);
-            $user->addPassword(new Password('master', $password));
+
+            $user = $this->getContainer()->get('cloud.ldap.util.usermanipulator')->createUserObject($username, new Password('default', $password));
             
             $this->getContainer()
                 ->get('cloud.ldap.util.usermanipulator')

@@ -2,6 +2,8 @@
 namespace Cloud\LdapBundle\Util;
 
 use Cloud\LdapBundle\Entity\AbstractService;
+use Cloud\LdapBundle\Entity\Password;
+use Cloud\LdapBundle\Entity\Service;
 use Cloud\LdapBundle\Services\LdapClient;
 use Cloud\LdapBundle\Entity\User;
 use InvalidArgumentException;
@@ -26,14 +28,34 @@ class UserManipulator
     protected $bindPassword;
     protected $domain;
 
-    public function __construct(LdapClient $client, ValidatorInterface $validator, $baseDn, $bindDn, $bindPassword, $domain)
-    {
+    protected $services;
+
+    /**
+     * UserManipulator constructor.
+     * @param LdapClient         $client        client instance
+     * @param ValidatorInterface $validator     valicator instance
+     * @param string             $baseDn
+     * @param string             $bindDn
+     * @param string             $bindPassword
+     * @param array              $services      service config
+     * @param string             $domain
+     */
+    public function __construct(
+        LdapClient $client,
+        ValidatorInterface $validator,
+        $baseDn,
+        $bindDn,
+        $bindPassword,
+        $services,
+        $domain
+    ) {
         $this->client = $client;
         $this->baseDn = $baseDn;
         $this->validator = $validator;
         $this->bindDn = $bindDn;
         $this->bindPassword = $bindPassword;
         $this->domain = $domain;
+        $this->services = $services;
 
         $this->client->bind($this->bindDn, $this->bindPassword);
     }
@@ -42,14 +64,16 @@ class UserManipulator
     {
         $errors = $this->validator->validate($user);
         if (count($errors) > 0) {
-            throw new InvalidArgumentException((string)$errors);
+            throw new InvalidArgumentException((string) $errors);
         }
         $transformer = new LdapArrayToObjectTransformer();
 
-        $this->client->add('uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn, $transformer->transform($user));
+        $this->client->add('uid='.$user->getUsername().',ou=users,'.$this->baseDn, $transformer->transform($user));
         foreach ($user->getServices() as $service) {
 
-            $dn = 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
+            $dn = 'uid='.$user->getUsername().',ou=users,dc='.$service->getName().','.$this->baseDn;
+            
+
             if ($service->isEnabled()) {
                 $this->client->add($dn,
                     $transformer->transform($service));
@@ -57,15 +81,30 @@ class UserManipulator
         }
     }
 
-    public function createUser($username)
+    public function createUserObject($username, Password $password)
     {
         $user = new User($username);
 
         foreach ($user->getObjectClasses() as $objectClass) {
             $user->addObject($objectClass);
         }
-        $user->getObject(Schemas\InetOrgPerson::class)->setMail($username . '@' . $this->domain);
+        $user->getObject(Schemas\InetOrgPerson::class)->setMail($username.'@'.$this->domain);
         $user->addRole('ROLE_USER');
+
+        $user->addPassword($password);
+
+        foreach ($this->services as $service_name => $serviceConfig) {
+            if(!isset($serviceConfig['enable']) || !$serviceConfig['enable']) {
+                continue;
+            }
+
+            $service = new $serviceConfig['data_object']($service_name);
+            $service->setUser($user);
+
+            if (isset($serviceConfig['default']) && $serviceConfig['default']) {
+                $service->setEnabled(true);
+            }
+        }
         return $user;
     }
 
@@ -83,30 +122,30 @@ class UserManipulator
     {
         $errors = $this->validator->validate($user);
         if (count($errors) > 0) {
-            throw new InvalidArgumentException((string)$errors);
+            throw new InvalidArgumentException((string) $errors);
         }
 
         // validate ldap schemas
         foreach ($user->getObjects() as $object) {
             $errors = $this->validator->validate($object);
             if (count($errors) > 0) {
-                throw new InvalidArgumentException($this->getUsername() . '(User):' . (string)$errors);
+                throw new InvalidArgumentException($this->getUsername().'(User):'.(string) $errors);
             }
         }
 
         $transformer = new LdapArrayToObjectTransformer(null);
 
-        $this->client->replace('uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn, $transformer->transform($user));
+        $this->client->replace('uid='.$user->getUsername().',ou=users,'.$this->baseDn, $transformer->transform($user));
 
         foreach ($user->getServices() as $service) {
 
-            $dn = 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
+            $dn = 'uid='.$user->getUsername().',ou=users,dc='.$service->getName().','.$this->baseDn;
             if ($service->isEnabled()) {
                 // validate ldap schemas
                 foreach ($service->getObjects() as $object) {
                     $errors = $this->validator->validate($object);
                     if (count($errors) > 0) {
-                        throw new InvalidArgumentException($service->getName() . "(Service): " . (string)$errors);
+                        throw new InvalidArgumentException($service->getName()."(Service): ".(string) $errors);
                     }
                 }
                 if ($this->client->isEntityExist($dn)) {
@@ -119,10 +158,10 @@ class UserManipulator
 
                 //add groups
                 foreach ($service->getGroups() as $group) {
-                    $dnGroup = 'uid=' . $user->getUsername() . ',ou=groups,dc=' . $service->getName() . ',' . $this->baseDn;
+                    $dnGroup = 'uid='.$user->getUsername().',ou=groups,dc='.$service->getName().','.$this->baseDn;
                     $errors = $this->validator->validate($group);
                     if (count($errors) > 0) {
-                        throw new InvalidArgumentException($group->getName() . "(Group): " . (string)$errors);
+                        throw new InvalidArgumentException($group->getName()."(Group): ".(string) $errors);
                     }
                     if ($group->isEnabled()) {
 
@@ -148,16 +187,17 @@ class UserManipulator
     }
 
     public
-    function delete(User $user)
-    {
+    function delete(
+        User $user
+    ) {
 
-        $dn = 'uid=' . $user->getUsername() . ',ou=users,' . $this->baseDn;
+        $dn = 'uid='.$user->getUsername().',ou=users,'.$this->baseDn;
         if ($this->client->isEntityExist($dn)) {
             $this->client->delete($dn);
         }
         foreach ($user->getServices() as $service) {
 
-            $dn = 'uid=' . $user->getUsername() . ',ou=users,dc=' . $service->getName() . ',' . $this->baseDn;
+            $dn = 'uid='.$user->getUsername().',ou=users,dc='.$service->getName().','.$this->baseDn;
 
             if ($this->client->isEntityExist($dn)) {
                 $this->client->delete($dn);

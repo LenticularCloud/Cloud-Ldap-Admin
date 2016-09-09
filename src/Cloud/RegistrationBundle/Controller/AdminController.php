@@ -52,13 +52,12 @@ class AdminController extends Controller
         if ($form->isValid()) {
             $data = $form->getData();
             if ($data['action'] === true) {
-                $userLdap = $this->get('cloud.ldap.util.usermanipulator')->createUser($user->getUsername());
-
                 $password = new Password();
                 $password->setHash($user->getPasswordHash());
                 $password->setId('default');
                 $password->setEncoder(CryptEncoder::class);
-                $userLdap->addPassword($password);
+
+                $userLdap = $this->get('cloud.ldap.util.usermanipulator')->createUserObject($user->getUsername(), $password);
 
                 $userLdap->setAltEmail($user->getAltEmail());
                 $this->get('cloud.ldap.util.usermanipulator')->create($userLdap);

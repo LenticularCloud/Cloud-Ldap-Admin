@@ -9,6 +9,7 @@ services:
             - "%ldap_base_dn%"
             - "%ldap_bind_rdn%"
             - "%ldap_bind_pw%"
+            - "%cloud_ldap.services%"
             - "%domain%"
     cloud.ldap.userprovider:
         class: Cloud\LdapBundle\Security\LdapUserProvider
