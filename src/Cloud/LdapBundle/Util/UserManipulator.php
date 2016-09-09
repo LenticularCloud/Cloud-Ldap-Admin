@@ -57,15 +57,18 @@ class UserManipulator
 
     public function createUser($username)
     {
-        $user = new User($username);
+        $usernameLower=strtolower($username); //search name can only be lower case
+        $user = new User($usernameLower);
 
         foreach ($user->getObjectClasses() as $objectClass) {
             $user->addObject($objectClass);
         }
-        $user->getObject(Schemas\InetOrgPerson::class)->setMail($username . '@' . $this->domain);
-        $user->setHomeDirectory('/home/users/'.$username);
-        $user->getObject(Schemas\InetOrgPerson::class)->setCn($username );
+        $user->getObject(Schemas\InetOrgPerson::class)->setMail($usernameLower . '@' . $this->domain);
+        $user->setHomeDirectory('/home/users/'.$usernameLower);
+        $user->getObject(Schemas\InetOrgPerson::class)->setCn($usernameLower );
         $user->addRole('ROLE_USER');
+
+        $user->setDisplayName($username);
         return $user;
     }
 

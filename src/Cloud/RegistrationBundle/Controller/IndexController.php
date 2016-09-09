@@ -44,7 +44,7 @@ class IndexController extends Controller
             $em = $this->getDoctrine()->getManager();
 
             $user = $form->getData();
-            if (in_array($user->getUsername(), $this->get('cloud.ldap.userprovider')->getUsernames()) ||
+            if (in_array(strtolower($user->getUsername()), $this->get('cloud.ldap.userprovider')->getUsernames()) ||
                 $em->getRepository('CloudRegistrationBundle:User')->findOneByUsername($user->getUsername())
             ) {
                 return $response->setContent(json_encode(['successfully' => false, 'errors' => ['message' => 'user exiests']]));
