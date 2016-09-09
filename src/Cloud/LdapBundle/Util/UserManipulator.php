@@ -83,14 +83,16 @@ class UserManipulator
 
     public function createUserObject($username, Password $password)
     {
-        $user = new User($username);
+        $usernameLower=strtolower($username); //search name can only be lower case
+        $user = new User($usernameLower);
 
         foreach ($user->getObjectClasses() as $objectClass) {
             $user->addObject($objectClass);
         }
-        $user->getObject(Schemas\InetOrgPerson::class)->setMail($username.'@'.$this->domain);
+        $user->getObject(Schemas\InetOrgPerson::class)->setMail($usernameLower.'@'.$this->domain);
         $user->addRole('ROLE_USER');
 
+        $user->setDisplayName($username);
         $user->addPassword($password);
 
         foreach ($this->services as $service_name => $serviceConfig) {
