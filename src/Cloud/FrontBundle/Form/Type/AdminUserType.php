@@ -4,6 +4,7 @@ namespace Cloud\FrontBundle\Form\Type;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class AdminUserType extends AbstractType
 {
@@ -12,7 +13,7 @@ class AdminUserType extends AbstractType
     {
     }
 
-    public function setDefaultOptions(\Symfony\Component\OptionsResolver\OptionsResolverInterface $resolver)
+    public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults(array(
             'data_class' => 'Cloud\LdapBundle\Entity\User',
