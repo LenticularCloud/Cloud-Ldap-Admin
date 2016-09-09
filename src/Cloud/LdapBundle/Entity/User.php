@@ -79,6 +79,7 @@ class User extends AbstractUser implements AdvancedUserInterface
                 }
                 break;
             case Schemas\LenticularUser::class:
+                $this->roles = $this->getObject(Schemas\LenticularUser::class)->getAuthRoles();
                 $this->enable = $this->getRoles() > 0;
 
                 if ($this->getObject(Schemas\LenticularUser::class)->getUid() === null) {
@@ -105,10 +106,7 @@ class User extends AbstractUser implements AdvancedUserInterface
 
     public function getRoles()
     {
-        if ($this->getObject(Schemas\LenticularUser::class) !== null) {
-            return $this->getObject(Schemas\LenticularUser::class)->getAuthRoles();
-        }
-        return ["ROLE_USER"];
+        return $this->getObject(Schemas\LenticularUser::class)->getAuthRoles();
     }
 
     public function addRole($role)
