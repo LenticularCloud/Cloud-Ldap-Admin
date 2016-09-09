@@ -25,7 +25,7 @@ class PosixService extends Service
     {
         $classes = parent::getObjectClasses();
         $classes['posixaccount'] = Schemas\PosixAccount::class;
-        //$classes['ldappublickey'] = Schemas\LdapPublicKey::class;
+        $classes['ldappublickey'] = Schemas\LdapPublicKey::class;
         return $classes;
     }
 

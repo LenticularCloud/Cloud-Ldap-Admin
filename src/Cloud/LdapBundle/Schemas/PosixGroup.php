@@ -88,11 +88,13 @@ class PosixGroup
      */
     public function getMemberUids()
     {
-        return $this->memberUids;
+        return $this->memberUids->map(function ($member) {
+            return $member->get();
+        })->getValues();
     }
 
     /**
-     * @param ArrayCollection $memberUid
+     * @param int $memberUid
      * @return PosixGroup
      */
     public function addMemberUid($memberUid)
@@ -103,7 +105,7 @@ class PosixGroup
     }
 
     /**
-     * @param ArrayCollection $memberUid
+     * @param int $memberUid
      * @return PosixGroup
      */
     public function removeMemberUid($memberUid)

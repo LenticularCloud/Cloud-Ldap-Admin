@@ -17,12 +17,21 @@ class PosixGroup extends  AbstractGroup
 
     public function getMembers()
     {
-        return $this->getObject(Schemas\PosixGroup::class)->getMeberUids()->map(function ($member) {
-            preg_match('#^uid=(?<uid>[^,]+),.*$#', $member->get(), $match);
-            return $match['uid'];
-        })->getValues();
+        return $this->getObject(Schemas\PosixGroup::class)->getMemberUids();
     }
 
+    public function addMember($username)
+    {
+        $this->getObject(Schemas\PosixGroup::class)->addMemberUid($username);
+        return $this;
+    }
+
+    public function removeMember($username)
+    {
+        $this->getObject(Schemas\PosixGroup::class)->removeMemberUid($username);
+        return $this;
+    }
+/*
     public function addMember($username)
     {
         $uid = 'uid=' . $username . ',ou=Users,'. $this->getPostDn();
@@ -40,5 +49,6 @@ class PosixGroup extends  AbstractGroup
             }
         }
         return $this;
-    }
+    }*/
+
 }
