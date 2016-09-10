@@ -26,7 +26,7 @@ class PasswordType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('id', Type\TextType::class, array('disabled' => true))
+            ->add('id', Type\HiddenType::class, array('disabled' => true))
             ->add('id_old', Type\HiddenType::class, array('mapped' => false))
             ->add('passwordPlain', Type\RepeatedType::class, array(
                 'type' => Type\PasswordType::class,
@@ -35,7 +35,8 @@ class PasswordType extends AbstractType
                 'second_options' => array('label' => 'Repeat Password'),
             ))
             ->add('save', Type\SubmitType::class, array('label' => 'save', 'attr' => ['class' => 'btn-primary']))
-            ->add('remove', Type\SubmitType::class, array('label' => 'remove', 'attr' => ['class' => 'btn-danger']));
+            //->add('remove', Type\SubmitType::class, array('label' => 'remove', 'attr' => ['class' => 'btn-danger']))
+        ;
     }
 
     public function getName()

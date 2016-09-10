@@ -42,9 +42,9 @@ class PasswordController extends Controller
         }
 
         $formWifiPassword = $this->createForm(new PasswordType(), $this->getUser()->getNtPassword(), array(
-            'action' => $this->generateUrl('password_password_edit', array(
-                'serviceName' => 'wifi',
-                'passwordId' => 'default'
+            'action' => $this->generateUrl('password_service_password_edit', array(
+                'passwordId' => 'default',
+                'serviceName' => 'wifi'
             )),
             'method' => 'POST'
         ))->createView();
@@ -66,7 +66,6 @@ class PasswordController extends Controller
      * @Route("/service/{serviceName}/password/{passwordId}/edit",name="password_service_password_edit")
      * @Route("/password/{passwordId}/edit",name="password_password_edit")
      * @Method("POST")
-     * @Template()
      */
     public function passwordEditAction(Request $request,$passwordId, $serviceName = null)
     {
@@ -74,11 +73,11 @@ class PasswordController extends Controller
 
         if ($serviceName === null) {
             $password = $user->getPassword($passwordId);
-        } else {
+        } elseif($serviceName == 'wifi') {
             $password = $this->getUser()->getNtPassword();
             if($password===null) {
                 $password= new Password();
-                $this->getUser()->setNtPassword();
+                $this->getUser()->setNtPassword($password);
             }
         }
 
