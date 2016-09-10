@@ -71,14 +71,16 @@ class PasswordController extends Controller
     {
         $user = $this->getUser();
 
-        if ($serviceName === null) {
-            $password = $user->getPassword($passwordId);
-        } elseif($serviceName == 'wifi') {
-            $password = $this->getUser()->getNtPassword();
-            if($password===null) {
-                $password= new Password();
-                $this->getUser()->setNtPassword($password);
-            }
+        switch($serviceName) {
+            case 'wifi':
+                $password = $this->getUser()->getNtPassword();
+                if($password===null) {
+                    $password= new Password();
+                    $this->getUser()->setNtPassword($password);
+                }
+                break;
+            default:
+                $password = $user->getPassword($passwordId);
         }
 
         $form = $this->createForm(new PasswordType(), $password);
@@ -91,23 +93,14 @@ class PasswordController extends Controller
             return new Response($errors);
         }
 
-        if ($form->get('remove')->isClicked()) {
-            switch($serviceName) {
-                case 'wifi':
-                    $user->setNtPassword($password);
-                    break;
-                default:
-                    $user->removePassword($password);
-            }
-        }else {
-            call_user_func($password->getEncoder() . '::encodePassword',$password);
-            switch($serviceName) {
-                case 'wifi':
-                    $this->getUser()->setNtPassword($password);
-                    break;
-                default:
-                    $user->addPassword($password);
-            }
+
+        call_user_func($password->getEncoder() . '::encodePassword',$password);
+        switch($serviceName) {
+            case 'wifi':
+                $this->getUser()->setNtPassword($password);
+                break;
+            default:
+                $user->addPassword($password);
         }
 
         $errors = $this->get('validator')->validate($user);
