@@ -1,0 +1,8 @@
+
+
+services:
+    cloud.front.formgenerator:
+        class: Cloud\FrontBundle\Services\FromGenerator
+        arguments:
+            - "%cloud_ldap.main%"
+            - "%cloud_ldap.services%"

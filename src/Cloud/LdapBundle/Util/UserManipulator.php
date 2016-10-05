@@ -100,7 +100,7 @@ class UserManipulator
                 continue;
             }
 
-            $service = new $serviceConfig['data_object']($service_name);
+            $service = new $serviceConfig['object_class']($service_name);
             $service->setUser($user);
 
             if (isset($serviceConfig['default']) && $serviceConfig['default']) {

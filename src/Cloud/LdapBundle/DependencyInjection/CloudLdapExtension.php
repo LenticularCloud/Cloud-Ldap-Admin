@@ -27,5 +27,6 @@ class CloudLdapExtension extends Extension
         $loader->load('services.yml');
 
         $container->setParameter('cloud_ldap.services',$config['services']);
+        $container->setParameter('cloud_ldap.main',$config['main']);
     }
 }

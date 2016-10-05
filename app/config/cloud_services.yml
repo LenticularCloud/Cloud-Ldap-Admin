@@ -1,32 +1,48 @@
 cloud_ldap:
   main:
-    data_object: 'Cloud\LdapBundle\Entity\User'
+    object_class: 'Cloud\LdapBundle\Entity\User'
+    object_forms:
+      - 'Cloud\FrontBundle\Form\Type\UserType'
   services:
     git_gogs:
       enable: true
       default: true
-      data_object: 'Cloud\LdapBundle\Entity\Service'
+      object_class: 'Cloud\LdapBundle\Entity\Service'
+      object_forms:
+        - 'Cloud\FrontBundle\Form\Type\ServiceMultiPasswordType'
     mail:
       enable: true
       default: true
-      data_object: 'Cloud\LdapBundle\Entity\Service'
+      object_class: 'Cloud\LdapBundle\Entity\Service'
+      object_forms:
+        - 'Cloud\FrontBundle\Form\Type\ServiceMultiPasswordType'
     seafile:
       enable: true
       default: true
-      data_object: 'Cloud\LdapBundle\Entity\Service'
+      object_class: 'Cloud\LdapBundle\Entity\Service'
+      object_forms:
+        - 'Cloud\FrontBundle\Form\Type\ServiceMultiPasswordType'
     ampache:
       enable: true
       default: false
-      data_object: 'Cloud\LdapBundle\Entity\Service'
+      object_class: 'Cloud\LdapBundle\Entity\Service'
+      object_forms:
+        - 'Cloud\FrontBundle\Form\Type\ServiceMultiPasswordType'
     radicale:
       enable: true
       default: true
-      data_object: 'Cloud\LdapBundle\Entity\Service'
+      object_class: 'Cloud\LdapBundle\Entity\Service'
+      object_forms:
+        - 'Cloud\FrontBundle\Form\Type\ServiceMultiPasswordType'
     freeradius:
       enable: true
       default: false
-      data_object: 'Cloud\LdapBundle\Entity\FreeRadiusService'
+      object_class: 'Cloud\LdapBundle\Entity\FreeRadiusService'
+      object_forms:
+        - 'Cloud\FrontBundle\Form\Type\ServiceMultiPasswordType'
     posix:
       enable: true
       default: false
-      data_object: 'Cloud\LdapBundle\Entity\PosixService'
+      object_class: 'Cloud\LdapBundle\Entity\PosixService'
+      object_forms:
+        - 'Cloud\FrontBundle\Form\Type\ServiceMultiPasswordType'
