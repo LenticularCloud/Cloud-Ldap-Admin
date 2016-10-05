@@ -8,6 +8,11 @@ use Cloud\LdapBundle\Entity\Password;
  *
  * @author tuxcoder
  *
+ * Format: {crypt}$<type>$rounds=<rounds>$<id>[+|=]<salt>$<hash>$
+ *         + stands for masterpassword
+ *         = for local password
+ * Example hash: {crypt}$6$rounds=60000$master=rIAwMhy8d$4LA5OQUnMXZAOO8/r8s1XgUp0MLVi4sURWRAdPYEqsZ294q5u3dZs63Q7AXaw71P60wpr2idYo3W958GgeTQb1
+ *
  */
 class CryptEncoder implements LdapPasswordEncoderInterface
 {

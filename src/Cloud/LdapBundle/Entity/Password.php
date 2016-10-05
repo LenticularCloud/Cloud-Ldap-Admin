@@ -10,15 +10,6 @@ class Password extends  AbstractAttribute
 {
 
     /**
-     * crypt format
-     * first part of the salt is the id
-     * {CRYPT}$5$rounds=6000$myID=RANDOMSALT$HASH:
-     *
-     * @var String $hash
-     */
-    private $hash;
-
-    /**
      * @Assert\NotBlank()
      * @Assert\Regex("/^[a-zA-Z0-9_-]+$/",message="Id have to be only chars from a-zA-Z0-9_-")
      * @Assert\Length(max=10,min=2,maxMessage="Id have to be max. 10 chars long",minMessage="Id have to min. 2 chars long")
@@ -56,7 +47,7 @@ class Password extends  AbstractAttribute
     /**
      * @Assert\Valid(deep=true)
      * 
-     * @var Service
+     * @var AbstractService
      */
     private $service;
 
@@ -73,7 +64,7 @@ class Password extends  AbstractAttribute
      */
     public function validate(ExecutionContextInterface $context)
     {
-        if ($context->getGroup()=='create' && ! isset($this->hash) && ! isset($this->password_plain)) {
+        if (  $this->getHash() === '' && ! isset($this->password_plain) ) {
             $context->buildViolation('password_plain have to be not null if no hash is set')
                 ->atPath('password_plain')
                 ->addViolation();
@@ -81,6 +72,9 @@ class Password extends  AbstractAttribute
     }
 
     /**
+     * crypt format
+     * first part of the salt is the id
+     * 
      *
      * @return String
      */
