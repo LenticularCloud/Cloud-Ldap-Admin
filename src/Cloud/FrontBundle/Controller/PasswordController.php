@@ -4,13 +4,11 @@ namespace Cloud\FrontBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
-use Cloud\LdapBundle\Entity\Password;
 use Cloud\FrontBundle\Form\Type\PasswordType;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Cloud\FrontBundle\Form\Type\ServiceType;
-use Cloud\LdapBundle\Entity\Service;
-use Cloud\FrontBundle\Form\Type\NewPasswordType;
 use Symfony\Component\Form\FormError;
 use InvalidArgumentException;
 
@@ -27,39 +25,44 @@ class PasswordController extends Controller
     public function indexAction(Request $request)
     {
 
+
+        //---- master ---
+        $formsEntity = [];
+        foreach ($this->get('cloud.front.formgenerator')->getUserForms() as $typeName => $type) {
+            $formsEntity[] = $this->createForm($type, $this->getUser(), array(
+                'action' => $this->generateUrl('password_edit', array('type' => $typeName)),
+                'method' => 'POST',
+            ))->createView();
+        }
+
         //--- services ---
-        $formEdit = array();
-        $formEditServiceMasterPassword = array();
+        $formsServices = array();
         foreach ($this->getUser()->getServices() as $service) {
             //-- service settings --
-            $form = $this->createForm(new ServiceType(), $service, array(
+            $formsServices[$service->getName()] = array();
+            $formsServices[$service->getName()][] = $this->createForm(new ServiceType(), $service, array(
                 'action' => $this->generateUrl('password_service_edit', array(
-                    'service' => $service->getName()
+                    'type' => 'status',
+                    'serviceName' => $service->getName(),
                 )),
-                'method' => 'POST'
-            ));
-            $formEditServiceMasterPassword[$service->getName()] = $form->createView();
-
-            //--- service passwords ---
-            $formEdit[$service->getName()] = array();
+                'method' => 'POST',
+            ))->createView();
 
             if (!$service->isEnabled()) {
                 continue;
             }
 
-            foreach ($service->getPasswords() as $password) {
-                if (!$password->isMasterPassword()) {
-                    $form = $this->createForm(new PasswordType(), $password, array(
-                        'action' => $this->generateUrl('password_service_password_edit', array(
-                            'serviceName' => $service->getName(),
-                            'passwordId' => $password->getId()
-                        )),
-                        'method' => 'POST'
-                    ));
-                    $form->get('id_old')->setData($password->getId());
-                    $formEdit[$service->getName()][] = $form->createView();
-                }
+            foreach ($this->get('cloud.front.formgenerator')->getServiceForm($service->getName()) as $typeName => $type) {
+
+                $formsServices[$service->getName()][] = $this->createForm($type, $service, array(
+                    'action' => $this->generateUrl('password_service_edit', array(
+                        'type' => $typeName,
+                        'serviceName' => $service->getName(),
+                    )),
+                    'method' => 'POST',
+                ))->createView();
             }
+            /*
             if (count($service->getPasswords()) < $service->maxPasswords()) {
                 $newPassword = new Password();
                 $formEdit[$service->getName()][] = $this->createForm(new NewPasswordType(), $newPassword, array(
@@ -69,20 +72,7 @@ class PasswordController extends Controller
                     'method' => 'POST'
                 ))
                     ->createView();
-            }
-        }
-
-        //---- master ---
-        $formEditMaster = array();
-        foreach ($this->getUser()->getPasswords() as $password) {
-            $form = $this->createForm(new PasswordType(), $password, array(
-                'action' => $this->generateUrl('password_password_edit', array(
-                    'passwordId' => $password->getId()
-                )),
-                'method' => 'POST'
-            ));
-            $form->get('id_old')->setData($password->getId());
-            $formEditMaster[] = $form->createView();
+            }*/
         }
 
 
@@ -93,19 +83,64 @@ class PasswordController extends Controller
 
         return array(
             'errors' => $errors,
-            'formEdit' => $formEdit,
-            'formEditMasterPasswords' => $formEditMaster,
-            'formEditServiceMasterPasswords' => $formEditServiceMasterPassword
+            'formsEntity' => $formsEntity,
+            'formsServices' => $formsServices,
         );
     }
 
+
     /**
-     * @Route("/service/{serviceName}/password/{passwordId}/edit",name="password_service_password_edit")
-     * @Route("/password/{passwordId}/edit",name="password_password_edit")
+     * @Route("/{type}/edit",name="password_edit")
+     * @Route("/{serviceName}/{type}/edit",name="password_service_edit")
+     * @Method("POST")
+     */
+    public function genericFormAction(Request $request, $type, $serviceName = null)
+    {
+
+        $response = new Response();
+        $user = $this->getUser();
+
+        //@TODO check if service exist
+
+        if ($serviceName === null) {
+            $formsType = $this->get('cloud.front.formgenerator')->getUserForms();
+            $form = $this->createForm($formsType[$type], $this->getUser());
+        } else {
+            $formsType = $this->get('cloud.front.formgenerator')->getServiceForm($serviceName);
+            $form = $this->createForm($formsType[$type], $this->getUser()->getServices()[$serviceName]);
+        }
+
+        $form->handleRequest($request);
+
+        $errors = $this->get('validator')->validate($user);
+        dump($form,$errors);
+
+        if (count($errors) === 0) {
+            $this->get('cloud.ldap.util.usermanipulator')->update($user);
+            $data = array(
+                'successfully' => true
+            );
+        } else {
+            $errorMsgs = array();
+            foreach($errors as $error) {
+                $errorMsgs[] = $error->getMessage();
+            }
+            $data = array(
+                'successfully' => false,
+                'errors' => $errorMsgs,
+            );
+        }
+
+        $response->setContent(json_encode($data));
+
+        return $response;
+    }
+
+    /**
      * @Method("POST")
      * @Template()
      */
-    public function passwordEditAction(Request $request,$passwordId, $serviceName = null)
+    public function passwordEditAction(Request $request, $passwordId, $serviceName = null)
     {
         $user = $this->getUser();
 
@@ -124,7 +159,7 @@ class PasswordController extends Controller
             } else {
                 $user->getService($serviceName)->removePassword($password);
             }
-        }else {
+        } else {
             if ($serviceName == null) {
                 $user->addPassword($password);
             } else {
@@ -141,7 +176,7 @@ class PasswordController extends Controller
                 ->getSession()
                 ->getFlashBag()
                 ->set('errors', $this->render('CloudFrontBundle::error.html.twig', array(
-                    'errors' => $errors
+                    'errors' => $errors,
                 )));
         }
 
@@ -194,7 +229,7 @@ class PasswordController extends Controller
             ->getSession()
             ->getFlashBag()
             ->set('errors', $this->get('twig')->render('CloudFrontBundle::error.html.twig', array(
-                'errors' => $errors
+                'errors' => $errors,
             )));
 
         return $this->redirect($this->generateUrl('password'));
@@ -224,7 +259,6 @@ class PasswordController extends Controller
     }
 
     /**
-     * @Route("/service/{service}/edit",name="password_service_edit")
      * @Method("POST")
      * @Template()
      */
