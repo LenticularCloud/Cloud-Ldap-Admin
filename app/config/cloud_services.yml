@@ -45,4 +45,6 @@ cloud_ldap:
       default: false
       object_class: 'Cloud\LdapBundle\Entity\PosixService'
       object_forms:
+        - 'Cloud\FrontBundle\Form\Type\PosixType'
         - 'Cloud\FrontBundle\Form\Type\ServiceMultiPasswordType'
+        - 'Cloud\FrontBundle\Form\Type\PublicKeyType'

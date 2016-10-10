@@ -34,10 +34,9 @@ class PosixService extends Service
     {
         parent::serviceEnabled();
         $username=$this->getUser()->getUsername();
-        $this->setUid(1000);
+        $this->setUid(1000); //@TODO incremental id
         $this->setGid(1000);
         $this->setHomeDirector('/home/'.$username);
-        //$this->setLoginShell('/bin/false');
         $this->getObject(Schemas\PosixAccount::class)->setCn($username);
     }
 
@@ -71,5 +70,18 @@ class PosixService extends Service
 
     public function setLoginShell($loginShell) {
         return $this->getObject(Schemas\PosixAccount::class)->setLoginShell($loginShell);
+    }
+
+    public function getSshPublicKey() {
+        dump($this,$this->getObjectClasses());
+        return $this->getObject(Schemas\LdapPublicKey::class)->getSshPublicKeys();
+    }
+
+    public function addSshPublicKey($sshPublicKey) {
+        return $this->getObject(Schemas\LdapPublicKey::class)->addSshPublicKey($sshPublicKey);
+    }
+
+    public function removeSshPublicKey($sshPublicKey) {
+        return $this->getObject(Schemas\LdapPublicKey::class)->removeSshPublicKey($sshPublicKey);
     }
 }
