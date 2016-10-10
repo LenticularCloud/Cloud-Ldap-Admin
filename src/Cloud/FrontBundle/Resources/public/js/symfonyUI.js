@@ -8,9 +8,9 @@ var strict;
         o.append(bAdd);
         bAdd.on('click',function(){
             var template = o.data('prototype');
-            template = template.replace('__name__label__','New Entry')
+            template = $(template.replace('__name__label__','New Entry'));
             bAdd.before(template);
-            addRemoveButton
+            addRemoveButton(template);
         });
     }
 

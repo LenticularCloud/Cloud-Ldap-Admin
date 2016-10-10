@@ -127,6 +127,12 @@ class UserManipulator
             throw new InvalidArgumentException((string) $errors);
         }
 
+        // rehash changed passwords
+        if( $user->getPasswordObject()->getPasswordPlain() !== null) {
+            $user->setPasswordObject($user->getPasswordObject());
+        }
+
+
         // validate ldap schemas
         foreach ($user->getObjects() as $object) {
             $errors = $this->validator->validate($object);

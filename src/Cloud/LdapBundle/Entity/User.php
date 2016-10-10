@@ -18,11 +18,10 @@ class User extends AbstractUser implements AdvancedUserInterface
      * main passwords for this user
      *
      * @Assert\Valid(deep=true)
-     * @Assert\NotBlank(message="You have to set at min. one master password.")
      *
-     * @var Array<Password> $passwords
+     * @var Password $password
      */
-    private $passwords = array();
+    private $password = null;
 
     /**
      *
@@ -72,10 +71,10 @@ class User extends AbstractUser implements AdvancedUserInterface
             case Schemas\ShadowAccount::class:
 
                 $encoder = new CryptEncoder();
-                $this->passwords = [];
                 foreach ($this->getAttributes()->get('userpassword') as $password) {
                     $password = $encoder->parsePassword($password);
-                    $this->passwords[$password->getId()] = $password;
+                    $this->password = $password;
+                    break;
                 }
                 break;
             case Schemas\LenticularUser::class:
@@ -117,7 +116,6 @@ class User extends AbstractUser implements AdvancedUserInterface
 
     public function setRoles(array $roles)
     {
-        $this->getAttributes('userpassword')->clear();
         foreach ($roles as $role) {
             $this->getObject(Schemas\LenticularUser::class)->addAuthRole($role);
         }
@@ -156,85 +154,50 @@ class User extends AbstractUser implements AdvancedUserInterface
 
     /**
      *
-     * @return Array<Password>
-     */
-    public function getPasswords()
-    {
-        return $this->passwords;
-    }
-
-    /**
-     *
      * @return Password
      */
-    public function getPassword($passwordId = null)
+    public function getPasswordObject()
     {
-        if ($passwordId == null) {
-            return null;
-        }
-        if (!isset($this->passwords[$passwordId])) {
-            throw new InvalidArgumentException("passwordId not found");
-        }
-
-        return $this->passwords[$passwordId];
+        return $this->password;
     }
 
     /**
-     *
-     * @param Password $password
-     * @return \Cloud\LdapBundle\Entity\Service
+     * @param $password Password set to update the current password
+     * @throws \InvalidArgumentException when the password is not useable with the local hash
      */
-    public function addPassword(Password $password)
-    {
+    public function setPasswordObject($password){
+        if (!$password->isMasterPassword()) {
+            $password->setMasterPassword(true);
+        }
+
         foreach ($this->services as $service) {
             if ($service->isMasterPasswordEnabled()) {
+                $service->removePassword($this->getPasswordObject());
                 $service->addPassword(clone $password);
             }
         }
 
-        if ($password->getPasswordPlain() === null) {
-            if ($password->getEncoder() !== $this->passwordEncoder) {
-                throw new \InvalidArgumentException();
-            }
+        if ($password->getPasswordPlain() === null && $password->getEncoder() !== $this->passwordEncoder ) {
+            throw new \InvalidArgumentException('invalid hashed password');
         } else {
             $att = new Attribute();
             $password->setAttribute($att);
             call_user_func($this->passwordEncoder . '::encodePassword', $password);
         }
 
-        if (isset($this->passwords[$password->getId()])) {
-            $this->removePassword($this->passwords[$password->getId()]);
-        }
-        $this->passwords[$password->getId()] = $password;
-        $this->getAttributes()->get('userpassword')->add($password->getAttribute());
-        if ($password->getUser() !== $this) {
-            $password->setUser($this);
-        }
-        if (!$password->isMasterPassword()) {
-            $password->setMasterPassword(true);
-        }
-        return $this;
+        $this->getObject(Schemas\ShadowAccount::class)->getUserPasswords()->removeElement($this->password->getAttribute());
+        $this->password = $password;
+        $this->getObject(Schemas\ShadowAccount::class)->getUserPasswords()->add($password->getAttribute());
     }
 
     /**
      *
-     * @param Password $password
+     * @return Password
      */
-    public function removePassword(Password $password)
+    public function getPassword()
     {
-        $this->getAttributes()->get('userpassword')->removeElement($this->passwords[$password->getId()]->getAttribute());
-
-        foreach ($this->services as $service) {
-            if ($service->isMasterPasswordEnabled()) {
-                $service->removePassword($password);
-            }
-        }
-
-        if ($this->passwords[$password->getId()]->getUser() === $this) {
-            $this->passwords[$password->getId()]->setUser(null);
-        }
-        unset($this->passwords[$password->getId()]);
-        return $this;
+        // required that login is working
+        return null;
     }
 
     /**
@@ -350,12 +313,12 @@ class User extends AbstractUser implements AdvancedUserInterface
 
     public function getDisplayName()
     {
-        return $this->getObject(Schemas\InetOrgPerson::class)->getSn();
+        return $this->getObject(Schemas\InetOrgPerson::class)->getDisplayName();
     }
 
     public function setDisplayName($displayName)
     {
-        return $this->getObject(Schemas\InetOrgPerson::class)->setSn($displayName);
+        return $this->getObject(Schemas\InetOrgPerson::class)->setDisplayName($displayName);
     }
 
     /**
