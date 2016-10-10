@@ -30,10 +30,9 @@ class UserType extends AbstractType
         $builder
             ->add('username', Type\TextType::class, array('disabled' => true))
             ->add(
-                $builder ->create('password', PasswordType::class)
+                $builder ->create('password_object', PasswordType::class)
             )
-            ->add('save', Type\SubmitType::class, array('label' => 'save', 'attr' => ['class' => 'btn-primary']))
-            ->add('remove', Type\SubmitType::class, array('label' => 'remove', 'attr' => ['class' => 'btn-danger']));
+            ->add('save', Type\SubmitType::class, array('label' => 'save', 'attr' => ['class' => 'btn-primary']));
     }
 
     public function getName()

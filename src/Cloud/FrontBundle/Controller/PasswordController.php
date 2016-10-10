@@ -112,8 +112,7 @@ class PasswordController extends Controller
 
         $form->handleRequest($request);
 
-        $errors = $this->get('validator')->validate($user);
-        dump($form,$errors);
+        $errors = $this->get('validator')->validate($form);
 
         if (count($errors) === 0) {
             $this->get('cloud.ldap.util.usermanipulator')->update($user);

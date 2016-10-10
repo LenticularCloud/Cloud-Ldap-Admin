@@ -25,19 +25,19 @@ class ProfileType extends AbstractType
         $resolver->setDefaults(array(
             'data_class' => 'Cloud\LdapBundle\Entity\User',
             'validation_groups' => array(
-                'Default'
-            )
+                'Default',
+            ),
         ));
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('email','email',['required'=>false])
-            ->add('altEmail','email',['required'=>false])
-            ->add('givenName','text',['required'=>false])
-            ->add('sureName','text',['required'=>false])
-            ->add('displayName','text')
+            ->add('email', 'email', ['required' => false, 'disabled' => true])
+            ->add('altEmail', 'email', ['required' => false])
+            ->add('givenName', 'text', ['required' => false])
+            ->add('sureName', 'text', ['required' => false])
+            ->add('displayName', 'text')
             ->add('save', 'submit');
     }
 

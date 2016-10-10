@@ -60,6 +60,7 @@ class LdapPublicKey
     public function setUid($uid)
     {
         $this->uid = $uid;
+
         return $this;
     }
 
@@ -68,7 +69,9 @@ class LdapPublicKey
      */
     public function getSshPublicKeys()
     {
-        return $this->sshPublicKeys;
+        return array_map(function ($attribute) {
+            return $attribute->get();
+        }, $this->sshPublicKeys->toArray());
     }
 
     /**
@@ -79,6 +82,7 @@ class LdapPublicKey
     {
         $this->removeSshPublicKey($sshPublicKey);
         $this->sshPublicKeys->add(new Attribute($sshPublicKey));
+
         return $this;
     }
 
@@ -91,9 +95,11 @@ class LdapPublicKey
         foreach ($this->sshPublicKeys as $sshPublicKey) {
             if ($sshPublicKey->get() == $sshPublicKey) {
                 $this->sshPublicKeys->removeElement($sshPublicKey);
+
                 return $this;
             }
         }
+
         return $this;
     }
 }
