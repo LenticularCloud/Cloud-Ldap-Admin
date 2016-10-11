@@ -73,7 +73,6 @@ class PosixService extends Service
     }
 
     public function getSshPublicKey() {
-        dump($this,$this->getObjectClasses());
         return $this->getObject(Schemas\LdapPublicKey::class)->getSshPublicKeys();
     }
 

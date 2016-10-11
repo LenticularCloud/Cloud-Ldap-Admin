@@ -39,6 +39,6 @@ class PublicKeyType extends AbstractType
 
     public function getName()
     {
-        return 'service';
+        return 'public_key';
     }
 }
