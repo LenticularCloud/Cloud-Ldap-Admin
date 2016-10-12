@@ -29,13 +29,13 @@ class CryptEncoder implements LdapPasswordEncoderInterface
         $salt = "";
         if ($password->getId() != null && $password->getId() != "") {
             $salt = self::getRandomeSalt(16 - strlen($password->getId()));
-            $salt = $password->getId() . ($password->isMasterPassword() ? '+' : '=') . $salt;
+            $salt = $password->getId().($password->isMasterPassword() ? '+' : '=').$salt;
         } else {
-            $salt = 'default=' . self::getRandomeSalt();
+            $salt = 'default='.self::getRandomeSalt();
         }
 
-        $hash = crypt($password->getPasswordPlain(), '$6$rounds=' . $rounds . '$' . $salt . '$');
-        $password->setHash('{crypt}' . $hash);
+        $hash = crypt($password->getPasswordPlain(), '$6$rounds='.$rounds.'$'.$salt.'$');
+        $password->setHash('{crypt}'.$hash);
         $password->setPasswordPlain(null);
         $password->setEncoder(CryptEncoder::class);
     }
@@ -47,14 +47,17 @@ class CryptEncoder implements LdapPasswordEncoderInterface
      */
     static private function getRandomeSalt($length = 9)
     {
-        //@TODO use openssl_random_pseudo_bytes as random
-
         $chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
         $string = "";
         $char_num = strlen($chars);
         for ($i = 0; $i < $length; $i++) {
-            $string .= substr($chars, rand(0, $char_num - 1), 1);
+            if (function_exists('random_int')) { // for php7.0 +
+                $rand = random_int(0, $char_num - 1);
+            } else {
+                $rand = rand(0, $char_num - 1);
+            }
+            $string .= substr($chars, $rand, 1);
         }
 
         return $string;
@@ -66,8 +69,9 @@ class CryptEncoder implements LdapPasswordEncoderInterface
      */
     static public function isPasswordValid(Password $password)
     {
-        if (substr($password->getHash(), 0, 7) != '{crypt}')
+        if (substr($password->getHash(), 0, 7) != '{crypt}') {
             return false;
+        }
         $hash = substr($password->getHash(), 7);
         if (crypt($password->getPasswordPlain(), $hash) === $hash) {
             return true;
@@ -86,7 +90,8 @@ class CryptEncoder implements LdapPasswordEncoderInterface
         $password = new Password();
         $password->setAttribute($password_hash);
         $matches = null;
-        $found = preg_match('#^{crypt}\$\d\$(rounds=\d+\$)?([0-9a-zA-Z_-]+)?(=|\+)[0-9a-zA-Z_-]+\$[^\$]*$#', $password_hash->get(), $matches);
+        $found = preg_match('#^{crypt}\$\d\$(rounds=\d+\$)?([0-9a-zA-Z_-]+)?(=|\+)[0-9a-zA-Z_-]+\$[^\$]*$#',
+            $password_hash->get(), $matches);
         if ($found === 1) {
             $password->setId($matches[2]);
             $password->setMasterPassword($matches[3] === '+');
@@ -94,6 +99,7 @@ class CryptEncoder implements LdapPasswordEncoderInterface
             return null;
         }
         $password->setEncoder(CryptEncoder::class);
+
         return $password;
     }
 }
