@@ -92,9 +92,9 @@ class LdapPublicKey
      */
     public function removeSshPublicKey($sshPublicKey)
     {
-        foreach ($this->sshPublicKeys as $sshPublicKey) {
-            if ($sshPublicKey->get() == $sshPublicKey) {
-                $this->sshPublicKeys->removeElement($sshPublicKey);
+        foreach ($this->sshPublicKeys as $attribute) {
+            if ($attribute->get() === $sshPublicKey) {
+                $this->sshPublicKeys->removeElement($attribute);
 
                 return $this;
             }
