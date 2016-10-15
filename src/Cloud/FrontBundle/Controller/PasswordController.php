@@ -38,21 +38,24 @@ class PasswordController extends Controller
         //--- services ---
         $formsServices = array();
         foreach ($this->getUser()->getServices() as $service) {
-            //-- service settings --
+
             $formsServices[$service->getName()] = array();
-            $formsServices[$service->getName()][] = $this->createForm(new ServiceType(), $service, array(
-                'action' => $this->generateUrl('password_service_edit', array(
-                    'type' => 'status',
-                    'serviceName' => $service->getName(),
-                )),
-                'method' => 'POST',
-            ))->createView();
 
             if (!$service->isEnabled()) {
+                //-- service settings --
+                $formsServices[$service->getName()][] = $this->createForm(new ServiceType(), $service, array(
+                    'action' => $this->generateUrl('password_service_edit', array(
+                        'type' => 'status',
+                        'serviceName' => $service->getName(),
+                    )),
+                    'method' => 'POST',
+                ))->createView();
+
+                // skip other form if service is disabled
                 continue;
             }
 
-            foreach ($this->get('cloud.front.formgenerator')->getServiceForm($service->getName()) as $typeName => $type) {
+            foreach ($this->get('cloud.front.formgenerator')->getServiceForms($service->getName()) as $typeName => $type) {
 
                 $formsServices[$service->getName()][] = $this->createForm($type, $service, array(
                     'action' => $this->generateUrl('password_service_edit', array(
@@ -63,7 +66,7 @@ class PasswordController extends Controller
                 ))->createView();
             }
         }
-
+        dump($this->getUser());
 
         $errors = $request
             ->getSession()
@@ -95,7 +98,7 @@ class PasswordController extends Controller
             $formsType = $this->get('cloud.front.formgenerator')->getUserForms();
             $form = $this->createForm($formsType[$type], $this->getUser());
         } else {
-            $formsType = $this->get('cloud.front.formgenerator')->getServiceForm($serviceName);
+            $formsType = $this->get('cloud.front.formgenerator')->getServiceForms($serviceName);
             $form = $this->createForm($formsType[$type], $this->getUser()->getServices()[$serviceName]);
         }
 

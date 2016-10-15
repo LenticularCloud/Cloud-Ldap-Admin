@@ -9,6 +9,8 @@
 namespace Cloud\FrontBundle\Services;
 
 
+use Cloud\FrontBundle\Form\Type\ServiceType;
+
 class FromGenerator
 {
 
@@ -39,10 +41,13 @@ class FromGenerator
         return $forms;
     }
 
-    public function getServiceForm($serviceName)
+    public function getServiceForms($serviceName)
     {
+        // add default form for all services
+        $forms = array('ServiceType::class)' => new ServiceType());
+
+        // read form from config file
         $object_forms = $this->serviceSettings[$serviceName]['object_forms'];
-        $forms = array();
         foreach($object_forms as $object_form) {
             $form = new $object_form();
             $forms[$form->getName()] = $form;
