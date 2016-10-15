@@ -37,9 +37,4 @@ class ServiceType extends AbstractType
             ->add('enabled','checkbox',['required'=>false])
             ->add('save', 'submit');
     }
-
-    public function getName()
-    {
-        return 'service';
-    }
 }

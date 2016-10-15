@@ -37,9 +37,4 @@ class AdminUserType extends AbstractType
             ->add('displayName', Type\TextType::class)
             ->add('save', Type\SubmitType::class);
     }
-
-    public function getName()
-    {
-        return 'admin_user';
-    }
 }

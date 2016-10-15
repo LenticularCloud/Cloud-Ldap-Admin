@@ -34,9 +34,4 @@ class UserType extends AbstractType
             )
             ->add('save', Type\SubmitType::class, array('label' => 'save', 'attr' => ['class' => 'btn-primary']));
     }
-
-    public function getName()
-    {
-        return 'UserType';
-    }
 }

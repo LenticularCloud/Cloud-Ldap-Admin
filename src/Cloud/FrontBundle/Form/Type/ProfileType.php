@@ -40,9 +40,4 @@ class ProfileType extends AbstractType
             ->add('displayName', 'text')
             ->add('save', 'submit');
     }
-
-    public function getName()
-    {
-        return 'profile';
-    }
 }

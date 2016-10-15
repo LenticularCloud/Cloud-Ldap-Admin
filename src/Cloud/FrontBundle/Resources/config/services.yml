@@ -6,3 +6,35 @@ services:
         arguments:
             - "%cloud_ldap.main%"
             - "%cloud_ldap.services%"
+    cloud.front.form.adminuser:
+          class: Cloud\FrontBundle\Form\Type\AdminUserType
+          tags:
+            - { name: form.type, alias: adminuser}
+    cloud.front.form.password:
+          class: Cloud\FrontBundle\Form\Type\PasswordType
+          tags:
+            - { name: form.type, alias: password_object}
+    cloud.front.form.posix:
+          class: Cloud\FrontBundle\Form\Type\PosixType
+          tags:
+            - { name: form.type, alias: posix}
+    cloud.front.form.profile:
+          class: Cloud\FrontBundle\Form\Type\ProfileType
+          tags:
+            - { name: form.type, alias: profile}
+    cloud.front.form.publickey:
+          class: Cloud\FrontBundle\Form\Type\PublicKeyType
+          tags:
+            - { name: form.type, alias: publickey}
+    cloud.front.form.servicemultipassword:
+          class: Cloud\FrontBundle\Form\Type\ServiceMultiPasswordType
+          tags:
+            - { name: form.type, alias: servicemultipassword}
+    cloud.front.form.service:
+          class: Cloud\FrontBundle\Form\Type\ServiceType
+          tags:
+            - { name: form.type, alias: service}
+    cloud.front.form.user:
+          class: Cloud\FrontBundle\Form\Type\UserType
+          tags:
+            - { name: form.type, alias: user}

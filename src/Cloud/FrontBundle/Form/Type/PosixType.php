@@ -42,9 +42,4 @@ class PosixType extends AbstractType
             ->add('save', 'submit');
 
     }
-
-    public function getName()
-    {
-        return 'posix';
-    }
 }

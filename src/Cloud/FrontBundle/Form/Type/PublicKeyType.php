@@ -36,9 +36,4 @@ class PublicKeyType extends AbstractType
             ))
             ->add('save', 'submit');
     }
-
-    public function getName()
-    {
-        return 'public_key';
-    }
 }
