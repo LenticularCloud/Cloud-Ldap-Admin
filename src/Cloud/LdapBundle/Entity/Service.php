@@ -23,12 +23,6 @@ class Service extends AbstractService
 
     /**
      *
-     * @var string $encoder
-     */
-    protected $encoder = CryptEncoder::class;
-
-    /**
-     *
      * @param string $name
      */
     public function __construct($name)
@@ -49,9 +43,10 @@ class Service extends AbstractService
         if ($class === Schemas\ShadowAccount::class) {
             $this->passwords = [];
             foreach ($this->getAttributes()->get('userpassword') as $attribute) {
-
-                $password = call_user_func($this->encoder . '::parsePassword', $attribute);
-                $this->passwords[$password->getId()] = $password;
+                $password = call_user_func($this->getEncoder().'::parsePassword', $attribute);
+                if (!$password->isMasterPassword()) {
+                    $this->passwords[$password->getId()] = $password;
+                }
             }
         }
     }
@@ -90,6 +85,7 @@ class Service extends AbstractService
         if ($passwordId === null) {
             return false;
         }
+
         return isset($this->passwords[$passwordId]);
     }
 
@@ -100,27 +96,21 @@ class Service extends AbstractService
      */
     public function addPassword(Password $password)
     {
-        if ($password->getPasswordPlain() === null) {
-            if ($password->getEncoder() !== $this->getEncoder()) {
-                throw new \InvalidArgumentException();
-            }
-        } else {
-            $att = new Attribute();
-            $password->setAttribute($att);
-            call_user_func($this->getEncoder() . '::encodePassword', $password);
+        // reject password if no plaintext password is set and incompatible hash
+        if ($password->getPasswordPlain() === null && $password->getEncoder() !== $this->getEncoder()) {
+            throw new \InvalidArgumentException();
         }
 
         if (isset($this->passwords[$password->getId()])) {
             $this->removePassword($this->passwords[$password->getId()]);
         }
+
         $this->passwords[$password->getId()] = $password;
         $this->getAttributes()->get('userpassword')->add($password->getAttribute());
         if ($password->getService() !== $this) {
             $password->setService($this);
         }
-        if ($password->isMasterPassword()) {
-            $password->setMasterPassword(false);
-        }
+
         return $this;
     }
 
@@ -136,24 +126,21 @@ class Service extends AbstractService
         }
         $this->getAttributes()->get('userpassword')->removeElement($this->passwords[$password->getId()]->getAttribute());
         unset($this->passwords[$password->getId()]);
+
         return $this;
     }
 
     /**
-     * @return string
+     * {@inheritdoc}
      */
     public function getEncoder()
     {
-        return $this->encoder;
+        return CryptEncoder::class;
     }
 
 
     protected function serviceEnabled()
     {
-        $this->passwords = $this->getUser()->getPasswords();
-        foreach ($this->passwords as $password) {
-            $this->attributes['userpassword']->add($password->getAttribute());
-        }
     }
 
     public function maxPasswords()

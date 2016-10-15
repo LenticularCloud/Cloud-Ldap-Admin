@@ -7,10 +7,12 @@ use Cloud\LdapBundle\Security\AsteriskEncoder;
 
 class ServiceAsterisk extends Service
 {
-    
-    public function __construct($name)
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getPasswordEncoder()
     {
-        parent::__construct($name);
-        $this->encoder=new AsteriskEncoder();
+        return AsteriskEncoder::class;
     }
 }

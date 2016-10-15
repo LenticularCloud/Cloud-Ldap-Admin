@@ -43,11 +43,6 @@ class User extends AbstractUser implements AdvancedUserInterface
      */
     private $enable = false;
 
-    /**
-     * @var string
-     */
-    private $passwordEncoder = CryptEncoder::class;
-
     public function __construct($username, array $roles = array(), $enabled = true, $userNonExpired = true, $credentialsNonExpired = true, $userNonLocked = true)
     {
         parent::__construct();
@@ -63,6 +58,13 @@ class User extends AbstractUser implements AdvancedUserInterface
             'lenticularuser' => Schemas\LenticularUser::class,
             //'posixaccount' => Schemas\PosixAccount::class,
         ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getEncoder() {
+        return CryptEncoder::class;
     }
 
     public function afterAddObject($class)
@@ -138,7 +140,6 @@ class User extends AbstractUser implements AdvancedUserInterface
 
     }
 
-
     /**
      *
      * @Assert\NotBlank()
@@ -170,6 +171,10 @@ class User extends AbstractUser implements AdvancedUserInterface
             $password->setMasterPassword(true);
         }
 
+        if ($password->getPasswordPlain() === null && $password->getEncoder() !== User::passwordEncoder ) {
+            throw new \InvalidArgumentException('invalid hashed password');
+        }
+
         foreach ($this->services as $service) {
             if ($service->isMasterPasswordEnabled()) {
                 $service->removePassword($this->getPasswordObject());
@@ -177,15 +182,9 @@ class User extends AbstractUser implements AdvancedUserInterface
             }
         }
 
-        if ($password->getPasswordPlain() === null && $password->getEncoder() !== $this->passwordEncoder ) {
-            throw new \InvalidArgumentException('invalid hashed password');
-        } else {
-            $att = new Attribute();
-            $password->setAttribute($att);
-            call_user_func($this->passwordEncoder . '::encodePassword', $password);
+        foreach($this->getObject(Schemas\ShadowAccount::class)->getUserPasswords() as $passwordAttr) {
+            $this->getObject(Schemas\ShadowAccount::class)->getUserPasswords()->removeElement($passwordAttr);
         }
-
-        $this->getObject(Schemas\ShadowAccount::class)->getUserPasswords()->removeElement($this->password->getAttribute());
         $this->password = $password;
         $this->getObject(Schemas\ShadowAccount::class)->getUserPasswords()->add($password->getAttribute());
     }

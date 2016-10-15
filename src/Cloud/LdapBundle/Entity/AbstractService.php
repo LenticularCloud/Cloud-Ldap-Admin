@@ -115,10 +115,9 @@ abstract class AbstractService extends AbstractUser
                 }
             }
         } elseif ($masterPasswordEnabled && $this->isMasterPasswordEnabled() == false) {
-            foreach ($this->getUser()->getPasswords() as $password) {
-                if ($password->getEncoder() == $this->getEncoder()) {
-                    $this->addPassword(clone $password);
-                }
+            $password = $this->getUser()->getPasswordObject();
+            if ($password->getEncoder() == $this->getEncoder()) {
+                $this->addPassword(clone $password);
             }
         }
         $this->getObject(Schemas\CloudService::class)->setMasterPasswordEnabled($masterPasswordEnabled);
@@ -153,6 +152,9 @@ abstract class AbstractService extends AbstractUser
         return $this;
     }
 
+    /**
+     * function will be called after the service is be enabled
+     */
     protected function serviceEnabled()
     {
         // add masterpaswords
@@ -165,6 +167,9 @@ abstract class AbstractService extends AbstractUser
         }
     }
 
+    /**
+     * function will be called after the service is be disabled
+     */
     protected function serviceDisabled()
     {
 
@@ -191,12 +196,5 @@ abstract class AbstractService extends AbstractUser
         if (!in_array($this, $user->getServices())) {
             $this->user->addService($this);
         }
-
-        return $this;
     }
-
-    /**
-     * @return LdapPasswordEncoderInterface
-     */
-    abstract public function getEncoder();
 }

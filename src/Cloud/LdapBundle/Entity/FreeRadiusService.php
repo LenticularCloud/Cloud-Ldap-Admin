@@ -28,12 +28,6 @@ class FreeRadiusService extends AbstractService
 
     /**
      *
-     * @var string $encoder
-     */
-    protected $encoder = NtEncoder::class;
-
-    /**
-     *
      * @param string $name
      */
     public function __construct($name)
@@ -51,11 +45,11 @@ class FreeRadiusService extends AbstractService
 
     public function afterAddObject($class)
     {
-        if ($this->getObject(Schemas\SambaSamAccount::class)!==null && $this->getObject(Schemas\CloudService::class)!==null) {
-            $attr=$this->getAttributes()->get('sambalmpassword');
-            if($attr->get()!==null) {
-                $this->password=call_user_func($this->encoder.'::parsePassword',$attr);
-                if($this->isMasterPasswordEnabled()) {
+        if ($this->getObject(Schemas\SambaSamAccount::class) !== null && $this->getObject(Schemas\CloudService::class) !== null) {
+            $attr = $this->getAttributes()->get('sambalmpassword');
+            if ($attr->get() !== null) {
+                $this->password = call_user_func($this->encoder.'::parsePassword', $attr);
+                if ($this->isMasterPasswordEnabled()) {
                     $this->password->setMasterPassword(true);
                 }
             }
@@ -77,6 +71,7 @@ class FreeRadiusService extends AbstractService
         if ($this->password === null) {
             return [];
         }
+
         return [$this->password];
     }
 
@@ -106,19 +101,22 @@ class FreeRadiusService extends AbstractService
      */
     public function addPassword(Password $password)
     {
-        if ($password->getEncoder() === $this->encoder) {
-            $attr=$this->getAttributes()->get('sambalmpassword');
+        //@TODO update to new schema
+        if ($password->getEncoder() === $this->getEncoder()) {
+            $attr = $this->getAttributes()->get('sambalmpassword');
             $attr->set($password->getAttribute()->get());
             $password->setAttribute($attr);
-            $this->password=$password;
+            $this->password = $password;
+
             return $this;
         }
-        if($password->getPasswordPlain()===null) {
+        if ($password->getPasswordPlain() === null) {
             throw new \InvalidArgumentException("can't store false encoded password");
         }
 
         $password->setAttribute($this->getAttributes()->get('sambalmpassword'));
-        call_user_func($this->encoder.'::encodePassword',$password);
+        call_user_func($this->getEncoder().'::encodePassword', $password);
+
         return $this;
     }
 
@@ -133,11 +131,11 @@ class FreeRadiusService extends AbstractService
     }
 
     /**
-     * @return LdapPasswordEncoderInterface
+     * {@inheritdoc}
      */
     public function getEncoder()
     {
-        return $this->encoder;
+        return NtEncoder::class;
     }
 
 

@@ -32,12 +32,12 @@ class UserManipulator
 
     /**
      * UserManipulator constructor.
-     * @param LdapClient         $client        client instance
-     * @param ValidatorInterface $validator     valicator instance
+     * @param LdapClient         $client    client instance
+     * @param ValidatorInterface $validator valicator instance
      * @param string             $baseDn
      * @param string             $bindDn
      * @param string             $bindPassword
-     * @param array              $services      service config
+     * @param array              $services  service config
      * @param string             $domain
      */
     public function __construct(
@@ -72,7 +72,7 @@ class UserManipulator
         foreach ($user->getServices() as $service) {
 
             $dn = 'uid='.$user->getUsername().',ou=users,dc='.$service->getName().','.$this->baseDn;
-            
+
 
             if ($service->isEnabled()) {
                 $this->client->add($dn,
@@ -83,7 +83,7 @@ class UserManipulator
 
     public function createUserObject($username, Password $password)
     {
-        $usernameLower=strtolower($username); //search name can only be lower case
+        $usernameLower = strtolower($username); //search name can only be lower case
         $user = new User($usernameLower);
 
         foreach ($user->getObjectClasses() as $objectClass) {
@@ -96,7 +96,7 @@ class UserManipulator
         $user->addPassword($password);
 
         foreach ($this->services as $service_name => $serviceConfig) {
-            if(!isset($serviceConfig['enable']) || !$serviceConfig['enable']) {
+            if (!isset($serviceConfig['enable']) || !$serviceConfig['enable']) {
                 continue;
             }
 
@@ -107,6 +107,7 @@ class UserManipulator
                 $service->setEnabled(true);
             }
         }
+
         return $user;
     }
 
@@ -120,6 +121,20 @@ class UserManipulator
         // @TODO
     }
 
+    /**
+     * @param string   $encoderClass
+     * @param Password $password
+     */
+    private function encodePassword($encoderClass, Password $password)
+    {
+        if(! is_subclass_of($encoderClass, LdapPasswordEncoderInterface::class)) {
+            dump($encoderClass);
+            throw new \InvalidArgumentException('class does not implemnet LdapPasswordEncoderInterface');
+        }
+        call_user_func($encoderClass.'::encodePassword', $password);
+
+    }
+
     public function update(User $user)
     {
         $errors = $this->validator->validate($user);
@@ -128,8 +143,8 @@ class UserManipulator
         }
 
         // rehash changed passwords
-        if( $user->getPasswordObject()->getPasswordPlain() !== null) {
-            $user->setPasswordObject($user->getPasswordObject());
+        if ($user->getPasswordObject()->getPasswordPlain() !== null) {
+            $this->encodePassword($user->getEncoder(), $user->getPasswordObject());
         }
 
 
@@ -149,6 +164,10 @@ class UserManipulator
 
             $dn = 'uid='.$user->getUsername().',ou=users,dc='.$service->getName().','.$this->baseDn;
             if ($service->isEnabled()) {
+                foreach ($service->getPasswords() as $password) {
+                    $this->encodePassword($service->getEncoder(),$password);
+                }
+
                 // validate ldap schemas
                 foreach ($service->getObjects() as $object) {
                     $errors = $this->validator->validate($object);
