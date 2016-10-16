@@ -5,6 +5,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Cloud\FrontBundle\Form\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
@@ -34,13 +35,19 @@ class ServicesController extends Controller
 
             if (!$service->isEnabled()) {
                 //-- service settings --
-                $formsServices[$service->getName()][] = $this->createForm(new ServiceType(), $service, array(
+                $form = $this->createForm(new ServiceType(), $service, array(
                     'action' => $this->generateUrl('services_edit', array(
                         'type' => ServiceType::class,
                         'serviceName' => $service->getName(),
                     )),
                     'method' => 'POST',
-                ))->createView();
+                ));
+                $form->add('save', SubmitType::class, array(
+                    'label' => 'save',
+                    'attr' => ['class' => 'btn-primary'],
+                ));
+
+                $formsServices[$service->getName()][] = $form->createView();
 
                 // skip other form if service is disabled
                 continue;
@@ -48,13 +55,20 @@ class ServicesController extends Controller
 
             foreach ($this->get('cloud.front.formgenerator')->getServiceForms($service->getName()) as $typeName => $type) {
 
-                $formsServices[$service->getName()][] = $this->createForm($type, $service, array(
+                $form = $this->createForm($type, $service, array(
                     'action' => $this->generateUrl('services_edit', array(
                         'type' => $typeName,
                         'serviceName' => $service->getName(),
                     )),
                     'method' => 'POST',
-                ))->createView();
+                ));
+                $form->add('save', SubmitType::class, array(
+                    'label' => 'save',
+                    'attr' => ['class' => 'btn-primary'],
+                ));
+
+                $formsServices[$service->getName()][] = $form->createView();
+
             }
         }
 
@@ -89,6 +103,12 @@ class ServicesController extends Controller
 
         $formsType = $this->get('cloud.front.formgenerator')->getServiceForms($serviceName);
         $form = $this->createForm($formsType[$type], $this->getUser()->getServices()[$serviceName]);
+
+        // workaround to premit message from symfony 'This form should not contain extra fields.'
+        $form->add('save', SubmitType::class, array(
+            'label' => 'save',
+            'attr' => ['class' => 'btn-primary'],
+        ));
 
         $form->handleRequest($request);
 

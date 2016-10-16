@@ -34,7 +34,6 @@ class ServiceType extends AbstractType
     {
         $builder
             ->add('enabled','checkbox',['required'=>false])
-            ->add('masterPasswordEnabled','checkbox',['required'=>false])
-            ->add('save', 'submit');
+            ->add('masterPasswordEnabled','checkbox',['required'=>false]);
     }
 }

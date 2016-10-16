@@ -6,6 +6,7 @@ use Cloud\FrontBundle\Form\Type\ProfileType;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -22,10 +23,16 @@ class ProfileController extends Controller
     {
         $forms = [];
         foreach ($this->get('cloud.front.formgenerator')->getUserForms() as $typeName => $type) {
-            $forms[] = $this->createForm($type, $this->getUser(), array(
+            $form = $this->createForm($type, $this->getUser(), array(
                 'action' => $this->generateUrl('profile_edit', array('type' => $typeName)),
                 'method' => 'POST',
-            ))->createView();
+            ));
+
+            $form->add('save', SubmitType::class, array(
+                'label' => 'save',
+                'attr' => ['class' => 'btn-primary'],
+            ));
+            $forms[] = $form->createView();
         }
 
         return ['forms' => $forms];
@@ -41,6 +48,12 @@ class ProfileController extends Controller
     {
         $response = new Response();
         $form = $this->createForm(new ProfileType(), $this->getUser());
+
+        // workaround to premit message from symfony 'This form should not contain extra fields.'
+        $form->add('save', SubmitType::class, array(
+            'label' => 'save',
+            'attr' => ['class' => 'btn-primary'],
+        ));
 
         $form->handleRequest($request);
 

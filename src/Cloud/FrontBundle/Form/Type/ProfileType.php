@@ -37,7 +37,6 @@ class ProfileType extends AbstractType
             ->add('altEmail', 'email', ['required' => false])
             ->add('givenName', 'text', ['required' => false])
             ->add('sureName', 'text', ['required' => false])
-            ->add('displayName', 'text')
-            ->add('save', 'submit');
+            ->add('displayName', 'text');
     }
 }

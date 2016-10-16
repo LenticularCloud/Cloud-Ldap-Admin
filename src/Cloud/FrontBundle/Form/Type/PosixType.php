@@ -38,8 +38,7 @@ class PosixType extends AbstractType
                 'disabled' => true,
             ))
             ->add('login_shell', Type\TextType::class, array(
-            ))
-            ->add('save', 'submit');
+            ));
 
     }
 }
