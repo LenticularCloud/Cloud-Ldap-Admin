@@ -13,29 +13,20 @@ use Symfony\Component\Form\FormError;
 use InvalidArgumentException;
 
 /**
- * @Route("/password")
+ * @Route("/services")
  */
-class PasswordController extends Controller
+class ServicesController extends Controller
 {
 
     /**
-     * @Route("/",name="password")
+     * @Route("/",name="services")
      * @Template()
+     *
+     * @param   Request   $request
+     * @return array
      */
     public function indexAction(Request $request)
     {
-
-
-        //---- master ---
-        $formsEntity = [];
-        foreach ($this->get('cloud.front.formgenerator')->getUserForms() as $typeName => $type) {
-            $formsEntity[] = $this->createForm($type, $this->getUser(), array(
-                'action' => $this->generateUrl('password_edit', array('type' => $typeName)),
-                'method' => 'POST',
-            ))->createView();
-        }
-
-        //--- services ---
         $formsServices = array();
         foreach ($this->getUser()->getServices() as $service) {
 
@@ -44,8 +35,8 @@ class PasswordController extends Controller
             if (!$service->isEnabled()) {
                 //-- service settings --
                 $formsServices[$service->getName()][] = $this->createForm(new ServiceType(), $service, array(
-                    'action' => $this->generateUrl('password_service_edit', array(
-                        'type' => 'status',
+                    'action' => $this->generateUrl('services_edit', array(
+                        'type' => ServiceType::class,
                         'serviceName' => $service->getName(),
                     )),
                     'method' => 'POST',
@@ -58,7 +49,7 @@ class PasswordController extends Controller
             foreach ($this->get('cloud.front.formgenerator')->getServiceForms($service->getName()) as $typeName => $type) {
 
                 $formsServices[$service->getName()][] = $this->createForm($type, $service, array(
-                    'action' => $this->generateUrl('password_service_edit', array(
+                    'action' => $this->generateUrl('services_edit', array(
                         'type' => $typeName,
                         'serviceName' => $service->getName(),
                     )),
@@ -66,7 +57,6 @@ class PasswordController extends Controller
                 ))->createView();
             }
         }
-        dump($this->getUser());
 
         $errors = $request
             ->getSession()
@@ -75,18 +65,21 @@ class PasswordController extends Controller
 
         return array(
             'errors' => $errors,
-            'formsEntity' => $formsEntity,
             'formsServices' => $formsServices,
         );
     }
 
 
     /**
-     * @Route("/{type}/edit",name="password_edit")
-     * @Route("/{serviceName}/{type}/edit",name="password_service_edit")
+     * @Route("/{serviceName}/{type}/edit",name="services_edit")
      * @Method("POST")
+     *
+     * @param   Request     $request
+     * @param   string      $type
+     * @param   string      $serviceName
+     * @return array
      */
-    public function genericFormAction(Request $request, $type, $serviceName = null)
+    public function genericFormAction(Request $request, $type, $serviceName)
     {
 
         $response = new Response();
@@ -94,13 +87,8 @@ class PasswordController extends Controller
 
         //@TODO check if service exist
 
-        if ($serviceName === null) {
-            $formsType = $this->get('cloud.front.formgenerator')->getUserForms();
-            $form = $this->createForm($formsType[$type], $this->getUser());
-        } else {
-            $formsType = $this->get('cloud.front.formgenerator')->getServiceForms($serviceName);
-            $form = $this->createForm($formsType[$type], $this->getUser()->getServices()[$serviceName]);
-        }
+        $formsType = $this->get('cloud.front.formgenerator')->getServiceForms($serviceName);
+        $form = $this->createForm($formsType[$type], $this->getUser()->getServices()[$serviceName]);
 
         $form->handleRequest($request);
 

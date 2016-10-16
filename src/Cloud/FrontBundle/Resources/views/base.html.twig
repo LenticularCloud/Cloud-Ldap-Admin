@@ -29,7 +29,7 @@
 				<ul class="nav navbar-nav">
 					{% if is_granted('ROLE_USER') %}
 					<li{% if app.request.get('_route')  matches '{^profile}' %} class="active"{% endif %}><a href="{{ path('profile') }}">Profile</a></li>
-					<li{% if app.request.get('_route')  matches '{^password}' %} class="active"{% endif %}><a href="{{ path('password') }}">Password</a></li>
+					<li{% if app.request.get('_route')  matches '{^services}' %} class="active"{% endif %}><a href="{{ path('services') }}">Services</a></li>
 					{% endif %}
 					{% if is_granted('ROLE_ADMIN') %}
 						<li{% if app.request.get('_route')  matches '{^admin}' %} class="active"{% endif %}><a href="{{ path('admin_index') }}">Admin</a></li>

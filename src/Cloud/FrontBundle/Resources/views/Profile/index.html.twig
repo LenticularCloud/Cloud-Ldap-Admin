@@ -2,7 +2,11 @@
 
 {% block content %}
 <div class="row" >
-    {{ form(form) }}
+    {% for form in forms %}
+    <div class="row">
+        {{  form(form) }}
+    </div>
+    {% endfor %}
 </div>
 <div class="row">
     <h2>Infos</h2>

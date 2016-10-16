@@ -3,6 +3,7 @@ cloud_ldap:
     object_class: 'Cloud\LdapBundle\Entity\User'
     object_forms:
       - 'Cloud\FrontBundle\Form\Type\UserType'
+      - 'Cloud\FrontBundle\Form\Type\ProfileType'
   services:
     git_gogs:
       enable: true

@@ -9,21 +9,13 @@
 </ul>
 {% endif %}
 <ul class="nav nav-tabs">
-  <li role="presentation" class="active"><a href="#main" aria-controls="home" role="tab" data-toggle="tab">Main</a></li>
 {% for service in app.user.getServices %}
-  <li role="presentation"><a href="#{{ service.getName }}" aria-controls="profile" role="tab" data-toggle="tab">{{ service.getName }}</a></li>
+  <li {% if loop.first %}class="active" {% endif %}role="presentation"><a href="#{{ service.getName }}" aria-controls="profile" role="tab" data-toggle="tab">{{ service.getName }}</a></li>
 {% endfor %}
 </ul>
 <div class="tab-content">
-    <div role="tabpanel" class="tab-pane active" id="main">
-        {% for formEntity in formsEntity %}
-        <div class="row">
-            {{ form(formEntity) }}
-        </div>
-        {% endfor %}
-    </div>
     {% for serviceName,formsService in formsServices %}
-    <div role="tabpanel" class="tab-pane" id="{{ serviceName }}">
+    <div role="tabpanel" class="tab-pane{% if loop.first %} active{% endif %}" id="{{ serviceName }}">
         {% for formService in formsService %}
         <div class="row">
             {{ form(formService) }}

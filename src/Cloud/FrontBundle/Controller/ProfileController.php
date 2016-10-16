@@ -20,12 +20,15 @@ class ProfileController extends Controller
      */
     public function indexAction()
     {
-        $form = $this->createForm(new ProfileType(), $this->getUser(), array(
-            'action' => $this->generateUrl('profile_edit'),
-            'method' => 'POST'
-        ));
+        $forms = [];
+        foreach ($this->get('cloud.front.formgenerator')->getUserForms() as $typeName => $type) {
+            $forms[] = $this->createForm($type, $this->getUser(), array(
+                'action' => $this->generateUrl('profile_edit', array('type' => $typeName)),
+                'method' => 'POST',
+            ))->createView();
+        }
 
-        return ['form' => $form->createView()];
+        return ['forms' => $forms];
     }
 
     /**
