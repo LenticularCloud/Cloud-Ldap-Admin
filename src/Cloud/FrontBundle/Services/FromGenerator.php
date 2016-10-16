@@ -44,7 +44,7 @@ class FromGenerator
     public function getServiceForms($serviceName)
     {
         // add default form for all services
-        $forms = array('ServiceType::class)' => new ServiceType());
+        $forms = array(ServiceType::class => new ServiceType());
 
         // read form from config file
         $object_forms = $this->serviceSettings[$serviceName]['object_forms'];

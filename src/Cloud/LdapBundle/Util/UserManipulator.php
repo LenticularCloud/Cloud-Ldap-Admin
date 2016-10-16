@@ -127,7 +127,7 @@ class UserManipulator
      */
     private function encodePassword($encoderClass, Password $password)
     {
-        if(! is_subclass_of($encoderClass, LdapPasswordEncoderInterface::class)) {
+        if (!is_subclass_of($encoderClass, LdapPasswordEncoderInterface::class)) {
             dump($encoderClass);
             throw new \InvalidArgumentException('class does not implemnet LdapPasswordEncoderInterface');
         }
@@ -165,7 +165,9 @@ class UserManipulator
             $dn = 'uid='.$user->getUsername().',ou=users,dc='.$service->getName().','.$this->baseDn;
             if ($service->isEnabled()) {
                 foreach ($service->getPasswords() as $password) {
-                    $this->encodePassword($service->getEncoder(),$password);
+                    if ($password->getPasswordPlain() !== null) {
+                        $this->encodePassword($service->getEncoder(), $password);
+                    }
                 }
 
                 // validate ldap schemas

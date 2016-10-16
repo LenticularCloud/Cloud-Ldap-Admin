@@ -157,14 +157,6 @@ abstract class AbstractService extends AbstractUser
      */
     protected function serviceEnabled()
     {
-        // add masterpaswords
-        if ($this->isMasterPasswordEnabled()) {
-            foreach ($this->getUser()->getPasswords() as $password) {
-                if ($password->getEncoder() == $this->getEncoder()) {
-                    $this->addPassword(clone $password);
-                }
-            }
-        }
     }
 
     /**

@@ -33,8 +33,8 @@ class ServiceType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('masterPasswordEnabled','checkbox',['required'=>false])
             ->add('enabled','checkbox',['required'=>false])
+            ->add('masterPasswordEnabled','checkbox',['required'=>false])
             ->add('save', 'submit');
     }
 }
