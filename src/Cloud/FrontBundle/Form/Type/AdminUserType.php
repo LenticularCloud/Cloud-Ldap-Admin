@@ -26,14 +26,15 @@ class AdminUserType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('roles', Type\ChoiceType::class, [
-                'choices' => ['ROLE_ADMIN'=>'ROLE_ADMIN', 'ROLE_ADMIN_REG'=>'ROLE_ADMIN_REG', 'ROLE_USER'=>'ROLE_USER'],
+            ->add('roles', Type\ChoiceType::class, array(
+                'choices' => array('ROLE_ADMIN'=>'ROLE_ADMIN', 'ROLE_ADMIN_REG'=>'ROLE_ADMIN_REG', 'ROLE_USER'=>'ROLE_USER'),
                 'multiple'=>true,
-            ])
-            ->add('email', Type\EmailType::class, ['required' => false])
-            ->add('altEmail', Type\EmailType::class, ['required' => false])
-            ->add('givenName', Type\TextType::class, ['required' => false])
-            ->add('sureName', Type\TextType::class, ['required' => false])
-            ->add('displayName', Type\TextType::class, ['required' => false]);
+            ))
+            ->add('email', Type\EmailType::class, array('required' => false))
+            ->add('altEmail', Type\EmailType::class, array('required' => false))
+            ->add('givenName', Type\TextType::class, array('required' => false))
+            ->add('sureName', Type\TextType::class, array('required' => false))
+            ->add('displayName', Type\TextType::class, array('required' => false))
+            ->add('gpgPublicKey', Type\TextareaType::class, array('required' => false,'disabled'=>true));
     }
 }

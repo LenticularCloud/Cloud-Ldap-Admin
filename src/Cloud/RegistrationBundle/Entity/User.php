@@ -44,6 +44,11 @@ class User
     protected $altEmail;
 
     /**
+     * @ORM\Column(type="text",nullable=true)
+     */
+    protected $gpgPublicKey;
+
+    /**
      * @ORM\Column(type="datetime")
      */
     protected $createAt;
@@ -161,5 +166,21 @@ class User
     {
         $this->createAt = $createAt;
         return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getGpgPublicKey()
+    {
+        return $this->gpgPublicKey;
+    }
+
+    /**
+     * @param mixed $gpgPublicKey
+     */
+    public function setGpgPublicKey($gpgPublicKey)
+    {
+        $this->gpgPublicKey = $gpgPublicKey;
     }
 }

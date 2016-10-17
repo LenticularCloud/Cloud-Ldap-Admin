@@ -60,6 +60,7 @@ class AdminController extends Controller
                 $userLdap = $this->get('cloud.ldap.util.usermanipulator')->createUserObject($user->getUsername(), $password);
 
                 $userLdap->setAltEmail($user->getAltEmail());
+                $userLdap->setGpgPublicKey($user->getGpgPublicKey());
                 $this->get('cloud.ldap.util.usermanipulator')->create($userLdap);
                 $em->remove($user);
 

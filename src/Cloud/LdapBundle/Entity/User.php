@@ -171,7 +171,7 @@ class User extends AbstractUser implements AdvancedUserInterface
             $password->setMasterPassword(true);
         }
 
-        if ($password->getPasswordPlain() === null && $password->getEncoder() !== User::passwordEncoder ) {
+        if ($password->getPasswordPlain() === null && $password->getEncoder() !== $this->getEncoder() ) {
             throw new \InvalidArgumentException('invalid hashed password');
         }
 
@@ -267,7 +267,6 @@ class User extends AbstractUser implements AdvancedUserInterface
     public function setEnable($enable)
     {
         $this->enable = $enable;
-        return $this;
     }
 
     public function getEmail()
@@ -277,7 +276,7 @@ class User extends AbstractUser implements AdvancedUserInterface
 
     public function setEmail($email)
     {
-        return $this->getObject(Schemas\InetOrgPerson::class)->setMail($email);
+        $this->getObject(Schemas\InetOrgPerson::class)->setMail($email);
     }
 
     public function getAltEmail()
@@ -287,7 +286,7 @@ class User extends AbstractUser implements AdvancedUserInterface
 
     public function setAltEmail($altEmail)
     {
-        return $this->getObject(Schemas\LenticularUser::class)->setAltMail($altEmail);
+        $this->getObject(Schemas\LenticularUser::class)->setAltMail($altEmail);
     }
 
     public function getGivenName()
@@ -297,7 +296,7 @@ class User extends AbstractUser implements AdvancedUserInterface
 
     public function setGivenName($givenName)
     {
-        return $this->getObject(Schemas\InetOrgPerson::class)->setGivenName($givenName);
+        $this->getObject(Schemas\InetOrgPerson::class)->setGivenName($givenName);
     }
 
     public function getSureName()
@@ -307,7 +306,7 @@ class User extends AbstractUser implements AdvancedUserInterface
 
     public function setSureName($sureName)
     {
-        return $this->getObject(Schemas\InetOrgPerson::class)->setSn($sureName);
+        $this->getObject(Schemas\InetOrgPerson::class)->setSn($sureName);
     }
 
     public function getDisplayName()
@@ -317,7 +316,17 @@ class User extends AbstractUser implements AdvancedUserInterface
 
     public function setDisplayName($displayName)
     {
-        return $this->getObject(Schemas\InetOrgPerson::class)->setDisplayName($displayName);
+        $this->getObject(Schemas\InetOrgPerson::class)->setDisplayName($displayName);
+    }
+
+    public function getGpgPublicKey()
+    {
+        return $this->getObject(Schemas\LenticularUser::class)->getGpgPublicKey();
+    }
+
+    public function setGpgPublicKey($gpgPublicKey)
+    {
+        $this->getObject(Schemas\LenticularUser::class)->setGpgPublicKey($gpgPublicKey);
     }
 
     /**

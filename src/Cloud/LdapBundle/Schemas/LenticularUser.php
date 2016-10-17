@@ -40,6 +40,16 @@ class LenticularUser
      */
     private $altMail;
 
+
+    /**
+     * Alternative Email address
+     *
+     * @var Attribute
+     *
+     * @LDAP\Attribute(type="string")
+     */
+    private $gpgPublicKey;
+
     public function __construct()
     {
         $this->uid = new Attribute();
@@ -118,6 +128,24 @@ class LenticularUser
     public function setAltMail($altMail)
     {
         $this->altMail->set($altMail);
+        return $this;
+    }
+
+    /**
+     * @return Attribute
+     */
+    public function getGpgPublicKey()
+    {
+        return $this->gpgPublicKey->get();
+    }
+
+    /**
+     * @param Attribute $gpgPublicKey
+     * @return LenticularUser
+     */
+    public function setGpgPublicKey($gpgPublicKey)
+    {
+        $this->gpgPublicKey->set($gpgPublicKey);
         return $this;
     }
 }

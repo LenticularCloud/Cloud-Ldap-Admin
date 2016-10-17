@@ -1,9 +1,7 @@
 <?php
 namespace Cloud\LdapBundle\Util;
 
-use Cloud\LdapBundle\Entity\AbstractService;
 use Cloud\LdapBundle\Entity\Password;
-use Cloud\LdapBundle\Entity\Service;
 use Cloud\LdapBundle\Services\LdapClient;
 use Cloud\LdapBundle\Entity\User;
 use InvalidArgumentException;
@@ -93,7 +91,7 @@ class UserManipulator
         $user->addRole('ROLE_USER');
 
         $user->setDisplayName($username);
-        $user->addPassword($password);
+        $user->setPasswordObject($password);
 
         foreach ($this->services as $service_name => $serviceConfig) {
             if (!isset($serviceConfig['enable']) || !$serviceConfig['enable']) {
@@ -215,10 +213,8 @@ class UserManipulator
         }
     }
 
-    public
-    function delete(
-        User $user
-    ) {
+    public function delete(User $user)
+    {
 
         $dn = 'uid='.$user->getUsername().',ou=users,'.$this->baseDn;
         if ($this->client->isEntityExist($dn)) {

@@ -1,17 +1,12 @@
 <?php
 namespace Cloud\FrontBundle\Form\Type;
 
+use Cloud\LdapBundle\Entity\User;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type;
 use Symfony\Component\Form\FormBuilderInterface;
 
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\Length;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\NotBlankValidator;
-use Symfony\Component\Validator\Constraints\File;
-use Symfony\Component\Validator\Constraints\FileValidator;
-use Symfony\Component\Form\CallbackTransformer;
-use Cloud\LdapBundle\Entity\Service;
 
 class ProfileType extends AbstractType
 {
@@ -23,7 +18,7 @@ class ProfileType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => 'Cloud\LdapBundle\Entity\User',
+            'data_class' => User::class,
             'validation_groups' => array(
                 'Default',
             ),
@@ -33,10 +28,11 @@ class ProfileType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('email', 'email', ['required' => false, 'disabled' => true])
-            ->add('altEmail', 'email', ['required' => false])
-            ->add('givenName', 'text', ['required' => false])
-            ->add('sureName', 'text', ['required' => false])
-            ->add('displayName', 'text');
+            ->add('email', Type\EmailType::class, array('required' => false, 'disabled' => true))
+            ->add('altEmail', Type\EmailType::class, array('required' => false))
+            ->add('givenName', Type\TextType::class, array('required' => false))
+            ->add('sureName', Type\TextType::class, array('required' => false))
+            ->add('displayName', Type\TextType::class)
+            ->add('gpgPublicKey', Type\TextareaType::class, array());
     }
 }
