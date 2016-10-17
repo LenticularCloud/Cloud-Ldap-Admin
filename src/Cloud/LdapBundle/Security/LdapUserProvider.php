@@ -34,8 +34,17 @@ class LdapUserProvider implements UserProviderInterface
     protected $reader;
 
 
-    public function __construct(LdapClientInterface $ldap, $baseDn, $searchDn = null, $searchPassword = null, array $defaultRoles = array(), $uidKey = 'sAMAccountName', $filter = '({uid_key}={username})', $services, Reader $reader)
-    {
+    public function __construct(
+        LdapClientInterface $ldap,
+        $baseDn,
+        $searchDn = null,
+        $searchPassword = null,
+        array $defaultRoles = array(),
+        $uidKey = 'sAMAccountName',
+        $filter = '({uid_key}={username})',
+        $services,
+        Reader $reader
+    ) {
         $this->ldap = $ldap;
         $this->baseDn = $baseDn;
         $this->searchDn = $searchDn;
@@ -69,11 +78,16 @@ class LdapUserProvider implements UserProviderInterface
     {
         $username = $this->ldap->escape($username, '', LDAP_ESCAPE_FILTER);
         $query = str_replace('{username}', $username, str_replace('{uid_key}', $this->uidKey, $this->filter));
+        $filter = array(
+            'createTimestamp',
+            'modifyTimestamp',
+            '*',
+        );
 
-        $dn="ou=Users," . $this->baseDn;
+        $dn = "ou=Users,".$this->baseDn;
         try {
 
-            $search = $this->ldap->find($dn, $query);
+            $search = $this->ldap->find($dn, $query, $filter);
         } catch (ConnectionException $e) {
             throw new UsernameNotFoundException(sprintf('User "%s" not found.', $username), 0, $e);
         }
@@ -88,15 +102,15 @@ class LdapUserProvider implements UserProviderInterface
 
         $transformer = new LdapArrayToObjectTransformer($this->reader);
 
-        $user = $transformer->reverseTransform($search[0], new User(null),$dn);
+        $user = $transformer->reverseTransform($search[0], new User(null), $dn);
 
         foreach ($this->getServices() as $serviceName => $service) {
-            $class=$service['object_class'];
+            $class = $service['object_class'];
             $serviceObject = new $class($serviceName);
-            $dn="ou=Users,dc=" . $serviceName . "," . $this->baseDn;
-            $search = $this->ldap->find($dn, $query);
+            $dn = "ou=Users,dc=".$serviceName.",".$this->baseDn;
+            $search = $this->ldap->find($dn, $query, $filter);
             if ($search !== null) {
-                $serviceObject = $transformer->reverseTransform($search[0], $serviceObject,$dn);
+                $serviceObject = $transformer->reverseTransform($search[0], $serviceObject, $dn);
             }
             $user->addService($serviceObject);
         }
@@ -114,7 +128,7 @@ class LdapUserProvider implements UserProviderInterface
     {
 
         $users = array();
-        foreach ($this->ldap->getAllUsernames() as $username) {
+        foreach ($this->getUsernames() as $username) {
             $users[] = $this->loadUserByUsername($username);
         }
 
@@ -123,8 +137,9 @@ class LdapUserProvider implements UserProviderInterface
 
     public function getUsernames()
     {
-        $usernames = $this->ldap->getUsernames("ou=Users," . $this->baseDn);
+        $usernames = $this->ldap->getUsernames("ou=Users,".$this->baseDn);
         sort($usernames);
+
         return $usernames;
     }
 
@@ -147,13 +162,15 @@ class LdapUserProvider implements UserProviderInterface
         return $this->services;
     }
 
-    public function getGroupNames(AbstractUser $user) {
+    public function getGroupNames(AbstractUser $user)
+    {
         //@TODO this is only a tmp hack
-        switch(get_class($user)) {
+        switch (get_class($user)) {
             case PosixService::class:
                 return [$user->getName()];
                 break;
         }
+
         return [];
     }
 }

@@ -71,6 +71,14 @@ class LdapArrayToObjectTransformer
         $entity->setDn($dn);
         $schemaClasses=$entity->getObjectClasses();
 
+        if(isset($ldapArray['createtimestamp'])) {
+            $entity->setCreateTimestamp(new \DateTime($ldapArray['createtimestamp'][0]));
+        }
+
+        if(isset($ldapArray['modifytimestamp'])) {
+            $entity->setModifyTimestamp(new \DateTime($ldapArray['modifytimestamp'][0]));
+        }
+
         //force lower keynames
         $tmp=[];
         foreach($ldapArray as $key =>$value) {

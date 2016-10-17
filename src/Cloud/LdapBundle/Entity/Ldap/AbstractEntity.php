@@ -21,7 +21,17 @@ abstract class AbstractEntity
     /**
      * @var string
      */
-    protected $dn=null;
+    protected $dn = null;
+
+    /**
+     *
+     */
+    protected $modifyTimestamp;
+
+    /**
+     *
+     */
+    protected $createtimestamp;
 
     public function __construct()
     {
@@ -30,18 +40,21 @@ abstract class AbstractEntity
 
     }
 
-    public function getDn() {
+    public function getDn()
+    {
         return $this->dn;
     }
 
-    public function setDn($dn) {
-        $this->dn=$dn;
+    public function setDn($dn)
+    {
+        $this->dn = $dn;
+
         return $this;
     }
 
     public function getObject($type)
     {
-        if(! $this->objects instanceof ArrayCollection) {
+        if (!$this->objects instanceof ArrayCollection) {
             return null;
         }
         foreach ($this->objects as $object) {
@@ -49,6 +62,7 @@ abstract class AbstractEntity
                 return $object;
             }
         }
+
         return null;
     }
 
@@ -80,7 +94,8 @@ abstract class AbstractEntity
         $reflectionObject = new \ReflectionObject($object);
         do {
             foreach ($reflectionObject->getProperties() as $reflectionProperty) {
-                $annotation = AnnotationHelper::getReader()->getPropertyAnnotation($reflectionProperty, Mapper\Attribute::class);
+                $annotation = AnnotationHelper::getReader()->getPropertyAnnotation($reflectionProperty,
+                    Mapper\Attribute::class);
                 if ($annotation instanceof Mapper\Attribute) {
                     $name = strtolower(isset($annotation->name) ? $annotation->name : $reflectionProperty->name);
 
@@ -151,7 +166,7 @@ abstract class AbstractEntity
                             }
                             break;
                         default:
-                            throw new \InvalidArgumentException('Invalid Attribute Type :' . $annotation->type);
+                            throw new \InvalidArgumentException('Invalid Attribute Type :'.$annotation->type);
                     }
                     $this->attributes[$name] = $attribute;
 
@@ -165,11 +180,35 @@ abstract class AbstractEntity
     }
 
 
-    public function removeObject($class,$removeAttrs=[])
+    public function removeObject($class, $removeAttrs = [])
     {
-        foreach($removeAttrs as $attr) {
+        foreach ($removeAttrs as $attr) {
             $this->attributes[$attr]->set(null);
         }
         $this->objects->removeElement($this->getObject($class));
+    }
+
+
+    public function getModifyTimestamp()
+    {
+        return $this->modifyTimestamp;
+    }
+
+
+    public function setModifyTimestamp(\DateTime $modifyTimestamp)
+    {
+
+        $this->modifyTimestamp = $modifyTimestamp;
+    }
+
+
+    public function getCreateTimestamp()
+    {
+        return $this->createtimestamp;
+    }
+
+    public function setCreateTimestamp(\DateTime $createtimestamp)
+    {
+        $this->createtimestamp = $createtimestamp;
     }
 }
