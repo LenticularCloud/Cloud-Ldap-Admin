@@ -33,6 +33,6 @@ class ProfileType extends AbstractType
             ->add('givenName', Type\TextType::class, array('required' => false))
             ->add('sureName', Type\TextType::class, array('required' => false))
             ->add('displayName', Type\TextType::class)
-            ->add('gpgPublicKey', Type\TextareaType::class, array());
+            ->add('gpgPublicKey', Type\TextareaType::class, array('attr' => array('class' => 'gpgpublickey')));
     }
 }

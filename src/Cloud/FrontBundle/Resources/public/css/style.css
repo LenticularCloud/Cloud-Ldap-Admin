@@ -5,3 +5,7 @@
     bottom: 0;
     width: 100%;
 }
+
+textarea.gpgpublickey {
+    font-family: monospace
+}
