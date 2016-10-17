@@ -9,6 +9,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -24,7 +25,7 @@ class AdminController extends Controller
      */
     public function indexAction(Request $request)
     {
-        return ['users' => $this->get('cloud.ldap.userprovider')->getUsernames()];
+        return ['users' => $this->get('cloud.ldap.userprovider')->getUsers()];
     }
 
 
@@ -39,21 +40,28 @@ class AdminController extends Controller
         if ($user === null) {
             throw $this->createNotFoundException('The user does not exist');
         }
-        $form_user = $this->createForm(AdminUserType::class, $user,[
-            'action' => $this->generateUrl('admin_user_edit',['username'=>$username]),
-            'method' => 'POST'
+        $form_user = $this->createForm(AdminUserType::class, $user, [
+            'action' => $this->generateUrl('admin_user_edit', ['username' => $username]),
+            'method' => 'POST',
         ]);
-        if(count($user->getPasswords())>0) {
-            $password = current($user->getPasswords());
-        }else {
-            $password = new Password('master');
-        }
-        $form_password = $this->createForm(PasswordType::class, $password,[
-            'action' => $this->generateUrl('admin_user_edit_pw',['username'=>$username]),
-            'method' => 'POST'
-        ]);
+        $form_user->add('save', SubmitType::class, array(
+            'label' => 'save',
+            'attr' => ['class' => 'btn-primary'],
+        ));
 
-        return ['form_user' => $form_user->createView(), 'form_password' => $form_password->createView()];
+        $form_password = $this->createForm(PasswordType::class, $user->getPasswordObject(), [
+            'action' => $this->generateUrl('admin_user_edit_pw', ['username' => $username]),
+            'method' => 'POST',
+        ]);
+        $form_password->add('save', SubmitType::class, array(
+            'label' => 'save',
+            'attr' => ['class' => 'btn-primary'],
+        ));
+
+        return array(
+            'form_user' => $form_user->createView(),
+            'form_password' => $form_password->createView()
+        );
     }
 
 
@@ -66,15 +74,21 @@ class AdminController extends Controller
         if ($user === null) {
             throw $this->createNotFoundException('The user does not exist');
         }
-        $response=new Response();
-        $response->headers->set( 'Content-Type', 'text/javascript' );
+        $response = new Response();
+        $response->headers->set('Content-Type', 'text/javascript');
 
         $form_user = $this->createForm(AdminUserType::class, $user);
+
+        $form_user->add('save', SubmitType::class, array(
+            'label' => 'save',
+            'attr' => ['class' => 'btn-primary'],
+        ));
 
         $form_user->handleRequest($request);
         $this->get('cloud.ldap.util.usermanipulator')->update($user);
 
-        $response->setContent(json_encode(['successfully'=>true]));
+        $response->setContent(json_encode(['successfully' => true]));
+
         return $response;
     }
 
@@ -91,20 +105,21 @@ class AdminController extends Controller
         $response=new Response();
         $response->headers->set( 'Content-Type', 'text/javascript' );
 
-        if(count($user->getPasswords())>0) {
-            $password = current($user->getPasswords());
-        }else {
-            $password = new Password('master');
-        }
-        $form_password = $this->createForm(PasswordType::class, $password);
+        $form_password = $this->createForm(PasswordType::class, $user->getPasswordObject());
+        $form_password->add('save', SubmitType::class, array(
+            'label' => 'save',
+            'attr' => ['class' => 'btn-primary'],
+        ));
+
         $form_password->handleRequest($request);
 
-        $user->addPassword($password);
         $this->get('cloud.ldap.util.usermanipulator')->update($user);
 
         $response->setContent(json_encode(['successfully'=>true]));
         return $response;
     }
+
+
     /**
      * @Route("/user/{username}/delete",name="admin_user_delete")
      *
@@ -118,12 +133,13 @@ class AdminController extends Controller
         if ($user === null) {
             throw $this->createNotFoundException('The user does not exist');
         }
-        $response=new Response();
-        $response->headers->set( 'Content-Type', 'text/javascript' );
+        $response = new Response();
+        $response->headers->set('Content-Type', 'text/javascript');
 
         $this->get('cloud.ldap.util.usermanipulator')->delete($user);
 
-        $response->setContent(json_encode(['successfully'=>true]));
+        $response->setContent(json_encode(['successfully' => true]));
+
         return $response;
     }
 }

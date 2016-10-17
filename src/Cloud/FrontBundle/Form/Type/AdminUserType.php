@@ -34,6 +34,6 @@ class AdminUserType extends AbstractType
             ->add('altEmail', Type\EmailType::class, ['required' => false])
             ->add('givenName', Type\TextType::class, ['required' => false])
             ->add('sureName', Type\TextType::class, ['required' => false])
-            ->add('displayName', Type\TextType::class);
+            ->add('displayName', Type\TextType::class, ['required' => false]);
     }
 }
