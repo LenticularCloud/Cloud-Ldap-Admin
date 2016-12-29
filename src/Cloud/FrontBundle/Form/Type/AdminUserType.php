@@ -33,7 +33,7 @@ class AdminUserType extends AbstractType
             ->add('email', Type\EmailType::class, array('required' => false))
             ->add('altEmail', Type\EmailType::class, array('required' => false))
             ->add('givenName', Type\TextType::class, array('required' => false))
-            ->add('sureName', Type\TextType::class, array('required' => false))
+            ->add('sureName', Type\TextType::class, array('required' => false, 'label' => 'surname'))
             ->add('displayName', Type\TextType::class, array('required' => false))
             ->add('gpgPublicKey', Type\TextareaType::class, array('required' => false,'disabled'=>true));
     }
