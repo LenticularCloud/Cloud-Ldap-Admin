@@ -57,7 +57,6 @@ class LdapUserProvider implements UserProviderInterface
         $this->reader = $reader;
 
         $this->ldap->bind($this->searchDn, $this->searchPassword);
-        $this->ldap->bind($this->searchDn, $this->searchPassword);
     }
 
     /**
@@ -103,6 +102,11 @@ class LdapUserProvider implements UserProviderInterface
         $transformer = new LdapArrayToObjectTransformer($this->reader);
 
         $user = $transformer->reverseTransform($search[0], new User(null), $dn);
+
+        //find security groups
+        $groups = $this->ldap->find("ou=SecurityGroups,".$this->baseDn, "(member=".$user->getDn().")");
+
+        var_dump($groups);
 
         foreach ($this->getServices() as $serviceName => $service) {
             $class = $service['object_class'];

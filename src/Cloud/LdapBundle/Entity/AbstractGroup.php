@@ -23,13 +23,13 @@ class AbstractGroup extends AbstractEntity
     public function __construct($name)
     {
         parent::__construct();
-        $this->name=$name;
+        $this->name = $name;
     }
 
     public function getObjectClasses()
     {
         return [
-            'groupofnames' => Schemas\GroupOfNames::class
+            'groupofnames' => Schemas\GroupOfNames::class,
         ];
     }
 
@@ -41,6 +41,7 @@ class AbstractGroup extends AbstractEntity
     protected function getPostDn()
     {
         preg_match('#^cn=[^,]+,[^,]+,(?<postDN>.*)$#', $this->getDn(), $match);
+
         return $match['postDN'];
     }
 
@@ -53,9 +54,9 @@ class AbstractGroup extends AbstractEntity
      */
     public function getName()
     {
-        if($this->getObject(Schemas\GroupOfNames::class)!==null) {
+        if ($this->getObject(Schemas\GroupOfNames::class) !== null) {
             return $this->getObject(Schemas\GroupOfNames::class)->getCn();
-        }else {
+        } else {
             return $this->name;
         }
     }
@@ -66,11 +67,56 @@ class AbstractGroup extends AbstractEntity
      */
     public function setName($name)
     {
-        if($this->getObject(Schemas\GroupOfNames::class)!==null) {
+        if ($this->getObject(Schemas\GroupOfNames::class) !== null) {
             $this->getObject(Schemas\GroupOfNames::class)->setCn($name);
         }
-        $this->name=$name;
+        $this->name = $name;
+
         return $this;
+    }
+
+    /**
+     * @return String[] array with members dns
+     */
+    public function getMembers()
+    {
+        return $this->getObject(Schemas\GroupOfNames::class)->getMembers();
+    }
+
+    /**
+     * @param string $memberDN name of a member
+     * @return AbstractGroup
+     */
+    public function addMember($memberDN)
+    {
+        $this->getObject(Schemas\GroupOfNames::class)->addMembers($memberDN);
+
+        return $this;
+    }
+
+    /**
+     * @param string $memberDN name of a member
+     * @return AbstractGroup
+     */
+    public function removeMember($memberDN)
+    {
+        $this->getObject(Schemas\GroupOfNames::class)->removeMembers($memberDN);
+
+        return $this;
+    }
+
+    /**
+     * @return String[] array with members
+     */
+    public function hasMember($member)
+    {
+        foreach ($this->getMembers() as $_member) {
+            if ($member === $_member) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -79,12 +125,12 @@ class AbstractGroup extends AbstractEntity
      */
     public function isEnabled()
     {
-        return $this->getObjects()->count()>0;
+        return $this->getObjects()->count() > 0;
     }
 
     /**
      *
-     * @param boolean $enable
+     * @param boolean   $value final state
      * @return Group
      */
     public function setEnabled($value)
@@ -95,6 +141,7 @@ class AbstractGroup extends AbstractEntity
             $this->groupDisabled();
             $this->objects = new ArrayCollection();
             $this->attributes = new ArrayCollection();
+
             return $this;
         }
         // enable
@@ -108,10 +155,13 @@ class AbstractGroup extends AbstractEntity
         return $this;
     }
 
-    protected function groupDisabled() {
+    protected function groupDisabled()
+    {
 
     }
-    protected function groupEnabled() {
+
+    protected function groupEnabled()
+    {
 
     }
 }

@@ -1,6 +1,14 @@
-ou=SecurityGroups,dc=example,dc=com
+dn: ou=SecurityGroups,dc=cloud,dc=lan
+objectClass: top
+objectClass: organizationalUnit
+ou: SecurityGroups
 
-cn=admins,..
+dn: cn=Admin,ou=SecurityGroups,dc=cloud,dc=lan
+objectclass: top
+objectClass: GroupOfNames
+cn: Admin
+member: uid=tuxcoder,ou=users,dc=cloud,dc=lan
+
 
 
 ou=PosixGroups,dc=example,dc=com

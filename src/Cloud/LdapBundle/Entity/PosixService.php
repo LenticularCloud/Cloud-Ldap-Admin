@@ -26,6 +26,7 @@ class PosixService extends Service
         $classes = parent::getObjectClasses();
         $classes['posixaccount'] = Schemas\PosixAccount::class;
         $classes['ldappublickey'] = Schemas\LdapPublicKey::class;
+
         return $classes;
     }
 
@@ -33,54 +34,71 @@ class PosixService extends Service
     protected function serviceEnabled()
     {
         parent::serviceEnabled();
-        $username=$this->getUser()->getUsername();
+        $username = $this->getUser()->getUsername();
         $this->setUid(1000); //@TODO incremental id
         $this->setGid(1000);
         $this->setHomeDirector('/home/'.$username);
         $this->getObject(Schemas\PosixAccount::class)->setCn($username);
     }
 
-    public function getUid() {
+    public function getUid()
+    {
         return $this->getObject(Schemas\PosixAccount::class)->getUidNumber();
     }
 
-    public function setUid($uid) {
+    public function setUid($uid)
+    {
+        
         return $this->getObject(Schemas\PosixAccount::class)->setUidNumber($uid);
     }
 
-    public function getGid() {
+    public function getGid()
+    {
         return $this->getObject(Schemas\PosixAccount::class)->getGidNumber();
     }
 
-    public function setGid($gid) {
+    public function setGid($gid)
+    {
         return $this->getObject(Schemas\PosixAccount::class)->setGidNumber($gid);
     }
 
-    public function getHomeDirector() {
+    public function getHomeDirector()
+    {
         return $this->getObject(Schemas\PosixAccount::class)->getHomeDirectory();
     }
 
-    public function setHomeDirector($homeDirectory) {
+    public function setHomeDirector($homeDirectory)
+    {
         return $this->getObject(Schemas\PosixAccount::class)->setHomeDirectory($homeDirectory);
     }
 
-    public function getLoginShell() {
+    public function getLoginShell()
+    {
         return $this->getObject(Schemas\PosixAccount::class)->getLoginShell();
     }
 
-    public function setLoginShell($loginShell) {
+    public function setLoginShell($loginShell)
+    {
         return $this->getObject(Schemas\PosixAccount::class)->setLoginShell($loginShell);
     }
 
-    public function getSshPublicKey() {
-        return $this->getObject(Schemas\LdapPublicKey::class)->getSshPublicKeys();
+    public function getSshPublicKey()
+    {
+        $object = $this->getObject(Schemas\LdapPublicKey::class);
+        if ($object !== null) {
+            return $object->getSshPublicKeys();
+        }
+
+        return null;
     }
 
-    public function addSshPublicKey($sshPublicKey) {
+    public function addSshPublicKey($sshPublicKey)
+    {
         return $this->getObject(Schemas\LdapPublicKey::class)->addSshPublicKey($sshPublicKey);
     }
 
-    public function removeSshPublicKey($sshPublicKey) {
+    public function removeSshPublicKey($sshPublicKey)
+    {
         return $this->getObject(Schemas\LdapPublicKey::class)->removeSshPublicKey($sshPublicKey);
     }
 }
