@@ -1,0 +1,11 @@
+ou=SecurityGroups,dc=example,dc=com
+
+cn=admins,..
+
+
+ou=PosixGroups,dc=example,dc=com
+
+cn=tuxcoder,...
+ClassObject=PosixGroup
+
+
