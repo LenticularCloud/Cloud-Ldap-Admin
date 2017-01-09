@@ -3,6 +3,7 @@ namespace Cloud\LdapBundle\Security;
 
 
 use Cloud\LdapBundle\Entity\AbstractUser;
+use Cloud\LdapBundle\Entity\Group;
 use Cloud\LdapBundle\Entity\PosixService;
 use Cloud\LdapBundle\Util\LdapArrayToObjectTransformer;
 use Doctrine\Common\Annotations\Reader;
@@ -101,12 +102,15 @@ class LdapUserProvider implements UserProviderInterface
 
         $transformer = new LdapArrayToObjectTransformer($this->reader);
 
-        $user = $transformer->reverseTransform($search[0], new User(null), $dn);
+        $user = $transformer->reverseTransform($search[0], new User(null), $this->uidKey.'='.$username.','.$dn);
 
         //find security groups
-        $groups = $this->ldap->find("ou=SecurityGroups,".$this->baseDn, "(member=".$user->getDn().")");
-
-        var_dump($groups);
+        $_groups = $this->ldap->find("ou=SecurityGroups,".$this->baseDn, "(member=".$user->getDn().")");
+        $groups = [];
+        foreach ($_groups as $_group) {
+            $group = $transformer->reverseTransform($_group, new Group(null), 'cn='.$_group['cn'].','.$dn);
+            $groups[] = $group;
+        }
 
         foreach ($this->getServices() as $serviceName => $service) {
             $class = $service['object_class'];
