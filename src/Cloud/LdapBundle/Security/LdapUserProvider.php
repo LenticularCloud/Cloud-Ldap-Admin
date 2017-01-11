@@ -106,12 +106,14 @@ class LdapUserProvider implements UserProviderInterface
 
         //find security groups
         $_groups = $this->ldap->find("ou=SecurityGroups,".$this->baseDn, "(member=".$user->getDn().")");
-        $groups = [];
-        foreach ($_groups as $_group) {
-            $group = $transformer->reverseTransform($_group, new Group(null), 'cn='.$_group['cn'].','.$dn);
-            $groups[] = $group;
+        for ($i = 0; $i < $_groups['count']; $i++) {
+            $_group = $_groups[$i];
+            $name = $_group['cn'][0];
+            $group = $transformer->reverseTransform($_group, new Group($name), 'cn='.$name.','.$dn);
+            $user->addGroup($group);
         }
 
+        // load services
         foreach ($this->getServices() as $serviceName => $service) {
             $class = $service['object_class'];
             $serviceObject = new $class($serviceName);
@@ -168,17 +170,5 @@ class LdapUserProvider implements UserProviderInterface
     public function getServices()
     {
         return $this->services;
-    }
-
-    public function getGroupNames(AbstractUser $user)
-    {
-        //@TODO this is only a tmp hack
-        switch (get_class($user)) {
-            case PosixService::class:
-                return [$user->getName()];
-                break;
-        }
-
-        return [];
     }
 }

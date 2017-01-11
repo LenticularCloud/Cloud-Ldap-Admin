@@ -5,11 +5,13 @@ use Cloud\LdapBundle\Entity\Ldap\AbstractEntity;
 
 abstract class AbstractUser extends AbstractEntity
 {
+    private $groups = [];
 
     /**
      * @return AbstractGroup[]
      */
-    public function getGroups() {
+    public function getGroups()
+    {
         return [];
     }
 
@@ -17,7 +19,10 @@ abstract class AbstractUser extends AbstractEntity
      * @param AbstractGroup $group
      * @return $this
      */
-    public function addGroup(AbstractGroup $group) {
+    public function addGroup(AbstractGroup $group)
+    {
+        $this->groups[] = $group;
+
         return $this;
     }
 
@@ -25,7 +30,12 @@ abstract class AbstractUser extends AbstractEntity
      * @param AbstractGroup $group
      * @return $this
      */
-    public function removeGroup(AbstractGroup $group) {
+    public function removeGroup(AbstractGroup $group)
+    {
+        $key = array_search($group,$this->groups);
+        if($key!==false){
+            unset($this->groups[$key]);
+        }
         return $this;
     }
 
