@@ -96,6 +96,14 @@ class LdapArrayToObjectTransformer
                 $entity->addObject($class,$ldapArray);
             }
         }
+
+        foreach ($schemaClasses as $key => $schemaClass) {
+
+            if ($entity->getObject($schemaClass)===null) {
+                $entity->addObject($schemaClass, $ldapArray);
+            }
+        }
+
         return $entity;
     }
 
