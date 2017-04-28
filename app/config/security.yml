@@ -43,5 +43,6 @@ security:
     # http://symfony.com/doc/current/cookbook/security/access_control.html
     access_control:
         - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: "%auth_required_channel%" }
-        - { path: ^/reg, roles: IS_AUTHENTICATED_ANONYMOUSLY}
+        - { path: ^/reg, roles: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: "%auth_required_channel%" }
+        - { path: ^/password_reset, roles: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: "%auth_required_channel%" }
         - { path: ^/, roles: ROLE_USER, requires_channel: "%auth_required_channel%" }

@@ -6,6 +6,15 @@ services:
         arguments:
             - "%cloud_ldap.main%"
             - "%cloud_ldap.services%"
+    cloud.front.passwordreset:
+        class: Cloud\FrontBundle\Services\PasswordResetService
+        arguments:
+            - "%secret%"
+    cloud.front.mailer:
+        class: Cloud\FrontBundle\Services\MailService
+        arguments:
+            - "@mailer"
+            - "@twig"
     cloud.front.form.adminuser:
           class: Cloud\FrontBundle\Form\Type\AdminUserType
           tags:

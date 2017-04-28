@@ -23,7 +23,7 @@ class RegistrationType extends AbstractType
     {
         $builder->add('username', TextType::class)
             ->add('password', PasswordType::class)
-            ->add('altEmail', EmailType::class,['required' => false])
+            ->add('altEmail', EmailType::class,['required' => false,'label'=>'Alternativ Email'])
             ->add('gpgPublicKey', TextareaType::class,['required' => false])
             ->add('submit', SubmitType::class);
     }

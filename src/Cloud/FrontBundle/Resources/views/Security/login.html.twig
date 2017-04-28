@@ -25,7 +25,9 @@
         <input type="hidden" name="_target_path" value="/account" />
     #}
 
-    <button class="btn btn-default" type="submit">login</button>
+    <button class="btn btn-info" type="submit">login</button>
+
+    <a class="btn btn-default pull-right" href="{{ url('password_reset') }}">reset password</a>
 </form>
 
 {% endblock %}
