@@ -115,16 +115,26 @@ class LdapClient implements LdapClientInterface
 
     private function connect()
     {
+
+        if(false) { //@TODO if debug
+            ldap_set_option(null, LDAP_OPT_DEBUG_LEVEL, 7);
+        }
+
         if (! $this->connection) {
             $host = $this->host;
             if ($this->useSsl) {
-                $host = 'ldaps://' . $host;
+                $host = 'ldaps://' . $host.':'.$this->port;
+            }
+            $this->connection = ldap_connect($host, $this->port);
+            if($this->connection === false) {
+                throw new ConnectionException('failed to connect');
             }
             ldap_set_option($this->connection, LDAP_OPT_PROTOCOL_VERSION, $this->version);
             ldap_set_option($this->connection, LDAP_OPT_REFERRALS, $this->optReferrals);
-            $this->connection = ldap_connect($host, $this->port);
             if ($this->useStartTls) {
-                ldap_start_tls($this->connection);
+                if( ! ldap_start_tls($this->connection)) {
+                    throw new ConnectionException(ldap_error($this->connection));
+                }
             }
         }
     }
