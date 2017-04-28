@@ -89,7 +89,7 @@ class AbstractGroup extends AbstractEntity
      */
     public function addMember($memberDN)
     {
-        $this->getObject(Schemas\GroupOfNames::class)->addMembers($memberDN);
+        $this->getObject(Schemas\GroupOfNames::class)->addMember($memberDN);
 
         return $this;
     }

@@ -11,6 +11,16 @@ services:
             - "%ldap_bind_pw%"
             - "%cloud_ldap.services%"
             - "%domain%"
+    cloud.ldap.util.groupmanipulator:
+        class: Cloud\LdapBundle\Util\GroupManipulator
+        arguments:
+            - "@cloud.ldap.client.root"
+            - "@validator"
+            - "%ldap_base_dn%"
+            - "%ldap_bind_rdn%"
+            - "%ldap_bind_pw%"
+            - "%cloud_ldap.services%"
+            - "%domain%"
     cloud.ldap.userprovider:
         class: Cloud\LdapBundle\Security\LdapUserProvider
         arguments:
@@ -22,6 +32,16 @@ services:
             - "uid"
             - "({uid_key}={username})"
             - "%cloud_ldap.services%"
+            - "@cloud.ldap.annation.reader"
+            - "@cloud.ldap.groupprovider"
+    cloud.ldap.groupprovider:
+        class: Cloud\LdapBundle\Security\LdapGroupProvider
+        arguments:
+            - "@logger"
+            - "@cloud.ldap.client"
+            - "%ldap_base_dn%"
+            - "%ldap_bind_rdn%"
+            - "%ldap_bind_pw%"
             - "@cloud.ldap.annation.reader"
     user.check:
         class: Symfony\Component\Security\Core\User\UserChecker

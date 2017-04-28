@@ -4,18 +4,36 @@
 {% block content %}
     <table class="table table-striped sortable">
         <thead>
-            <tr>
-                <th>username</th>
-                <th>last modify</th>
-                <th>crated at</th>
-            </tr>
+        <tr>
+            <th>username</th>
+            <th>last modify</th>
+            <th>crated at</th>
+        </tr>
         </thead>
         <tbody>
         {% for user in users %}
             <tr>
                 <td><a href="{{ path('admin_user',{'username':user.getUsername}) }}">{{ user.getUsername }}</a></td>
-                <td>{{ user.getModifyTimestamp|date('Y-m-d h:i:s')  }}</td>
-                <td>{{ user.getCreateTimestamp|date('Y-m-d h:i:s')  }}</td>
+                <td>{{ user.getModifyTimestamp|date('Y-m-d h:i:s') }}</td>
+                <td>{{ user.getCreateTimestamp|date('Y-m-d h:i:s') }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <table class="table table-striped sortable">
+        <thead>
+        <tr>
+            <th>group</th>
+            <th>last modify</th>
+            <th>crated at</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for group in groups %}
+            <tr>
+                <td><a href="{{ path('admin_group',{'name':group.getName}) }}">{{ group.getName }}</a></td>
+                <td>{{ group.getModifyTimestamp|date('Y-m-d h:i:s') }}</td>
+                <td>{{ group.getCreateTimestamp|date('Y-m-d h:i:s') }}</td>
             </tr>
         {% endfor %}
         </tbody>

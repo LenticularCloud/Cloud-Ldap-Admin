@@ -14,7 +14,6 @@ class Group extends AbstractGroup
     {
         $classes = parent::getObjectClasses();
         $classes['lenticulargroup'] = Schemas\LenticularGroup::class;
-
         return $classes;
     }
 

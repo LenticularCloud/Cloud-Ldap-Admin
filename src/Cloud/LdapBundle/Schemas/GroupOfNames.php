@@ -32,8 +32,8 @@ class GroupOfNames
 
     public function __construct()
     {
-        $this->cn=new Attribute();
-        $this->members=new ArrayCollection();
+        $this->cn = new Attribute();
+        $this->members = new ArrayCollection();
     }
 
 
@@ -42,14 +42,16 @@ class GroupOfNames
      *
      * @Assert\NotBlank()
      */
-    public function getCn() {
+    public function getCn()
+    {
         return $this->cn->get();
     }
 
     /**
      * @param $cn
      */
-    public function setCn($cn){
+    public function setCn($cn)
+    {
         $this->cn->set($cn);
     }
 
@@ -60,7 +62,9 @@ class GroupOfNames
      */
     public function getMembers()
     {
-        return $this->members->map(function($value){return $value->get();})->getValues();
+        return $this->members->map(function ($value) {
+            return $value->get();
+        })->getValues();
     }
 
     /**
@@ -71,6 +75,7 @@ class GroupOfNames
     {
         $this->removeMember($member);
         $this->members->add(new Attribute($member));
+
         return $this;
     }
 
@@ -80,12 +85,14 @@ class GroupOfNames
      */
     public function removeMember($member)
     {
-        foreach($this->members as $attr) {
-            if($attr->get() == $member) {
+        foreach ($this->members as $attr) {
+            if ($attr->get() == $member) {
                 $this->members->remove($attr);
+
                 return $this;
             }
         }
+
         return $this;
     }
 }

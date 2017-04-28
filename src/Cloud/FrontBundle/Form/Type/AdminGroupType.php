@@ -6,7 +6,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class AdminUserType extends AbstractType
+class AdminGroupType extends AbstractType
 {
 
     public function __construct()
@@ -16,7 +16,7 @@ class AdminUserType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => 'Cloud\LdapBundle\Entity\User',
+            'data_class' => 'Cloud\LdapBundle\Entity\Group',
             'validation_groups' => array(
                 'Default'
             )
@@ -31,11 +31,11 @@ class AdminUserType extends AbstractType
                 'multiple'=>true,
                 'required' => false,
             ))
-            ->add('email', Type\EmailType::class, array('required' => false))
-            ->add('altEmail', Type\EmailType::class, array('required' => false))
-            ->add('givenName', Type\TextType::class, array('required' => false))
-            ->add('sureName', Type\TextType::class, array('required' => false))
-            ->add('displayName', Type\TextType::class, array('required' => false))
-            ->add('gpgPublicKey', Type\TextareaType::class, array('required' => false,'disabled'=>true));
+            ->add('members', Type\CollectionType::class, array(
+                'type' => new Type\TextType(),
+                'allow_add' => true,
+                'allow_delete' => true,
+                'by_reference' => false
+            ));
     }
 }

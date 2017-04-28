@@ -2,12 +2,8 @@
 namespace Cloud\LdapBundle\Security;
 
 
-use Cloud\LdapBundle\Entity\AbstractUser;
-use Cloud\LdapBundle\Entity\Group;
-use Cloud\LdapBundle\Entity\PosixService;
 use Cloud\LdapBundle\Util\LdapArrayToObjectTransformer;
 use Doctrine\Common\Annotations\Reader;
-use Symfony\Component\Security\Core\User\LdapUserProvider as BaseLdapUserProvider;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Ldap\Exception\ConnectionException;
@@ -28,6 +24,7 @@ class LdapUserProvider implements UserProviderInterface
     protected $uidKey;
     protected $filter;
     protected $services;
+    protected $ldapGroupProvider;
 
     /**
      * @var Reader
@@ -44,7 +41,8 @@ class LdapUserProvider implements UserProviderInterface
         $uidKey = 'sAMAccountName',
         $filter = '({uid_key}={username})',
         $services,
-        Reader $reader
+        Reader $reader,
+        LdapGroupProvider $ldapGroupProvider
     ) {
         $this->ldap = $ldap;
         $this->baseDn = $baseDn;
@@ -56,6 +54,7 @@ class LdapUserProvider implements UserProviderInterface
 
         $this->services = $services;
         $this->reader = $reader;
+        $this->ldapGroupProvider = $ldapGroupProvider;
 
         $this->ldap->bind($this->searchDn, $this->searchPassword);
     }
@@ -105,11 +104,7 @@ class LdapUserProvider implements UserProviderInterface
         $user = $transformer->reverseTransform($search[0], new User(null), $this->uidKey.'='.$username.','.$dn);
 
         //find security groups
-        $_groups = $this->ldap->find("ou=SecurityGroups,".$this->baseDn, "(member=".$user->getDn().")");
-        for ($i = 0; $i < $_groups['count']; $i++) {
-            $_group = $_groups[$i];
-            $name = $_group['cn'][0];
-            $group = $transformer->reverseTransform($_group, new Group($name), 'cn='.$name.','.$dn);
+        foreach ($this->ldapGroupProvider->loadGroupByUser($user) as $group){
             $user->addGroup($group);
         }
 
@@ -147,7 +142,7 @@ class LdapUserProvider implements UserProviderInterface
 
     public function getUsernames()
     {
-        $usernames = $this->ldap->getUsernames("ou=Users,".$this->baseDn);
+        $usernames = $this->ldap->getEntitynames("ou=Users,".$this->baseDn, 'uid');
         sort($usernames);
 
         return $usernames;
