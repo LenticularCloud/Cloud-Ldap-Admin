@@ -16,6 +16,8 @@ class AppKernel extends Kernel
             new Doctrine\Bundle\DoctrineBundle\DoctrineBundle(),
             new Sensio\Bundle\FrameworkExtraBundle\SensioFrameworkExtraBundle(),
             new Symfony\Bundle\AsseticBundle\AsseticBundle(),
+
+            new Gregwar\CaptchaBundle\GregwarCaptchaBundle(),
             
             new Cloud\AdminCLIBundle\CloudAdminCLIBundle(),
             new Cloud\LdapBundle\CloudLdapBundle(),
