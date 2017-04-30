@@ -3,6 +3,7 @@
 namespace Cloud\FrontBundle\Controller;
 
 use Cloud\FrontBundle\Form\Type\ProfileType;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
@@ -39,15 +40,17 @@ class ProfileController extends Controller
     }
 
     /**
-     * @Route("/edit",name="profile_edit")
+     * @Route("/edit/{type}",name="profile_edit")
+     * @Method("post")
      *
      * @param $request Request
      * @return Response
      */
-    public function editAction(Request $request)
+    public function editAction(Request $request, $type)
     {
         $response = new Response();
-        $form = $this->createForm(new ProfileType(), $this->getUser());
+        $formsType = $this->get('cloud.front.formgenerator')->getUserForms();
+        $form = $this->createForm($formsType[$type], $this->getUser());
 
         // workaround to premit message from symfony 'This form should not contain extra fields.'
         $form->add('save', SubmitType::class, array(
@@ -56,12 +59,17 @@ class ProfileController extends Controller
         ));
 
         $form->handleRequest($request);
+        $errors = $form->getErrors(true);
 
-        if ($form->isValid()) {
+        if (count($errors) === 0) {
             $this->get('cloud.ldap.util.usermanipulator')->update($this->getUser());
             $response->setContent(json_encode(['successfully' => true]));
         } else {
-            $response->setContent(json_encode(['successfully' => false]));
+            $errorMsgs = array();
+            foreach ($errors as $error) {
+                $errorMsgs[] = $error->getMessage();
+            }
+            $response->setContent(json_encode(['successfully' => false, 'msg'=> $errorMsgs]));
         }
 
         return $response;
