@@ -21,6 +21,7 @@
     "incenteev/composer-parameter-handler": "~2.0",
     "sensio/framework-extra-bundle": "^3.0",
     "symfony/ldap": "~2.8",
+    "twig/twig": "~1",
     "gregwar/captcha-bundle": "^2.0",
     "pear/crypt_gpg": "^1.6"
   },
