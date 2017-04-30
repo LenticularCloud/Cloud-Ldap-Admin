@@ -70,6 +70,7 @@ class SchemaManipulator
         $this->addDcIfNotExist($this->baseDn, $dc);
         $this->addOuIfNotExist($this->baseDn, 'users');
         $this->addOuIfNotExist($this->baseDn, 'groups');
+        $this->addOuIfNotExist($this->baseDn, 'SecurityGroups');
 
         foreach ($this->services as $serviceName => $service) {
             $this->addDcIfNotExist('dc=' . $serviceName . ',' . $this->baseDn, $serviceName);

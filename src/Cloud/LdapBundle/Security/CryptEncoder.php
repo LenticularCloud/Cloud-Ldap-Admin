@@ -27,12 +27,12 @@ class CryptEncoder implements LdapPasswordEncoderInterface
         $rounds = 60000; // incresed rounds for harder bruteforce
 
         $salt = "";
-        if ($password->getId() != null && $password->getId() != "") {
-            $salt = self::getRandomeSalt(16 - strlen($password->getId()));
-            $salt = $password->getId().($password->isMasterPassword() ? '+' : '=').$salt;
-        } else {
-            $salt = 'default='.self::getRandomeSalt();
+        if ($password->getId() === null || $password->getId() === "") {
+            $password->setId('default');
         }
+        $salt = self::getRandomeSalt(16 - strlen($password->getId()));
+        $salt = $password->getId().($password->isMasterPassword() ? '+' : '=').$salt;
+
 
         $hash = crypt($password->getPasswordPlain(), '$6$rounds='.$rounds.'$'.$salt.'$');
         $password->setHash('{crypt}'.$hash);
