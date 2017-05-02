@@ -4,6 +4,8 @@ namespace Cloud\FrontBundle\Services;
 use Cloud\LdapBundle\Entity\User;
 use Monolog\Logger;
 use Swift_Mailer;
+use Swift_Attachment;
+use Swift_Encoding;
 use Twig_Environment;
 use Crypt_GPG;
 
@@ -57,14 +59,17 @@ class MailService
 
         if ($user->getGpgPublicKey()) {
             try {
-                $gpg = new Crypt_GPG();
+                $gpg = new Crypt_GPG(['gpgBinary'=> '/usr/bin/gpg2']);
                 $key = $gpg->importKey($user->getGpgPublicKey());
                 $gpg->addEncryptKey($key['fingerprint']);
                 $body = $gpg->encrypt($body_text);
-
-                $message
-                    ->setEncoder(\Swift_DependencyContainer::getInstance()->lookup('mime.rawcontentencoder'))
-                    ->setBody($body, 'application/pgp-encrypted');
+                $message->setBody('Version 1', 'application/pgp-encrypted');
+                $message->attach(
+                  Swift_Attachment::newInstance($body)
+            		  	->setFilename('encrypted.asc')
+              			->setContentType('application/octet-stream')
+              			->setDescription('OpenPGP encrypted message')
+              			->setEncoder(Swift_Encoding::get7BitEncoding()));
             }catch (\Exception $e) {
                 $this->logger->error("can't send gpg message ".$e->getMessage().$e->getTraceAsString());
                 return false;
