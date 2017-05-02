@@ -4,6 +4,7 @@ namespace Cloud\FrontBundle\Services;
 use Cloud\LdapBundle\Entity\User;
 use Monolog\Logger;
 use Swift_Mailer;
+use Swift_Message;
 use Swift_Attachment;
 use Swift_Encoding;
 use Twig_Environment;
@@ -51,7 +52,7 @@ class MailService
         $body_html = $template->renderBlock('html', $context);
 
 
-        $message = \Swift_Message::newInstance()
+        $message = Swift_Message::newInstance()
             ->setSubject($subject)
             ->setFrom($this->mailer_from)
             ->setTo($user->getEmail());
@@ -63,9 +64,10 @@ class MailService
                 $key = $gpg->importKey($user->getGpgPublicKey());
                 $gpg->addEncryptKey($key['fingerprint']);
                 $body = $gpg->encrypt($body_text);
-                $message->setBody('Version 1', 'application/pgp-encrypted');
+                $message->setBody('Version 1', 'application/encrypted');
                 $message->attach(
                   Swift_Attachment::newInstance($body)
+                        ->setDisposition('inline')
             		  	->setFilename('encrypted.asc')
               			->setContentType('application/octet-stream')
               			->setDescription('OpenPGP encrypted message')
