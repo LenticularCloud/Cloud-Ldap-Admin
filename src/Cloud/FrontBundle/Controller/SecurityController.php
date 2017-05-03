@@ -147,14 +147,14 @@ class SecurityController extends Controller
         $form->handleRequest($request);
 
         if ($user === null || !$passwordTokenService->validateToken($user, $token)) {
-            return ['valid'=> false];
+            return ['user'=> null];
         }
 
         if($form->isValid()) {
             $this->get('cloud.ldap.util.usermanipulator')->update($user);
             return $this->redirectToRoute('login');
         }else {
-            return ['valid'=> true, 'form_password_reset_do' => $form->createView()];
+            return ['user'=> $user, 'form_password_reset_do' => $form->createView()];
         }
     }
 }

@@ -3,14 +3,16 @@
 {% block content %}
 <div class="row" >
     {% for form in forms %}
-    <div class="row">
+    <div class="col-md-12">
         {{  form(form) }}
     </div>
     {% endfor %}
 </div>
 <div class="row">
-    <h2>Infos</h2>
-    Roles: {{ app.user.getRoles|join(',') }}
+    <div class="col-md-12">
+        <h2>Infos</h2>
+        Roles: {{ app.user.getRoles|join(',') }}
+    </div>
 </div>
 
 

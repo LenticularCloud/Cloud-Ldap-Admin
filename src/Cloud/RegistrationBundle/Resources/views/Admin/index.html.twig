@@ -5,10 +5,10 @@
     {% for datarow in data %}
         <div class="row">
             <div class="col-md-4">
-                {{ datarow.user.getUsername }}
+                Username: <b>{{ datarow.user.getUsername }}</b>
             </div>
             <div class="col-md-4">
-                {{ datarow.user.getCreateAt|date }}
+                Date of Registration: <b>{{ datarow.user.getCreateAt|date }}</b>
             </div>
             <div class="col-md-4">
                 {{ form(datarow.form,{'action':path('registration_admin_edit',{'user':datarow.user.getUsername})}) }}

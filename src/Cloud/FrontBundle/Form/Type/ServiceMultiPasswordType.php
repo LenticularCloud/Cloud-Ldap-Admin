@@ -28,7 +28,7 @@ class ServiceMultiPasswordType extends AbstractType
     {
         $builder
             ->add('passwords', Type\CollectionType::class, array(
-                'type' => new PasswordType(),
+                'type' => new PasswordServiceType(),
                 'allow_add' => true,
                 'allow_delete' => true,
                 'by_reference' => false

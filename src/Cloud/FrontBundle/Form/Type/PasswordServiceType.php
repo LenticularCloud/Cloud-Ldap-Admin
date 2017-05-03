@@ -9,8 +9,11 @@ use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class PasswordType extends AbstractType
+class PasswordServiceType extends AbstractType
 {
+    public function __construct()
+    {
+    }
 
     public function configureOptions(OptionsResolver $resolver)
     {
@@ -25,13 +28,23 @@ class PasswordType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('id', Type\HiddenType::class,array('read_only'=>true))
+            ->add('id', Type\TextType::class)
             ->add('passwordPlain', Type\RepeatedType::class, array(
                 'type' => Type\PasswordType::class,
                 'required' => false,
                 'first_options' => array('label' => 'Password'),
                 'second_options' => array('label' => 'Repeat Password'),
             ));
+    }
+
+    public function finishView(FormView $view, FormInterface $form, array $options)
+    {
+        //@TODO check server side
+        // make setted ids readonly to prevent change of them
+        $id = $view->children['id']->vars['value'];
+        if($id !== '') {
+            $view->children['id']->vars['attr']['readonly'] = 'readonly';
+        }
     }
 
     public function getName()
