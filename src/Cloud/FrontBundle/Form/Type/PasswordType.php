@@ -9,6 +9,13 @@ use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+
+/**
+ * Type for user passwords, id will not be shown
+ *
+ * Class PasswordType
+ * @package Cloud\FrontBundle\Form\Type
+ */
 class PasswordType extends AbstractType
 {
 

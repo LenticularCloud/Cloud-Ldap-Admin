@@ -38,6 +38,7 @@ class PosixService extends Service
         $this->setUid(1000); //@TODO incremental id
         $this->setGid(1000);
         $this->setHomeDirector('/home/'.$username);
+        $this->setLoginShell('/bin/bash');
         $this->getObject(Schemas\PosixAccount::class)->setCn($username);
     }
 

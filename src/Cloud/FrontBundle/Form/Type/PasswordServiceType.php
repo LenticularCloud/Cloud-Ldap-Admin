@@ -9,6 +9,12 @@ use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * Type for service passwords, the id will be shown
+ *
+ * Class PasswordServiceType
+ * @package Cloud\FrontBundle\Form\Type
+ */
 class PasswordServiceType extends AbstractType
 {
     public function __construct()
