@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Constraints\FileValidator;
 use Symfony\Component\Form\CallbackTransformer;
 use Cloud\LdapBundle\Entity\Service;
 
-class ServiceType extends AbstractType
+class ServiceMasterPasswordType extends AbstractType
 {
 
     public function __construct()
@@ -33,6 +33,6 @@ class ServiceType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('enabled','checkbox',['required'=>false]);
+            ->add('masterPasswordEnabled','checkbox',['required'=>false]);
     }
 }
