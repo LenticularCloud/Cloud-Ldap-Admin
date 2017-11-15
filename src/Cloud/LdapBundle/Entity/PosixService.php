@@ -35,8 +35,10 @@ class PosixService extends Service
     {
         parent::serviceEnabled();
         $username = $this->getUser()->getUsername();
-        $this->setUid(1000); //@TODO incremental id
-        $this->setGid(1000);
+        //generate constant uid @TODO salt
+        $uid = hexdec(substr(hash("sha256",$username),-4)) %40000+1000;
+        $this->setUid($uid);
+        $this->setGid($uid);
         $this->setHomeDirector('/home/'.$username);
         $this->setLoginShell('/bin/bash');
         $this->getObject(Schemas\PosixAccount::class)->setCn($username);
