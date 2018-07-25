@@ -33,11 +33,6 @@ var strict;
         });
 
         addEntry(o);
-    });
-
-    //forms
-    $('form').each(function(i,form){
-
-    });
+    })
 
 }(jQuery));

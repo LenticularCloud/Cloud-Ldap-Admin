@@ -150,7 +150,7 @@ class UserManipulator
         foreach ($user->getObjects() as $object) {
             $errors = $this->validator->validate($object);
             if (count($errors) > 0) {
-                throw new InvalidArgumentException($this->getUsername().'(User):'.(string) $errors);
+                throw new InvalidArgumentException($user->getUsername().'(User):'.(string) $errors);
             }
         }
 

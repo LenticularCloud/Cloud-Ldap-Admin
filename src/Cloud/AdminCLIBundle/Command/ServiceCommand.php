@@ -12,6 +12,7 @@ use Symfony\Component\Console\Question\Question;
 use Cloud\LdapBundle\Entity\User;
 use Cloud\LdapBundle\Entity\Password;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Symfony\Component\Intl\Exception\NotImplementedException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 
 class ServiceCommand extends ContainerAwareCommand
@@ -34,7 +35,7 @@ class ServiceCommand extends ContainerAwareCommand
         $this->setName('cloud:service')
             ->setDescription('activate or disable a service for an user')
             ->addArgument('username', InputArgument::OPTIONAL, null)
-            ->addArgument('action', InputArgument::OPTIONAL, null)
+            ->addArgument('action', InputArgument::OPTIONAL, "[list|show|enable|disable|enableMasterPassword|disableMasterPassword]")
             ->addArgument('service', InputArgument::OPTIONAL, null)
             ->addOption('force', '-f', InputOption::VALUE_NONE, 'force deletes an service without asking')
             /*enable 'enables an new service to a user'
@@ -122,6 +123,7 @@ class ServiceCommand extends ContainerAwareCommand
         switch ($action) {
             case 'show':
                 //@TODO
+                throw new NotImplementedException("show not implemented");
                 break;
             case 'enable':
                 $this->service->setEnabled(true);

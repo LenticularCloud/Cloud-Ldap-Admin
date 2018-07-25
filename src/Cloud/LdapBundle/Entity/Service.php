@@ -78,7 +78,7 @@ class Service extends AbstractService
 
     /**
      *
-     * @return Password
+     * @return boolean
      */
     public function hasPassword($passwordId = null)
     {
