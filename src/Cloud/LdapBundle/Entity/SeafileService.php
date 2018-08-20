@@ -22,11 +22,11 @@ class SeafileService extends Service
 
     public function getEmail()
     {
-        return $this->getObject(Schemas\CloudService::class)->getMail();
+        return $this->getObject(Schemas\CloudService::class)->getEmail();
     }
 
     public function setEmail($email)
     {
-        $this->getObject(Schemas\CloudService::class)->setMail($email);
+        $this->getObject(Schemas\CloudService::class)->setEmail($email);
     }
 }
