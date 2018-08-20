@@ -22,7 +22,7 @@ cloud_ldap:
     seafile:
       enable: true
       default: true
-      object_class: 'Cloud\LdapBundle\Entity\Service'
+      object_class: 'Cloud\LdapBundle\Entity\SeafileService'
       object_forms: []
     ampache:
       enable: true
