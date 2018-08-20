@@ -16,7 +16,7 @@ class SeafileService extends Service
     {
         parent::serviceEnabled();
         $email = $this->getUser()->getEmail();
-        $this->$this->setEmail($email);
+        $this->setEmail($email);
     }
 
 
