@@ -1,3 +1,8 @@
+/**
+ * custom javascript for ui
+ *
+ * @copyright lenticular cloud
+ */
 
 var strict;
 (function ($) {
@@ -37,7 +42,7 @@ var strict;
 
     //forms
     $('form').each(function(i,form){
-
+        form.ajaxForm();
     });
 
 }(jQuery));
