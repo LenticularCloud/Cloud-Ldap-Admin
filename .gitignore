@@ -10,6 +10,8 @@
 /composer.phar
 /vendor/
 /web/bundles/
+/web/css
+/web/js
 /tmp
 /.buildpath
 /.idea
