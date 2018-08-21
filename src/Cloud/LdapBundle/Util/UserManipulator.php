@@ -126,7 +126,6 @@ class UserManipulator
     private function encodePassword($encoderClass, Password $password)
     {
         if (!is_subclass_of($encoderClass, LdapPasswordEncoderInterface::class)) {
-            dump($encoderClass);
             throw new \InvalidArgumentException('class does not implemnet LdapPasswordEncoderInterface');
         }
         call_user_func($encoderClass.'::encodePassword', $password);

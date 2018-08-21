@@ -149,7 +149,6 @@ class SecurityController extends Controller
             'attr' => ['class' => 'btn-primary'],
         ));
         $form->handleRequest($request);
-        dump($form,$form->createView());
 
         if ($user === null || !$passwordTokenService->validateToken($user, $token)) {
             return ['user'=> null];

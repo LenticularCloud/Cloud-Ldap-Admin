@@ -63,7 +63,6 @@ class MailService
                 $key = $gnupg->import($user->getGpgPublicKey());
                 $gnupg->addencryptkey($key['fingerprint']);
                 $keyinfo = $gnupg->keyinfo($key['fingerprint'])[0];
-                dump($body_text);
 
                 if($keyinfo['disabled'] || $keyinfo['expired'] || $keyinfo['revoked']) {
                     throw new \Exception('key disabled, expired or revoked');
