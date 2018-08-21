@@ -1,19 +1,12 @@
 <?php
+
 namespace Cloud\LdapBundle\Services;
 
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Ldap\LdapClientInterface;
-use Cloud\LdapBundle\Entity\User;
-use Cloud\LdapBundle\Entity\Password;
-use Cloud\LdapBundle\Entity\Service;
-use Symfony\Component\Security\Core\User\UserProviderInterface;
+use Symfony\Component\Ldap\LdapInterface;
 use Symfony\Component\Ldap\Exception\ConnectionException;
 use Symfony\Component\Ldap\Exception\LdapException;
-use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
-use InvalidArgumentException;
 
-class LdapClient implements LdapClientInterface
+class LdapClient implements LdapInterface
 {
 
     private $host;
@@ -66,6 +59,21 @@ class LdapClient implements LdapClientInterface
     {
         $this->disconnect();
     }
+
+    /**
+     * @TODO
+     */
+    public function getEntryManager(){
+
+    }
+
+    /**
+     * @TODO
+     */
+    public function query($dn, $query, array $options = array()){
+
+    }
+
 
     /**
      *
@@ -291,9 +299,9 @@ class LdapClient implements LdapClientInterface
      * @return String[]
      * @throws LdapException
      */
-    public function getEntitynames($dn, $key = 'uid',$filter=null)
+    public function getEntitynames($dn, $key = 'uid', $filter = null)
     {
-        if($filter === null ){
+        if ($filter === null) {
             $filter = sprintf('(%s=*)', $key);
         }
         $result = @ldap_list($this->connection, $dn, $filter, array(

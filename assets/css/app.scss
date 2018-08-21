@@ -7,5 +7,8 @@
 }
 
 textarea.gpgpublickey {
-    font-family: monospace
+    font-family: monospace;
+    min-height: 300px;
 }
+
+@import "~bootstrap/scss/bootstrap";

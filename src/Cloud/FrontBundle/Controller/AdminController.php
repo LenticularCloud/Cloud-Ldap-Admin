@@ -8,7 +8,7 @@ use Cloud\FrontBundle\Form\Type\PasswordType;
 use Cloud\LdapBundle\Entity\Password;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\Routing\Annotation\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
@@ -155,7 +155,6 @@ class AdminController extends Controller
     public function groupAction(Request $request, $name)
     {
         $group = $this->get('cloud.ldap.groupprovider')->loadGroupByName($name);
-        dump($group);
         if ($group === null) {
             throw $this->createNotFoundException('The group does not exist');
         }
@@ -183,7 +182,6 @@ class AdminController extends Controller
         if ($group === null) {
             throw $this->createNotFoundException('The user does not exist');
         }
-        dump($group);
         $response = new Response();
         $response->headers->set('Content-Type', 'text/javascript');
 

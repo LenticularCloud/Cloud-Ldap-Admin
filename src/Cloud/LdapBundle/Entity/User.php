@@ -17,7 +17,7 @@ class User extends AbstractUser implements AdvancedUserInterface
     /**
      * main passwords for this user
      *
-     * @Assert\Valid(deep=true)
+     * @Assert\Valid()
      *
      * @var Password $password
      */
@@ -31,7 +31,7 @@ class User extends AbstractUser implements AdvancedUserInterface
     /**
      * assoziativ array with service info
      *
-     * @Assert\Valid(deep=true)
+     * @Assert\Valid()
      *
      * @var array<Service>
      */

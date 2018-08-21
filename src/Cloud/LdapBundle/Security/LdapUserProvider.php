@@ -2,16 +2,15 @@
 namespace Cloud\LdapBundle\Security;
 
 
+use Cloud\LdapBundle\Services\LdapClient;
 use Cloud\LdapBundle\Util\LdapArrayToObjectTransformer;
 use Doctrine\Common\Annotations\Reader;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Ldap\Exception\ConnectionException;
-use Symfony\Component\Ldap\LdapClientInterface;
 use Cloud\LdapBundle\Entity\User;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
-use Cloud\LdapBundle\Schemas;
 
 class LdapUserProvider implements UserProviderInterface
 {
@@ -33,7 +32,7 @@ class LdapUserProvider implements UserProviderInterface
 
 
     public function __construct(
-        LdapClientInterface $ldap,
+        LdapClient $ldap,
         $baseDn,
         $searchDn = null,
         $searchPassword = null,

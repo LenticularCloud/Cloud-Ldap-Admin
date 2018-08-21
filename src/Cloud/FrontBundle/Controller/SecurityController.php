@@ -7,16 +7,11 @@ use Cloud\FrontBundle\Form\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\Routing\Annotation\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
-use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
-use Symfony\Component\Security\Core\Security;
-use Symfony\Component\Security\Core\Exception\AuthenticationException;
-use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
 
 class SecurityController extends Controller
 {
@@ -43,11 +38,14 @@ class SecurityController extends Controller
 
     /**
      * @Route("/logout", name="logout")
+     *
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\RedirectResponse
      */
     public function logoutAction(Request $request)
     {
         $this->get('security.token_storage')->setToken(null);
-        $this->get('request')->getSession()->invalidate();
+        $request->getSession()->invalidate();
 
         return $this->redirect($this->generateUrl('login'));
     }
@@ -62,8 +60,7 @@ class SecurityController extends Controller
     }
 
     /**
-     * @Route("/password_reset",name="password_reset")
-     * @Method("get")
+     * @Route("/password_reset",name="password_reset",methods={"GET"})
      * @Template()
      */
     public function resetPasswordAction()
@@ -81,8 +78,7 @@ class SecurityController extends Controller
     }
 
     /**
-     * @Route("/password_reset",name="password_reset_send")
-     * @Method("post")
+     * @Route("/password_reset",name="password_reset_send",methods={"POST"})
      */
     public function resetPasswordSendAction(Request $request)
     {
@@ -105,16 +101,24 @@ class SecurityController extends Controller
             $token = $passwordTokenService->generateToken($user);
 
             $mailer = $this->get('cloud.front.mailer');
-            $mailer->sendToUser($user, 'CloudFrontBundle:Emails:password_reset.html.twig', array(
-                'username' => $user->getUsername(),
-                'reset_url' => $this->generateUrl('password_reset_do',
-                    ['username' => $user->getUsername(), 'token' => $token],UrlGeneratorInterface::ABSOLUTE_URL),
-            ));
+            try{
+                $mailer->sendToUser($user, 'CloudFrontBundle:emails:password_reset.html.twig', array(
+                    'username' => $user->getUsername(),
+                    'reset_url' => $this->generateUrl('password_reset_do',
+                        ['username' => $user->getUsername(), 'token' => $token],UrlGeneratorInterface::ABSOLUTE_URL),
+                ));
 
-            $data = array(
-                'successfully' => true,
-                'msg' => 'please check your mail',
-            );
+                $data = array(
+                    'successfully' => true,
+                    'msg' => 'please check your mail',
+                );
+            }catch (\Exception $e) {
+                $data = array(
+                    'successfully' => false,
+                    'msg' => $e->getMessage(),
+                );
+            }
+
         } else {
             $errorMsgs = array();
             foreach ($errors as $error) {
@@ -145,6 +149,7 @@ class SecurityController extends Controller
             'attr' => ['class' => 'btn-primary'],
         ));
         $form->handleRequest($request);
+        dump($form,$form->createView());
 
         if ($user === null || !$passwordTokenService->validateToken($user, $token)) {
             return ['user'=> null];

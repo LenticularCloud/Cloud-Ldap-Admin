@@ -4,15 +4,13 @@ namespace Cloud\LdapBundle\Security;
 
 use Cloud\LdapBundle\Entity\AbstractGroup;
 use Cloud\LdapBundle\Entity\Group;
+use Cloud\LdapBundle\Services\LdapClient;
 use Cloud\LdapBundle\Util\LdapArrayToObjectTransformer;
 use Doctrine\Common\Annotations\Reader;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
-use Symfony\Component\Ldap\LdapClientInterface;
 use Cloud\LdapBundle\Entity\User;
-use Symfony\Component\Security\Core\User\UserInterface;
-use Cloud\LdapBundle\Schemas;
 use Symfony\Component\Ldap\Exception\ConnectionException;
 
 class LdapGroupProvider
@@ -32,7 +30,7 @@ class LdapGroupProvider
 
     public function __construct(
         LoggerInterface $logger,
-        LdapClientInterface $ldap,
+        LdapClient $ldap,
         $baseDn,
         $searchDn,
         $searchPassword,

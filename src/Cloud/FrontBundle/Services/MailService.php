@@ -6,9 +6,8 @@ use Monolog\Logger;
 use Swift_Mailer;
 use Swift_Message;
 use Swift_Attachment;
-use Swift_Encoding;
 use Twig_Environment;
-use Crypt_GPG;
+use gnupg;
 
 class MailService
 {
@@ -52,29 +51,36 @@ class MailService
         $body_html = $template->renderBlock('html', $context);
 
 
-        $message = Swift_Message::newInstance()
+        $message = new Swift_Message();
+        $message
             ->setSubject($subject)
             ->setFrom($this->mailer_from)
             ->setTo($user->getEmail());
 
-
         if ($user->getGpgPublicKey()) {
             try {
-                $gpg = new Crypt_GPG(['gpgBinary'=> '/usr/bin/gpg2']);
-                $key = $gpg->importKey($user->getGpgPublicKey());
-                $gpg->addEncryptKey($key['fingerprint']);
-                $body = $gpg->encrypt($body_text);
+                $gnupg =new gnupg();
+                $key = $gnupg->import($user->getGpgPublicKey());
+                $gnupg->addencryptkey($key['fingerprint']);
+                $keyinfo = $gnupg->keyinfo($key['fingerprint'])[0];
+                dump($body_text);
+
+                if($keyinfo['disabled'] || $keyinfo['expired'] || $keyinfo['revoked']) {
+                    throw new \Exception('key disabled, expired or revoked');
+                }
+
+                $body = $gnupg->encrypt($body_text);
                 $message->setBody('Version 1', 'application/encrypted');
                 $message->attach(
-                  Swift_Attachment::newInstance($body)
+                    (new Swift_Attachment($body))
                         ->setDisposition('inline')
             		  	->setFilename('encrypted.asc')
               			->setContentType('application/octet-stream')
               			->setDescription('OpenPGP encrypted message')
-              			->setEncoder(Swift_Encoding::get7BitEncoding()));
+              			->setEncoder(new \Swift_Mime_ContentEncoder_PlainContentEncoder('7bit')));
             }catch (\Exception $e) {
                 $this->logger->error("can't send gpg message ".$e->getMessage().$e->getTraceAsString());
-                return false;
+                throw $e;
             }
         } else {
 

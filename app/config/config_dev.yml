@@ -44,5 +44,8 @@ monolog:
 #swiftmailer:
 #    delivery_address: me@example.com
 
+swiftmailer:
+    spool:     { type: file }
+
 parameters:
     auth_required_channel: 'http'

@@ -5,7 +5,7 @@ namespace Cloud\FrontBundle\Controller;
 use Cloud\FrontBundle\Form\Type\ProfileType;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\Routing\Annotation\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,9 +23,9 @@ class ProfileController extends Controller
     public function indexAction()
     {
         $forms = [];
-        foreach ($this->get('cloud.front.formgenerator')->getUserForms() as $typeName => $type) {
+        foreach ($this->get('cloud.front.formgenerator')->getUserForms() as $type) {
             $form = $this->createForm($type, $this->getUser(), array(
-                'action' => $this->generateUrl('profile_edit', array('type' => $typeName)),
+                'action' => $this->generateUrl('profile_edit', array('type' => $type)),
                 'method' => 'POST',
             ));
 
@@ -40,8 +40,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * @Route("/edit/{type}",name="profile_edit")
-     * @Method("post")
+     * @Route("/edit/{type}",name="profile_edit",methods={"POST"})
      *
      * @param $request Request
      * @return Response
@@ -50,7 +49,11 @@ class ProfileController extends Controller
     {
         $response = new Response();
         $formsType = $this->get('cloud.front.formgenerator')->getUserForms();
-        $form = $this->createForm($formsType[$type], $this->getUser());
+        if(!in_array($type, $formsType)){
+            //error
+            die('error');
+        }
+        $form = $this->createForm($type, $this->getUser());
 
         // workaround to premit message from symfony 'This form should not contain extra fields.'
         $form->add('save', SubmitType::class, array(

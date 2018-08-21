@@ -65,7 +65,7 @@ abstract class AbstractService extends AbstractUser
     /**
      * passwords for this service
      *
-     * @Assert\Valid(deep=true)
+     * @Assert\Valid()
      *
      * @return array<Password>
      */

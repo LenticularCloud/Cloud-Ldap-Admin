@@ -40,7 +40,8 @@ class PasswordServiceType extends AbstractType
                 'required' => false,
                 'first_options' => array('label' => 'Password'),
                 'second_options' => array('label' => 'Repeat Password'),
-            ));
+            ))
+        ;
     }
 
     public function finishView(FormView $view, FormInterface $form, array $options)
@@ -49,12 +50,7 @@ class PasswordServiceType extends AbstractType
         // make setted ids readonly to prevent change of them
         $id = $view->children['id']->vars['value'];
         if($id !== '') {
-            $view->children['id']->vars['attr']['readonly'] = 'readonly';
+            $view->children['id']->vars['attr']['disabled'] = true;
         }
-    }
-
-    public function getName()
-    {
-        return 'password_object';
     }
 }

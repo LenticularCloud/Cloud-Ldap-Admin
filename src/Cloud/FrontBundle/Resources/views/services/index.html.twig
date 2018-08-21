@@ -8,9 +8,11 @@
     {% endfor %}
 </ul>
 {% endif %}
-<ul class="nav nav-tabs">
+<ul class="nav nav-tabs" role="tablist">
 {% for service in app.user.getServices %}
-  <li {% if loop.first %}class="active" {% endif %}role="presentation"><a href="#{{ service.getName }}" aria-controls="profile" role="tab" data-toggle="tab">{{ service.getName }}</a></li>
+  <li class="nav-item">
+      <a class="nav-link{% if loop.first %} active{% endif %}" href="#{{ service.getName }}" aria-controls="profile" role="tab" data-toggle="tab">{{ service.getName }}</a>
+  </li>
 {% endfor %}
 </ul>
 <div class="tab-content">

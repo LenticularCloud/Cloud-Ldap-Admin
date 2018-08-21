@@ -2,6 +2,7 @@
 namespace Cloud\FrontBundle\Form\Type;
 
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\FormBuilderInterface;
 
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -33,6 +34,6 @@ class ServiceMasterPasswordType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('masterPasswordEnabled','checkbox',['required'=>false]);
+            ->add('masterPasswordEnabled',CheckboxType::class,['required'=>false]);
     }
 }

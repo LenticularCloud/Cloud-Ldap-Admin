@@ -5,8 +5,6 @@ use Cloud\LdapBundle\Entity\Password;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 
@@ -18,6 +16,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 class PasswordType extends AbstractType
 {
+    public function __construct()
+    {
+    }
 
     public function configureOptions(OptionsResolver $resolver)
     {
@@ -32,17 +33,13 @@ class PasswordType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('id', Type\HiddenType::class,array('read_only'=>true))
+            ->add('id', Type\HiddenType::class)
             ->add('passwordPlain', Type\RepeatedType::class, array(
                 'type' => Type\PasswordType::class,
                 'required' => false,
                 'first_options' => array('label' => 'Password'),
                 'second_options' => array('label' => 'Repeat Password'),
-            ));
-    }
-
-    public function getName()
-    {
-        return 'password_object';
+            ))
+        ;
     }
 }
