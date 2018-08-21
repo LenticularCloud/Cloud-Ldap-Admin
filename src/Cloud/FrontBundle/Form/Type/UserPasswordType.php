@@ -14,7 +14,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  * Class PasswordType
  * @package Cloud\FrontBundle\Form\Type
  */
-class PasswordType extends AbstractType
+class UserPasswordType extends AbstractType
 {
     public function __construct()
     {

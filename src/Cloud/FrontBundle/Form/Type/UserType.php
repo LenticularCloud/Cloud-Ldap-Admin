@@ -29,7 +29,7 @@ class UserType extends AbstractType
     {
         $builder
             ->add('username', Type\TextType::class, array('disabled' => true))
-            ->add('password_object', PasswordType::class)
+            ->add('password_object', UserPasswordType::class)
         ;
     }
 }

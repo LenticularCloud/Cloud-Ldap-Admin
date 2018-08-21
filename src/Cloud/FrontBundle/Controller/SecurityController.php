@@ -3,7 +3,7 @@
 namespace Cloud\FrontBundle\Controller;
 
 use Cloud\FrontBundle\Form\Type\PasswordResetType;
-use Cloud\FrontBundle\Form\Type\PasswordType;
+use Cloud\FrontBundle\Form\Type\UserPasswordType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -143,7 +143,7 @@ class SecurityController extends Controller
     {
         $passwordTokenService = $this->get('cloud.front.passwordreset');
         $user = $this->get('cloud.ldap.userprovider')->loadUserByUsername($username);
-        $form = $this->createForm(PasswordType::class,$user->getPasswordObject());
+        $form = $this->createForm(UserPasswordType::class,$user->getPasswordObject());
         $form->add('save', SubmitType::class, array(
             'label' => 'reset password',
             'attr' => ['class' => 'btn-primary'],

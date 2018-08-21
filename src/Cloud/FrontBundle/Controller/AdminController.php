@@ -4,7 +4,7 @@ namespace Cloud\FrontBundle\Controller;
 
 use Cloud\FrontBundle\Form\Type\AdminUserType;
 use Cloud\FrontBundle\Form\Type\AdminGroupType;
-use Cloud\FrontBundle\Form\Type\PasswordType;
+use Cloud\FrontBundle\Form\Type\UserPasswordType;
 use Cloud\LdapBundle\Entity\Password;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -53,7 +53,7 @@ class AdminController extends Controller
             'attr' => ['class' => 'btn-primary'],
         ));
 
-        $form_password = $this->createForm(PasswordType::class, $user->getPasswordObject(), [
+        $form_password = $this->createForm(UserPasswordType::class, $user->getPasswordObject(), [
             'action' => $this->generateUrl('admin_user_edit_pw', ['username' => $username]),
             'method' => 'POST',
         ]);
@@ -109,7 +109,7 @@ class AdminController extends Controller
         $response=new Response();
         $response->headers->set( 'Content-Type', 'text/javascript' );
 
-        $form_password = $this->createForm(PasswordType::class, $user->getPasswordObject());
+        $form_password = $this->createForm(UserPasswordType::class, $user->getPasswordObject());
         $form_password->add('save', SubmitType::class, array(
             'label' => 'save',
             'attr' => ['class' => 'btn-primary'],
