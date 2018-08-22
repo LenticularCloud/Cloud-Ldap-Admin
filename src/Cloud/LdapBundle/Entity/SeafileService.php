@@ -17,6 +17,8 @@ class SeafileService extends Service
         parent::serviceEnabled();
         $email = $this->getUser()->getEmail();
         $this->setEmail($email);
+        $this->setMasterPasswordEnabled(true);
+
     }
 
 
