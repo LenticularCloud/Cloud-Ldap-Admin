@@ -43,6 +43,8 @@ class User extends AbstractUser implements AdvancedUserInterface
      */
     private $enable = false;
 
+    private $legacyPassword = false;
+
     public function __construct($username, array $roles = array(), $enabled = true, $userNonExpired = true, $credentialsNonExpired = true, $userNonLocked = true)
     {
         parent::__construct();
@@ -373,6 +375,24 @@ class User extends AbstractUser implements AdvancedUserInterface
     {
         return true;
     }
+
+    /**
+     * @return bool
+     */
+    public function isLegacyPassword(): bool
+    {
+        return $this->legacyPassword;
+    }
+
+    /**
+     * @param bool $legacyPassword
+     */
+    public function setLegacyPassword(bool $legacyPassword)
+    {
+        $this->legacyPassword = $legacyPassword;
+    }
+
+
 
     /**
      * Checks whether the user is enabled.

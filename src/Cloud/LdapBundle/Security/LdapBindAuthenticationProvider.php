@@ -29,12 +29,9 @@ class LdapBindAuthenticationProvider extends BaseLdapBindAuthenticationProvider
             if($user->getPasswordObject()===null){
                 $password = new Password("default",$token->getCredentials());
                 $user->setPasswordObject($password);
+                $user->setLegacyPassword(true);
             }
-
         }
-
-        dump($user,$token);
-        die();
 
         return parent::checkAuthentication($user,$token);
     }

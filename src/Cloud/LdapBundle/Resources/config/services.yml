@@ -76,6 +76,12 @@ services:
           - "%domain%"
     cloud.ldap.annation.reader:
         class: Doctrine\Common\Annotations\AnnotationReader
+    cloud.ldap.rehasher:
+        class: Cloud\LdapBundle\Security\Rehasher
+        tags:
+        - { name: kernel.event_listener, event: security.interactive_login }
+        arguments:
+        - "@cloud.ldap.util.usermanipulator"
 
     security.authentication.provider.ldap_bind:
         class: Cloud\LdapBundle\Security\LdapBindAuthenticationProvider
