@@ -76,3 +76,7 @@ services:
           - "%domain%"
     cloud.ldap.annation.reader:
         class: Doctrine\Common\Annotations\AnnotationReader
+
+    security.authentication.provider.ldap_bind:
+        class: Cloud\LdapBundle\Security\LdapBindAuthenticationProvider
+        arguments: [none,none,none,none,none,"%security.authentication.hide_user_not_found%"]

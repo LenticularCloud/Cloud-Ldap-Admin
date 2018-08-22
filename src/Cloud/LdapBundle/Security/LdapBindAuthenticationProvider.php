@@ -1,6 +1,8 @@
 <?php
 namespace Cloud\LdapBundle\Security;
 
+use Cloud\LdapBundle\Entity\Password;
+use Cloud\LdapBundle\Entity\User;
 use Symfony\Component\Security\Core\Authentication\Provider\LdapBindAuthenticationProvider as BaseLdapBindAuthenticationProvider;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
@@ -22,6 +24,17 @@ class LdapBindAuthenticationProvider extends BaseLdapBindAuthenticationProvider
         if($password===null || $password === '') {
             throw new BadCredentialsException('The presented password is invalid.');
         }
+
+        if($user instanceof User){
+            if($user->getPasswordObject()===null){
+                $password = new Password("default",$token->getCredentials());
+                $user->setPasswordObject($password);
+            }
+
+        }
+
+        dump($user,$token);
+        die();
 
         return parent::checkAuthentication($user,$token);
     }
