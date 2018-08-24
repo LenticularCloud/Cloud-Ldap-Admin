@@ -53,7 +53,7 @@ var strict;
     $('*[data-prototype]').each(function (i,div) {
         var o =$(div);
 
-        o.children('div.form-group').each(function(i, div_){
+        o.children('.form-group').each(function(i, div_){
             addRemoveButton($(div_));
         });
 

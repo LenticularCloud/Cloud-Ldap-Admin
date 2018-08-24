@@ -50,7 +50,7 @@ class PasswordServiceType extends AbstractType
         // make setted ids readonly to prevent change of them
         $id = $view->children['id']->vars['value'];
         if($id !== '') {
-            $view->children['id']->vars['attr']['disabled'] = true;
+            $view->children['id']->vars['attr']['readonly'] = 'readonly';
         }
     }
 }
