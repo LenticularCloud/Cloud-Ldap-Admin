@@ -11,14 +11,18 @@ namespace Cloud\LdapBundle\Security;
 
 use Cloud\LdapBundle\Entity\User;
 use Cloud\LdapBundle\Util\UserManipulator;
+use Symfony\Bridge\Monolog\Logger;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 
 class Rehasher
 {
     private $userManipulator;
 
-    public function __construct(UserManipulator $userManipulator)
+    private $logger;
+
+    public function __construct(Logger $logger, UserManipulator $userManipulator)
     {
+        $this->logger = $logger;
         $this->userManipulator = $userManipulator;
     }
 
@@ -28,6 +32,7 @@ class Rehasher
 
         // Migrate the user to the new hashing algorithm if is using the legacy one
         if ($user instanceof User && $user->isLegacyPassword()) {
+            $this->logger->info("Rehash password from user ".$user->getUsername());
             $this->userManipulator->update($user);
         }
     }

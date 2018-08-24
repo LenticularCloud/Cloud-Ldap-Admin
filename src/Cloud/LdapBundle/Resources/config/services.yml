@@ -81,6 +81,7 @@ services:
         tags:
         - { name: kernel.event_listener, event: security.interactive_login }
         arguments:
+        - "@logger"
         - "@cloud.ldap.util.usermanipulator"
 
     security.authentication.provider.ldap_bind:
