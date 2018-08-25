@@ -1,8 +1,13 @@
 
-#messages {
-    position: absolute;
-    margin: 20px;
+#message-wraper {
+  position: fixed;
+  left: 0;
+  right: 0;
   z-index: 999;
+}
+
+#messages {
+    margin: 20px;
 }
 
 .footer {

@@ -72,8 +72,8 @@ var strict;
         addEntry(o);
     });
 
-    messages = $('#messages');
-    template = '<div class="card"><div class="card-body alert alert-danger">' +
+    var messages = $('#messages');
+    var template = '<div class="card"><div class="card-body alert alert-danger">' +
         '<h5 class="card-title">Error<button type="button" class="close" aria-label="Close">' +
         '  <span aria-hidden="true">&times;</span>' +
         '</button></h5>' +
@@ -99,7 +99,7 @@ var strict;
     }
 
     //forms
-    $('form').each(function(i,form){
+    $('form:not(#login-form)').each(function(i,form){
         $(form).ajaxForm({
             dataType: 'json',
             success: function (data) {

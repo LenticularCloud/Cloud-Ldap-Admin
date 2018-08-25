@@ -122,7 +122,8 @@ class ServicesController extends Controller
         } else {
             $errorMsgs = array();
             foreach($errors as $error) {
-                $errorMsgs[] = $error->getMessage();
+                $errorMsgs[] = $error->getMessage() . "<br />in ".
+                    str_replace("children","",$error->getPropertyPath());
             }
             $data = array(
                 'successfully' => false,
