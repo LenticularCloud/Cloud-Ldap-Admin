@@ -41,7 +41,7 @@ class MailService
      * @throws \Throwable
      * @return boolean
      */
-    public function sendToUser(User $user, $template, $context = array())
+    public function sendToUser(User $user, $template, $context = array(), $alt_address = false)
     {
 
         $template = $this->twig->load($template);
@@ -54,8 +54,12 @@ class MailService
         $message = new Swift_Message();
         $message
             ->setSubject($subject)
-            ->setFrom($this->mailer_from)
-            ->setTo($user->getEmail());
+            ->setFrom($this->mailer_from);
+        if($alt_address) {
+            $message->setTo($user->getAltEmail());
+        } else {
+            $message->setTo($user->getEmail());
+        }
 
         if ($user->getGpgPublicKey()) {
             try {

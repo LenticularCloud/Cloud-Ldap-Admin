@@ -106,7 +106,7 @@ class SecurityController extends Controller
                     'username' => $user->getUsername(),
                     'reset_url' => $this->generateUrl('password_reset_do',
                         ['username' => $user->getUsername(), 'token' => $token],UrlGeneratorInterface::ABSOLUTE_URL),
-                ));
+                ),true);
 
                 $data = array(
                     'successfully' => true,
