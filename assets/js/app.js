@@ -99,7 +99,7 @@ var strict;
     }
 
     //forms
-    $('form:not(#login-form)').each(function(i,form){
+    $('form:not(#login-form):not([name=password_reset])').each(function(i,form){
         $(form).ajaxForm({
             dataType: 'json',
             success: function (data) {
