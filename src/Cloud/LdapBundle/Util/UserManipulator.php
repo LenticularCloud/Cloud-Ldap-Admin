@@ -140,7 +140,7 @@ class UserManipulator
         }
 
         // rehash changed passwords
-        if ($user->getPasswordObject()->getPasswordPlain() !== null) {
+        if ($user->getPasswordObject() !== null && $user->getPasswordObject()->getPasswordPlain() !== null) {
             $this->encodePassword($user->getEncoder(), $user->getPasswordObject());
         }
 
