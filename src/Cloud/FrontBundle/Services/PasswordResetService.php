@@ -44,6 +44,10 @@ class PasswordResetService
      */
     public function validateToken(User $user, $token)
     {
+        if( strpos($token,'_') === false){
+            return false;
+        }
+
         list($hash, $time) = explode('_', $token);
 
         if( $time + $this->time_valid < time()){

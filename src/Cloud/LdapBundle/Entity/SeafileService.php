@@ -15,20 +15,7 @@ class SeafileService extends Service
     protected function serviceEnabled()
     {
         parent::serviceEnabled();
-        $email = $this->getUser()->getEmail();
-        $this->setEmail($email);
         $this->setMasterPasswordEnabled(true);
 
-    }
-
-
-    public function getEmail()
-    {
-        return $this->getObject(Schemas\CloudService::class)->getEmail();
-    }
-
-    public function setEmail($email)
-    {
-        $this->getObject(Schemas\CloudService::class)->setEmail($email);
     }
 }

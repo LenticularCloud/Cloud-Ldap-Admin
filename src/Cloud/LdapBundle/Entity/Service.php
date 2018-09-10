@@ -51,6 +51,16 @@ class Service extends AbstractService
         }
     }
 
+    public function getEmail()
+    {
+        return $this->getObject(Schemas\CloudService::class)->getEmail();
+    }
+
+    public function setEmail($email)
+    {
+        $this->getObject(Schemas\CloudService::class)->setEmail($email);
+    }
+
     /**
      *
      * @return array<Password>
@@ -141,6 +151,12 @@ class Service extends AbstractService
 
     protected function serviceEnabled()
     {
+        $email = $this->getUser()->getEmail();
+        $this->setEmail($email);
+
+        if($this->getEncoder() == CryptEncoder::class) {
+            $this->setMasterPasswordEnabled(true);
+        }
     }
 
     public function maxPasswords()
