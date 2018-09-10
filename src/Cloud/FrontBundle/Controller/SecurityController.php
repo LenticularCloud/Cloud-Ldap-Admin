@@ -141,6 +141,9 @@ class SecurityController extends Controller
      */
     public function resetPasswordDoAction(Request $request, $username, $token)
     {
+        $response = new Response();
+        $response->headers->set('Content-Type', 'text/javascript');
+
         $passwordTokenService = $this->get('cloud.front.passwordreset');
         $user = $this->get('cloud.ldap.userprovider')->loadUserByUsername($username);
         $form = $this->createForm(UserPasswordType::class,$user->getPasswordObject());
@@ -151,14 +154,43 @@ class SecurityController extends Controller
         $form->handleRequest($request);
 
         if ($user === null || !$passwordTokenService->validateToken($user, $token)) {
-            return ['user'=> null];
+            if(!in_array('application/json', $request->getAcceptableContentTypes())) {
+                return ['user'=> null];
+            }
+
+            $data = array(
+                'successfully' => false,
+                'msg' => 'invalid token or user',
+            );
+            $response->setContent(json_encode($data));
+            return $response;
+        }
+        if ($form->isSubmitted()) {
+            $errors = $form->getErrors(true);
+        }else {
+            $errors = [];
+        }
+        if ($form->isSubmitted() && count($errors) === 0) {
+            $this->get('cloud.ldap.util.usermanipulator')->update($user);
+            if(!in_array('application/json', $request->getAcceptableContentTypes())) {
+                return $this->redirectToRoute('login');
+            }
+            $data = ['successfully' => true, 'redirect' => $this->generateUrl('login')];
+
+        }else {
+            if(!in_array('application/json', $request->getAcceptableContentTypes())) {
+                return ['user'=> $user, 'form_password_reset_do' => $form->createView()];
+            }
+
+            $errorMsgs = array();
+            foreach ($errors as $error) {
+                $errorMsgs[] = $error->getMessage();
+            }
+            $data = ['successfully' => false, 'msg'=> $errorMsgs];
         }
 
-        if($form->isValid()) {
-            $this->get('cloud.ldap.util.usermanipulator')->update($user);
-            return $this->redirectToRoute('login');
-        }else {
-            return ['user'=> $user, 'form_password_reset_do' => $form->createView()];
-        }
+        $response->setContent(json_encode($data));
+        return $response;
     }
+
 }

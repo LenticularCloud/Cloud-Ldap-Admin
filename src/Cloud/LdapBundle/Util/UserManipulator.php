@@ -153,7 +153,7 @@ class UserManipulator
             }
         }
 
-        $transformer = new LdapArrayToObjectTransformer(null);
+        $transformer = new LdapArrayToObjectTransformer();
 
         $this->client->replace('uid='.$user->getUsername().',ou=users,'.$this->baseDn, $transformer->transform($user));
 

@@ -42,7 +42,7 @@ class LdapArrayToObjectTransformer
             switch(get_class($attribute)){
                 case Attribute::class:
                     if($attribute->get()!==null) {
-                        $data[$key]=$attribute->get();
+                        $data[$key]=$attribute->get()??'';
                     }
                     break;
                 case ArrayCollection::class:

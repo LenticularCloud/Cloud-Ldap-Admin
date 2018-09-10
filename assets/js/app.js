@@ -14,7 +14,7 @@ var $ = require('jquery');
 
 require('bootstrap');
 
-require('bootstrap-table');
+//var dt = require( 'datatables.net-bs4' )( $);
 
 require('jquery-form');
 
@@ -99,7 +99,7 @@ var strict;
     }
 
     //forms
-    $('form:not(#login-form):not([name=password_reset])').each(function(i,form){
+    $('form:not(#login-form):not([name=password_reset]):not([name=registration])').each(function(i,form){
         $(form).ajaxForm({
             dataType: 'json',
             success: function (data) {
