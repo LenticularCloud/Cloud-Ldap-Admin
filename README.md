@@ -46,6 +46,10 @@ The main config file is at `app/config/paramters.yml`.
 Make a backup before you exceute this command. it will change the database schema!
 
 `./app/console cloud:update`
+`php app/console doctrine:cache:clear-query -e prod`
+`php app/console doctrine:schema:update --force`
+`php app/console cache:clear -e prod`
+`php app/console assetic:dump -e prod`
 
 ###  Configure webserver
 
