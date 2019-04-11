@@ -11,7 +11,7 @@ namespace Cloud\LdapBundle\Util;
 
 use Cloud\LdapBundle\Security\LdapUserProvider;
 use Cloud\LdapBundle\Services\LdapClient;
-use Symfony\Component\HttpKernel\Log\LoggerInterface;
+use Psr\Log\LoggerInterface;
 use Cloud\LdapBundle\Schemas;
 
 class SchemaManipulator
@@ -101,7 +101,7 @@ class SchemaManipulator
                         }
                     }
 
-                    if ($service->getObject(Schemas\PosixAccount::class) !== null && in_array(Schemas\PosixAccount::class, $service->getObjectClasses())) {
+                    if ($service->getObject(Schemas\PosixAccount::class) !== null && !in_array(Schemas\PosixAccount::class, $service->getObjectClasses())) {
                         $service->removeObject(Schemas\PosixAccount::class,
                             ['uidnumber', 'gidnumber', 'homedirectory', 'gecos', 'loginshell']);
                     }
