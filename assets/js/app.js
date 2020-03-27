@@ -38,7 +38,7 @@ var strict;
         $('[data-toggle="tab"], [data-toggle="pill"]').filter('[href="' + location.hash + '"]').tab('show');
     }
 
-
+    // genertic array form start
     var bAddTemplate = '<div class="btn btn-success">ADD</div>';
     function addEntry(o) {
         var bAdd = $(bAddTemplate);
@@ -71,6 +71,7 @@ var strict;
 
         addEntry(o);
     });
+    // genertic array form end
 
     var messages = $('#messages');
     var template = '<div class="card"><div class="card-body alert alert-danger">' +
