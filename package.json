@@ -23,6 +23,6 @@
         "datatables.net-bs4": "^1.10.19",
         "datatables.net-dt": "^1.10.19",
         "jquery-form": "https://github.com/jquery-form/form",
-        "yarn": "^1.9.4"
+        "yarn": "^1.22.0"
     }
 }
