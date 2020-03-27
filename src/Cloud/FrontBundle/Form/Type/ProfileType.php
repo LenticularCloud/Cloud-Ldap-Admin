@@ -31,7 +31,7 @@ class ProfileType extends AbstractType
             ->add('email', Type\EmailType::class, array('required' => false, 'disabled' => true))
             ->add('altEmail', Type\EmailType::class, array('required' => false))
             ->add('givenName', Type\TextType::class, array('required' => false))
-            ->add('sureName', Type\TextType::class, array('required' => false))
+            ->add('surName', Type\TextType::class, array('required' => false))
             ->add('displayName', Type\TextType::class)
             ->add('gpgPublicKey', Type\TextareaType::class, array('required' => false, 'attr' => array('class' => 'gpgpublickey')));
     }

@@ -301,14 +301,14 @@ class User extends AbstractUser implements AdvancedUserInterface
         $this->getObject(Schemas\InetOrgPerson::class)->setGivenName($givenName);
     }
 
-    public function getSureName()
+    public function getSurName()
     {
         return $this->getObject(Schemas\InetOrgPerson::class)->getSn();
     }
 
-    public function setSureName($sureName)
+    public function setSurName($surName)
     {
-        $this->getObject(Schemas\InetOrgPerson::class)->setSn($sureName);
+        $this->getObject(Schemas\InetOrgPerson::class)->setSn($surName);
     }
 
     public function getDisplayName()
