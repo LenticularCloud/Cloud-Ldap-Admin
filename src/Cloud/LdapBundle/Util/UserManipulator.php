@@ -126,7 +126,6 @@ class UserManipulator
     private function encodePassword($encoderClass, Password $password)
     {
         if (!is_subclass_of($encoderClass, LdapPasswordEncoderInterface::class)) {
-            dump($encoderClass);
             throw new \InvalidArgumentException('class does not implemnet LdapPasswordEncoderInterface');
         }
         call_user_func($encoderClass.'::encodePassword', $password);
@@ -141,7 +140,7 @@ class UserManipulator
         }
 
         // rehash changed passwords
-        if ($user->getPasswordObject()->getPasswordPlain() !== null) {
+        if ($user->getPasswordObject() !== null && $user->getPasswordObject()->getPasswordPlain() !== null) {
             $this->encodePassword($user->getEncoder(), $user->getPasswordObject());
         }
 
@@ -150,11 +149,11 @@ class UserManipulator
         foreach ($user->getObjects() as $object) {
             $errors = $this->validator->validate($object);
             if (count($errors) > 0) {
-                throw new InvalidArgumentException($this->getUsername().'(User):'.(string) $errors);
+                throw new InvalidArgumentException($user->getUsername().'(User):'.(string) $errors);
             }
         }
 
-        $transformer = new LdapArrayToObjectTransformer(null);
+        $transformer = new LdapArrayToObjectTransformer();
 
         $this->client->replace('uid='.$user->getUsername().',ou=users,'.$this->baseDn, $transformer->transform($user));
 

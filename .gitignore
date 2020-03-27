@@ -7,10 +7,20 @@
 !app/logs/.gitkeep
 /app/phpunit.xml
 /bin/
+!/bin/console
 /composer.phar
 /vendor/
 /web/bundles/
+/web/css
+/web/js
 /tmp
 /.buildpath
 /.idea
 /.settings
+
+###> symfony/webpack-encore-pack ###
+/node_modules/
+/public/build/
+npm-debug.log
+yarn-error.log
+###< symfony/webpack-encore-pack ###

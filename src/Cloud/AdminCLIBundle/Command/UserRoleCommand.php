@@ -30,44 +30,35 @@ class UserRoleCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $helper = $this->getHelper('question');
-        
+
         try {
             $this->getContainer()->get('cloud.ldap.userprovider');
         } catch (\Exception $e) {
             $output->writeln("<error>Can't connect to database</error>");
+
             return 255;
         }
-        
+
         // check parameters
         if ($input->getOption('add') && $input->getOption('delete')) {
             $output->writeln("<error>can't add and delete</error>");
+
             return 1;
         }
-        
+
         // read username
-        $username = null;
-        if ($input->getArgument('username') !== null) {
-            $username = $input->getArgument('username');
-        } else {
-            $question = new Question('Please enter the name of the User:');
-            if ($input->getOption('delete')) {
-                $question->setAutocompleterValues($this->getContainer()
-                    ->get('cloud.ldap.userprovider')
-                    ->getUsernames());
-            }
-            $username = $helper->ask($input, $output, $question);
-        }
+        $username = $this->_getUsername($input, $output);
 
         try {
             $user = $this->getContainer()
                 ->get('cloud.ldap.userprovider')
                 ->loadUserByUsername($username);
-        }catch (UsernameNotFoundException $e) {
+        } catch (UsernameNotFoundException $e) {
             $output->writeln("<error>can't find user</error>");
         }
 
         // if no option is set show user rights
-        if (! $input->getOption('add') && ! $input->getOption('delete')) {
+        if (!$input->getOption('add') && !$input->getOption('delete')) {
             if ($input->getOption('json')) {
                 $output->writeln(json_encode($user->getRoles()));
             } else {
@@ -75,6 +66,7 @@ class UserRoleCommand extends ContainerAwareCommand
                     $output->writeln($role);
                 }
             }
+
             return 0;
         }
 
@@ -87,23 +79,49 @@ class UserRoleCommand extends ContainerAwareCommand
             $question = new Question('Please a role (eg. ROLE_USER):');
             $role = $helper->ask($input, $output, $question);
         }
-        
+
         if ($input->getOption('delete')) {
             $user->removeRole($role);
             $this->getContainer()
                 ->get('cloud.ldap.util.usermanipulator')
                 ->update($user);
+
             return 0;
         }
-        
+
         if ($input->getOption('add')) {
             $user->addRole($role);
             $this->getContainer()
                 ->get('cloud.ldap.util.usermanipulator')
                 ->update($user);
+
             return 0;
         }
-        
+
         return 0;
+    }
+
+    /**
+     * request username, ether by argument or by user input
+     * 
+     * @param InputInterface  $input
+     * @param OutputInterface $output
+     * @return mixed|null
+     */
+    protected function _getUsername(InputInterface $input, OutputInterface $output)
+    {
+        $username = null;
+        $helper = $this->getHelper('question');
+        if ($input->getArgument('username') !== null) {
+            $username = $input->getArgument('username');
+        } else {
+            $question = new Question('Please enter the name of the User:');
+            $question->setAutocompleterValues($this->getContainer()
+                ->get('cloud.ldap.userprovider')
+                ->getUsernames());
+            $username = $helper->ask($input, $output, $question);
+        }
+
+        return $username;
     }
 }

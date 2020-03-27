@@ -5,13 +5,24 @@ use Cloud\LdapBundle\Schemas;
 
 class Group extends AbstractGroup
 {
+    /**
+     * @var string[]    roles of the class
+     */
+    private $roles;
+
+    public function getObjectClasses()
+    {
+        $classes = parent::getObjectClasses();
+        $classes['lenticulargroup'] = Schemas\LenticularGroup::class;
+        return $classes;
+    }
 
     /**
      * @return String[]
      */
     public function getRoles()
     {
-    return $this->getObject(Schemas\LenticularGroup::class)->getAuthRoles();
+        return $this->getObject(Schemas\LenticularGroup::class)->getAuthRoles();
     }
 
     /**
@@ -20,8 +31,9 @@ class Group extends AbstractGroup
      */
     public function addRoles($role)
     {
-    $this->getObject(Schemas\LenticularGroup::class)->addAuthRole($role);
-    return $this;
+        $this->getObject(Schemas\LenticularGroup::class)->addAuthRole($role);
+
+        return $this;
     }
 
     /**
@@ -30,36 +42,8 @@ class Group extends AbstractGroup
      */
     public function removeRoles($role)
     {
-    unset($this->roles[$role]);
-    return $this;
-    }
+        unset($this->roles[$role]);
 
-
-
-    public function getMembers()
-    {
-        return $this->getObject(Schemas\GroupOfNames::class)->getMembers()->map(function ($member) {
-            preg_match('#^uid=(?<uid>[^,]+),.*$#', $member->get(), $match);
-            return $match['uid'];
-        })->getValues();
-    }
-
-    public function addMember($username)
-    {
-        $uid = 'uid=' . $username . ',ou=Users,'. $this->getPostDn();
-        $this->getObject(Schemas\GroupOfNames::class)->getMembers()->add(new Attribute($uid));
-        return $this;
-    }
-
-    public function removeMember($username)
-    {
-        $uid = 'uid=' . $username . ',ou=Users,'. $this->getPostDn();
-        $members=$this->getObject(Schemas\GroupOfNames::class)->getMembers();
-        foreach($members as $member) {
-            if($member->get() == $uid) {
-                $members->removeElement($member);
-            }
-        }
         return $this;
     }
 }

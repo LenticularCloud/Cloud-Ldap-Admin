@@ -18,7 +18,7 @@ class UpdateCommand extends ContainerAwareCommand
     {
         $this->setName('cloud:update')
             ->setDescription('updates database, to add new services')
-            //->addOption('force', '-f', InputOption::VALUE_NONE, 'force deletes an user without asking')
+            ->addOption('force', '-f', InputOption::VALUE_NONE, 'force update without asking')
             ->setHelp('');
     }
 
@@ -33,6 +33,15 @@ class UpdateCommand extends ContainerAwareCommand
             return 255;
         }
 
+
+        if (!$input->getOption('force')) {
+            $question = new ConfirmationQuestion('You realy whant to update the database? (do you have a backup?) [y/N]:', false);
+            if (!$helper->ask($input, $output, $question)) {
+                $output->writeln('<error>canceled by user, if you use a script use \'-f\' to force</error>');
+
+                return 1;
+            }
+        }
         $this->getContainer()
             ->get('cloud.ldap.schema.manipulator')->updateSchema();
 

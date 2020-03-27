@@ -65,7 +65,7 @@ abstract class AbstractService extends AbstractUser
     /**
      * passwords for this service
      *
-     * @Assert\Valid(deep=true)
+     * @Assert\Valid()
      *
      * @return array<Password>
      */
@@ -106,9 +106,13 @@ abstract class AbstractService extends AbstractUser
         return false;
     }
 
+    /**
+     * @param $masterPasswordEnabled bool
+     * @return $this
+     */
     public function setMasterPasswordEnabled($masterPasswordEnabled)
     {
-        if ($masterPasswordEnabled == false && $this->isMasterPasswordEnabled()) {
+        if ($masterPasswordEnabled === false && $this->isMasterPasswordEnabled()) {
             foreach ($this->getPasswords() as $password) {
                 if ($password->isMasterPassword()) {
                     $this->removePassword($password);
@@ -116,7 +120,7 @@ abstract class AbstractService extends AbstractUser
             }
         } elseif ($masterPasswordEnabled && $this->isMasterPasswordEnabled() == false) {
             $password = $this->getUser()->getPasswordObject();
-            if ($password->getEncoder() == $this->getEncoder()) {
+            if ($password->getEncoder() === $this->getEncoder()) {
                 $this->addPassword(clone $password);
             }
         }

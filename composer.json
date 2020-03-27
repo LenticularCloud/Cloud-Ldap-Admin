@@ -10,41 +10,29 @@
     }
   },
   "require": {
-    "php": ">=5.3.9",
-    "symfony/symfony": "~2.8",
-    "doctrine/orm": "~2.4",
-    "doctrine/doctrine-bundle": "~1.4",
-    "symfony/assetic-bundle": "~2.3",
-    "symfony/swiftmailer-bundle": "~2.3",
-    "symfony/monolog-bundle": "~2.4",
-    "sensio/distribution-bundle": "~4.0",
-    "incenteev/composer-parameter-handler": "~2.0",
-    "sensio/framework-extra-bundle": "^3.0"
+    "php": "^7.0.8",
+    "symfony/symfony": "~3.4",
+    "symfony/swiftmailer-bundle": "^3.2",
+    "symfony/flex": "^1.0",
+    "sensio/framework-extra-bundle": "^5.2",
+    "symfony/monolog-bundle": "^3.2",
+    "gregwar/captcha-bundle": "^2.0",
+    "pear/crypt_gpg": "^1.6",
+    "symfony/orm-pack": "^1.0",
+    "symfony/webpack-encore-pack": "^1.0"
   },
   "require-dev": {
-    "sensio/generator-bundle": "~2.3",
-    "incenteev/composer-parameter-handler": "~2.0",
-    "symfony/phpunit-bridge": "~2.7",
-    "phpunit/phpunit": "*"
+    "symfony/maker-bundle": "^1.6",
+    "symfony/web-server-bundle": "^3.4"
   },
   "scripts": {
+    "auto-scripts": [
+    ],
     "post-install-cmd": [
-      "Incenteev\\ParameterHandler\\ScriptHandler::buildParameters",
-      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
-      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache",
-      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installAssets",
-      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installRequirementsFile",
-      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::removeSymfonyStandardFiles",
-      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::prepareDeploymentTarget"
+      "@auto-scripts"
     ],
     "post-update-cmd": [
-      "Incenteev\\ParameterHandler\\ScriptHandler::buildParameters",
-      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
-      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache",
-      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installAssets",
-      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installRequirementsFile",
-      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::removeSymfonyStandardFiles",
-      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::prepareDeploymentTarget"
+      "@auto-scripts"
     ]
   },
   "config": {

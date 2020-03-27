@@ -15,7 +15,7 @@ class FreeRadiusService extends AbstractService
     /**
      * passwords for this service
      *
-     * @Assert\Valid(deep=true)
+     * @Assert\Valid()
      *
      * @var Password $passwords
      */

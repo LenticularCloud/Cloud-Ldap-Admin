@@ -50,6 +50,7 @@ class IndexController extends Controller
             }
 
             $password = new Password();
+            $password->setMasterPassword(true);
             $password->setPasswordPlain($user->getPassword());
             $encoder = new CryptEncoder();
             $encoder->encodePassword($password);

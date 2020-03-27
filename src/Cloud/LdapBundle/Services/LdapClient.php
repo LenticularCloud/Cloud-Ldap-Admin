@@ -1,19 +1,12 @@
 <?php
+
 namespace Cloud\LdapBundle\Services;
 
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Ldap\LdapClientInterface;
-use Cloud\LdapBundle\Entity\User;
-use Cloud\LdapBundle\Entity\Password;
-use Cloud\LdapBundle\Entity\Service;
-use Symfony\Component\Security\Core\User\UserProviderInterface;
+use Symfony\Component\Ldap\LdapInterface;
 use Symfony\Component\Ldap\Exception\ConnectionException;
 use Symfony\Component\Ldap\Exception\LdapException;
-use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
-use InvalidArgumentException;
 
-class LdapClient implements LdapClientInterface
+class LdapClient implements LdapInterface
 {
 
     private $host;
@@ -35,16 +28,22 @@ class LdapClient implements LdapClientInterface
     /**
      * Constructor.
      *
-     * @param string $host            
-     * @param int $port            
-     * @param int $version            
-     * @param bool $useSsl            
-     * @param bool $useStartTls            
-     * @param bool $optReferrals            
+     * @param string $host
+     * @param int    $port
+     * @param int    $version
+     * @param bool   $useSsl
+     * @param bool   $useStartTls
+     * @param bool   $optReferrals
      */
-    public function __construct($host = null, $port = 389, $version = 3, $useSsl = false, $useStartTls = false, $optReferrals = false)
-    {
-        if (! extension_loaded('ldap')) {
+    public function __construct(
+        $host = null,
+        $port = 389,
+        $version = 3,
+        $useSsl = false,
+        $useStartTls = false,
+        $optReferrals = false
+    ) {
+        if (!extension_loaded('ldap')) {
             throw new LdapException('The ldap module is needed.');
         }
 
@@ -62,16 +61,31 @@ class LdapClient implements LdapClientInterface
     }
 
     /**
+     * @TODO
+     */
+    public function getEntryManager(){
+
+    }
+
+    /**
+     * @TODO
+     */
+    public function query($dn, $query, array $options = array()){
+
+    }
+
+
+    /**
      *
      * @ERROR!!!
      *
      */
     public function bind($dn = null, $password = null)
     {
-        if (! $this->connection) {
+        if (!$this->connection) {
             $this->connect();
         }
-        
+
         if (true !== @ldap_bind($this->connection, $dn, $password)) {
             throw new ConnectionException(ldap_error($this->connection));
         }
@@ -84,19 +98,20 @@ class LdapClient implements LdapClientInterface
      */
     public function find($dn, $query, $filter = '*')
     {
-        if (! is_array($filter)) {
+        if (!is_array($filter)) {
             $filter = array(
-                $filter
+                $filter,
             );
         }
         $search = @ldap_search($this->connection, $dn, $query, $filter);
-        if($search===false) {
+        if ($search === false) {
             return null;
         }
         $infos = ldap_get_entries($this->connection, $search);
         if (0 === $infos['count']) {
             return null;
         }
+
         return $infos;
     }
 
@@ -110,21 +125,32 @@ class LdapClient implements LdapClientInterface
         if (function_exists('ldap_escape')) {
             return ldap_escape($subject, $ignore, $flags);
         }
+
         return $this->doEscape($subject, $ignore, $flags);
     }
 
     private function connect()
     {
-        if (! $this->connection) {
+
+        if (false) { //@TODO if debug
+            ldap_set_option(null, LDAP_OPT_DEBUG_LEVEL, 7);
+        }
+
+        if (!$this->connection) {
             $host = $this->host;
             if ($this->useSsl) {
-                $host = 'ldaps://' . $host;
+                $host = 'ldaps://'.$host.':'.$this->port;
+            }
+            $this->connection = ldap_connect($host, $this->port);
+            if ($this->connection === false) {
+                throw new ConnectionException('failed to connect');
             }
             ldap_set_option($this->connection, LDAP_OPT_PROTOCOL_VERSION, $this->version);
             ldap_set_option($this->connection, LDAP_OPT_REFERRALS, $this->optReferrals);
-            $this->connection = ldap_connect($host, $this->port);
             if ($this->useStartTls) {
-                ldap_start_tls($this->connection);
+                if (!ldap_start_tls($this->connection)) {
+                    throw new ConnectionException(ldap_error($this->connection));
+                }
             }
         }
     }
@@ -144,14 +170,14 @@ class LdapClient implements LdapClientInterface
      * Escape strings for safe use in LDAP filters and DNs.
      *
      * @author Chris Wright <ldapi@daverandom.com>
-     *        
-     * @param string $subject            
-     * @param string $ignore            
-     * @param int $flags            
+     *
+     * @param string $subject
+     * @param string $ignore
+     * @param int    $flags
      *
      * @return string
      *
-     * @see http://stackoverflow.com/a/8561604
+     * @see    http://stackoverflow.com/a/8561604
      */
     private function doEscape($subject, $ignore = '', $flags = 0)
     {
@@ -165,12 +191,12 @@ class LdapClient implements LdapClientInterface
         if ($flags & self::LDAP_ESCAPE_DN) {
             $charMap += $charMaps[self::LDAP_ESCAPE_DN];
         }
-        if (! $charMap) {
+        if (!$charMap) {
             $charMap = $charMaps[0];
         }
         // Remove any chars to ignore from the list
         $ignore = (string) $ignore;
-        for ($i = 0, $l = strlen($ignore); $i < $l; ++ $i) {
+        for ($i = 0, $l = strlen($ignore); $i < $l; ++$i) {
             unset($charMap[$ignore[$i]]);
         }
         // Do the main replacement
@@ -178,12 +204,13 @@ class LdapClient implements LdapClientInterface
         // Encode leading/trailing spaces if LDAP_ESCAPE_DN is passed
         if ($flags & self::LDAP_ESCAPE_DN) {
             if ($result[0] === ' ') {
-                $result = '\\20' . substr($result, 1);
+                $result = '\\20'.substr($result, 1);
             }
             if ($result[strlen($result) - 1] === ' ') {
-                $result = substr($result, 0, - 1) . '\\20';
+                $result = substr($result, 0, -1).'\\20';
             }
         }
+
         return $result;
     }
 
@@ -197,20 +224,21 @@ class LdapClient implements LdapClientInterface
             self::LDAP_ESCAPE_DN => array('\\', ',', '=', '+', '<', '>', ';', '"', '#'),
         );
         $charMaps[0] = array();
-        for ($i = 0; $i < 256; ++ $i) {
+        for ($i = 0; $i < 256; ++$i) {
             $charMaps[0][chr($i)] = sprintf('\\%02x', $i);
         }
-        for ($i = 0, $l = count($charMaps[self::LDAP_ESCAPE_FILTER]); $i < $l; ++ $i) {
+        for ($i = 0, $l = count($charMaps[self::LDAP_ESCAPE_FILTER]); $i < $l; ++$i) {
             $chr = $charMaps[self::LDAP_ESCAPE_FILTER][$i];
             unset($charMaps[self::LDAP_ESCAPE_FILTER][$i]);
             $charMaps[self::LDAP_ESCAPE_FILTER][$chr] = $charMaps[0][$chr];
         }
-        for ($i = 0, $l = count($charMaps[self::LDAP_ESCAPE_DN]); $i < $l; ++ $i) {
+        for ($i = 0, $l = count($charMaps[self::LDAP_ESCAPE_DN]); $i < $l; ++$i) {
             $chr = $charMaps[self::LDAP_ESCAPE_DN][$i];
             unset($charMaps[self::LDAP_ESCAPE_DN][$i]);
             $charMaps[self::LDAP_ESCAPE_DN][$chr] = $charMaps[0][$chr];
         }
         $this->charmaps = $charMaps;
+
         return $this->charmaps;
     }
 
@@ -220,18 +248,18 @@ class LdapClient implements LdapClientInterface
      */
     private $services;
 
-    public function replace($dn,array $entity)
+    public function replace($dn, array $entity)
     {
         if (true != @ldap_mod_replace($this->connection, $dn, $entity)) {
-            if(ldap_errno($this->connection)) { //Cannot modify object class
+            if (ldap_errno($this->connection)) { //Cannot modify object class
                 $this->delete($dn);
-                $this->add($dn,$entity);
-            }else {
+                $this->add($dn, $entity);
+            } else {
                 throw new LdapException(ldap_error($this->connection));
             }
         }
     }
-    
+
     public function delete($dn)
     {
         if (true != @ldap_delete($this->connection, $dn)) {
@@ -239,7 +267,7 @@ class LdapClient implements LdapClientInterface
         }
     }
 
-    public function add($dn,array $entity)
+    public function add($dn, array $entity)
     {
         if (true != @ldap_add($this->connection, $dn, $entity)) {
             throw new LdapException(ldap_error($this->connection));
@@ -249,7 +277,7 @@ class LdapClient implements LdapClientInterface
     /**
      * check if object is exist
      *
-     * @param string $dn            
+     * @param string $dn
      */
     public function isEntityExist($dn)
     {
@@ -261,34 +289,37 @@ class LdapClient implements LdapClientInterface
         if ($result === false) {
             return false; // not found
         }
-        
+
         return true;
     }
 
     /**
      * get an array of all users
      *
-     * @return Array<User>
-     * @throws LdapQueryException
+     * @return String[]
+     * @throws LdapException
      */
-    public function getUsernames($dn)
+    public function getEntitynames($dn, $key = 'uid', $filter = null)
     {
-        $result = @ldap_list($this->connection,$dn, '(uid=*)', array(
-            'uid'
+        if ($filter === null) {
+            $filter = sprintf('(%s=*)', $key);
+        }
+        $result = @ldap_list($this->connection, $dn, $filter, array(
+            $key,
         ));
-        
+
         if ($result === false) {
             throw new LdapException(ldap_error($this->connection)." DN:".$dn);
         }
-        
+
         $info = ldap_get_entries($this->connection, $result);
-        
-        $users = array();
-        for ($i = 0; $i < $info["count"]; $i ++) {
-            $users[] = $info[$i]["uid"][0];
+
+        $enties = array();
+        for ($i = 0; $i < $info["count"]; $i++) {
+            $enties[] = $info[$i][$key][0];
         }
-        
-        return $users;
+
+        return $enties;
     }
 
     /**

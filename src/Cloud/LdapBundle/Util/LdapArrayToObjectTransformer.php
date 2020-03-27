@@ -42,7 +42,7 @@ class LdapArrayToObjectTransformer
             switch(get_class($attribute)){
                 case Attribute::class:
                     if($attribute->get()!==null) {
-                        $data[$key]=$attribute->get();
+                        $data[$key]=$attribute->get()??'';
                     }
                     break;
                 case ArrayCollection::class:
@@ -96,6 +96,14 @@ class LdapArrayToObjectTransformer
                 $entity->addObject($class,$ldapArray);
             }
         }
+
+        foreach ($schemaClasses as $key => $schemaClass) {
+
+            if ($entity->getObject($schemaClass)===null) {
+                $entity->addObject($schemaClass, $ldapArray);
+            }
+        }
+
         return $entity;
     }
 

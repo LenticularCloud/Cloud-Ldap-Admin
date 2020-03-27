@@ -1,0 +1,30 @@
+
+#message-wraper {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 999;
+}
+
+#messages {
+    margin: 20px;
+}
+
+.container[role=main] {
+  margin-bottom: 40px;
+}
+
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #fff
+}
+
+textarea.gpgpublickey {
+    font-family: monospace;
+    min-height: 300px;
+}
+
+@import "~bootstrap/scss/bootstrap";

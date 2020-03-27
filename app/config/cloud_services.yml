@@ -10,30 +10,33 @@ cloud_ldap:
       default: true
       object_class: 'Cloud\LdapBundle\Entity\Service'
       object_forms:
+        - 'Cloud\FrontBundle\Form\Type\ServiceMasterPasswordType'
         - 'Cloud\FrontBundle\Form\Type\ServiceMultiPasswordType'
     mail:
       enable: true
       default: true
       object_class: 'Cloud\LdapBundle\Entity\Service'
       object_forms:
+        - 'Cloud\FrontBundle\Form\Type\ServiceMasterPasswordType'
         - 'Cloud\FrontBundle\Form\Type\ServiceMultiPasswordType'
     seafile:
       enable: true
       default: true
-      object_class: 'Cloud\LdapBundle\Entity\Service'
-      object_forms:
-        - 'Cloud\FrontBundle\Form\Type\ServiceMultiPasswordType'
+      object_class: 'Cloud\LdapBundle\Entity\SeafileService'
+      object_forms: []
     ampache:
       enable: true
       default: false
       object_class: 'Cloud\LdapBundle\Entity\Service'
       object_forms:
+        - 'Cloud\FrontBundle\Form\Type\ServiceMasterPasswordType'
         - 'Cloud\FrontBundle\Form\Type\ServiceMultiPasswordType'
     radicale:
       enable: true
       default: true
       object_class: 'Cloud\LdapBundle\Entity\Service'
       object_forms:
+        - 'Cloud\FrontBundle\Form\Type\ServiceMasterPasswordType'
         - 'Cloud\FrontBundle\Form\Type\ServiceMultiPasswordType'
     freeradius:
       enable: true

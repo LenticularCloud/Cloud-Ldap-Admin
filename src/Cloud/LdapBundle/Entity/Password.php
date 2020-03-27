@@ -28,7 +28,7 @@ class Password extends  AbstractAttribute
     
     
     /**
-     * @Assert\Valid(deep=true)
+     * @Assert\Valid()
      * 
      * @var User    $user
      */
@@ -45,7 +45,7 @@ class Password extends  AbstractAttribute
     private $encoder;
     
     /**
-     * @Assert\Valid(deep=true)
+     * @Assert\Valid()
      * 
      * @var AbstractService
      */

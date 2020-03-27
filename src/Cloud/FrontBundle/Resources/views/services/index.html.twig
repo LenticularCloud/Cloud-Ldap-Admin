@@ -1,0 +1,30 @@
+{% extends "CloudFrontBundle::base.html.twig" %}
+
+{% block content %}
+{% if errors %}
+<ul class="alert alert-danger" role="alert">
+    {% for error in errors %}
+       {{ error|raw }}
+    {% endfor %}
+</ul>
+{% endif %}
+<ul class="nav nav-tabs" role="tablist">
+{% for service in app.user.getServices %}
+  <li class="nav-item">
+      <a class="nav-link{% if loop.first %} active{% endif %}" href="#{{ service.getName }}" aria-controls="profile" role="tab" data-toggle="tab">{{ service.getName }}</a>
+  </li>
+{% endfor %}
+</ul>
+<div class="tab-content">
+    {% for serviceName,formsService in formsServices %}
+    <div role="tabpanel" class="tab-pane{% if loop.first %} active{% endif %}" id="{{ serviceName }}">
+        {% for formService in formsService %}
+        <div class="col-xs-12">
+            {{ form(formService) }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

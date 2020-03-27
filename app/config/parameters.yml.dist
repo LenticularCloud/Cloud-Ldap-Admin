@@ -9,11 +9,13 @@ parameters:
     ldap_bind_pw: password
     ldap_base_dn: 'dc=example,dc=org'
     ldap_ssl: false
+    use_start_tls: false
     domain: example.org
     mailer_transport: smtp
     mailer_host: 127.0.0.1
     mailer_user: null
     mailer_password: null
+    mailer_from: 'webmaster@example.com'
     locale: en
     secret: ThisTokenIsNotSoSecretChangeIt
     database_driver: 'pdo_sqlite'

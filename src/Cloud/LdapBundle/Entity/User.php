@@ -17,7 +17,7 @@ class User extends AbstractUser implements AdvancedUserInterface
     /**
      * main passwords for this user
      *
-     * @Assert\Valid(deep=true)
+     * @Assert\Valid()
      *
      * @var Password $password
      */
@@ -31,7 +31,7 @@ class User extends AbstractUser implements AdvancedUserInterface
     /**
      * assoziativ array with service info
      *
-     * @Assert\Valid(deep=true)
+     * @Assert\Valid()
      *
      * @var array<Service>
      */
@@ -42,6 +42,8 @@ class User extends AbstractUser implements AdvancedUserInterface
      * @var boolean
      */
     private $enable = false;
+
+    private $legacyPassword = false;
 
     public function __construct($username, array $roles = array(), $enabled = true, $userNonExpired = true, $credentialsNonExpired = true, $userNonLocked = true)
     {
@@ -373,6 +375,24 @@ class User extends AbstractUser implements AdvancedUserInterface
     {
         return true;
     }
+
+    /**
+     * @return bool
+     */
+    public function isLegacyPassword(): bool
+    {
+        return $this->legacyPassword;
+    }
+
+    /**
+     * @param bool $legacyPassword
+     */
+    public function setLegacyPassword(bool $legacyPassword)
+    {
+        $this->legacyPassword = $legacyPassword;
+    }
+
+
 
     /**
      * Checks whether the user is enabled.

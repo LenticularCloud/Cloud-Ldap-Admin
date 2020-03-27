@@ -1,0 +1,25 @@
+{% extends "CloudFrontBundle::base.html.twig" %}
+
+{% block content %}
+
+    {% for datarow in data %}
+        <div class="row">
+            <div class="col-md-4">
+                Username: <b>{{ datarow.user.getUsername }}</b>
+            </div>
+            <div class="col-md-4">
+                Date of Registration: <b>{{ datarow.user.getCreateAt|date }}</b>
+            </div>
+            <div class="col-md-4">
+                {{ form(datarow.form,{'action':path('registration_admin_edit',{'user':datarow.user.getUsername})}) }}
+            </div>
+        </div>
+    {% endfor %}
+
+    {% if data is empty %}
+        <div class="row">
+            no new users registrated
+        </div>
+    {% endif %}
+
+{% endblock %}

@@ -30,39 +30,51 @@ class UserCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $helper = $this->getHelper('question');
-        
+
         try {
             $this->getContainer()->get('cloud.ldap.userprovider');
         } catch (\Exception $e) {
             $output->writeln("<error>Can't connect to database</error>");
+
             return 255;
         }
-        
+
         // check parameters
         if ($input->getOption('add') && $input->getOption('delete')) {
             $output->writeln("<error>can't add and delete</error>");
+
             return 1;
         }
-        
+
         // if no option is set show user list
-        if (! $input->getOption('add') && ! $input->getOption('delete')) {
-            if ($input->getOption('json')) {
-                $output->writeln(json_encode($this->getContainer()
-                    ->get('cloud.ldap.userprovider')
-                    ->getUsernames()));
-            } else {
-                foreach ($this->getContainer()
-                    ->get('cloud.ldap.userprovider')
-                    ->getUsernames() as $username) {
-                    $output->writeln($username);
-                }
-            }
-            return 0;
+        if (!$input->getOption('add') && !$input->getOption('delete')) {
+            return $this->_list($input, $output);
         }
-        
+
         // read username
+
+        if ($input->getOption('delete')) {
+            return $this->_delete($input, $output);
+        }
+
+        if ($input->getOption('add')) {
+            return $this->_add($input, $output);
+        }
+
+        return 0;
+    }
+
+    /**
+     * request username, ether by argument or by user input
+     *
+     * @param InputInterface  $input
+     * @param OutputInterface $output
+     * @return mixed|null
+     */
+    protected function _getUsername(InputInterface $input, OutputInterface $output)
+    {
         $username = null;
+        $helper = $this->getHelper('question');
         if ($input->getArgument('username') !== null) {
             $username = $input->getArgument('username');
         } else {
@@ -74,62 +86,89 @@ class UserCommand extends ContainerAwareCommand
             }
             $username = $helper->ask($input, $output, $question);
         }
-        
-        if ($input->getOption('delete')) {
-            if (! $input->getOption('force')) {
-                $question = new ConfirmationQuestion('You realy whant to delete this user? [y/N]:', false);
-                if (! $helper->ask($input, $output, $question)) {
-                    $output->writeln('<error>canceled by user, if you use a script use \'-f\' to force delete</error>');
-                    return 1;
-                }
-            }
-            try {
-                $user = $this->getContainer()
-                    ->get('cloud.ldap.userprovider')
-                    ->loadUserByUsername($username);
-            }catch (UsernameNotFoundException $e) {
-                $output->writeln("<error>can't find user</error>");
-            }
-            
-            $this->getContainer()
-                ->get('cloud.ldap.util.usermanipulator')
-                ->delete($user);
-            return 0;
-        }
-        
-        if ($input->getOption('add')) {
-            try {
-                $user = $this->getContainer()
-                    ->get('cloud.ldap.userprovider')
-                    ->loadUserByUsername($username);
-                $output->writeln("<error>username allready taken</error>");
-                return 1;
-            }catch(UsernameNotFoundException $e) {
-            }
-            
-            // read password
-            $password = null;
-            if ($input->getArgument('password')) {
-                $password = $input->getArgument('password');
-            } else {
-                $question = new Question('Please enter password:');
-                $question->setHidden(true);
-                $password = $helper->ask($input, $output, $question);
-            }
 
-            $user = $this->getContainer()->get('cloud.ldap.util.usermanipulator')->createUserObject($username, new Password('default', $password));
-            
-            $this->getContainer()
-                ->get('cloud.ldap.util.usermanipulator')
-                ->create($user);
-            return 0;
+        return $username;
+    }
+
+    private function _list(InputInterface $input, OutputInterface $output)
+    {
+        if ($input->getOption('json')) {
+            $output->writeln(json_encode($this->getContainer()
+                ->get('cloud.ldap.userprovider')
+                ->getUsernames()));
+        } else {
+            foreach ($this->getContainer()
+                         ->get('cloud.ldap.userprovider')
+                         ->getUsernames() as $username) {
+                $output->writeln($username);
+            }
         }
-        
+
+
+        return 0;
+
+    }
+
+    private function _delete(InputInterface $input, OutputInterface $output)
+    {
+        $helper = $this->getHelper('question');
+        try {
+            $user = $this->getContainer()
+                ->get('cloud.ldap.userprovider')
+                ->loadUserByUsername($this->_getUsername($input,$output));
+        } catch (UsernameNotFoundException $e) {
+            $output->writeln("<error>can't find user</error>");
+            return 1;
+        }
+
+        if (!$input->getOption('force')) {
+            $question = new ConfirmationQuestion('You realy whant to delete this user? [y/N]:', false);
+            if (!$helper->ask($input, $output, $question)) {
+                $output->writeln('<error>canceled by user, if you use a script use \'-f\' to force delete</error>');
+
+                return 1;
+            }
+        }
+
+        $this->getContainer()
+            ->get('cloud.ldap.util.usermanipulator')
+            ->delete($user);
+
         return 0;
     }
-    
-    private function add()
+
+    private function _add(InputInterface $input, OutputInterface $output)
     {
-        
+        $helper = $this->getHelper('question');
+        $username = $this->_getUsername($input,$output);
+        try {
+            $user = $this->getContainer()
+                ->get('cloud.ldap.userprovider')
+                ->loadUserByUsername($username);
+            $output->writeln("<error>username allready taken</error>");
+
+            return 1;
+        } catch (UsernameNotFoundException $e) {
+        }
+
+        // read password
+        $password = null;
+        if ($input->getArgument('password')) {
+            $password = $input->getArgument('password');
+        } else {
+            $question = new Question('Please enter password:');
+            $question->setHidden(true);
+            $password = $helper->ask($input, $output, $question);
+        }
+
+        $user = $this->getContainer()->get('cloud.ldap.util.usermanipulator')->createUserObject($username,
+            new Password('default', $password, true));
+
+        $this->getContainer()
+            ->get('cloud.ldap.util.usermanipulator')
+            ->create($user);
+
+        return 0;
+
     }
 }

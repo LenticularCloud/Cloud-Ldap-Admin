@@ -32,27 +32,12 @@ class FromGenerator
 
     public function getUserForms()
     {
-        $object_forms = $this->mainSettings['object_forms'];
-        $forms = array();
-        foreach($object_forms as $object_form) {
-            $form = new $object_form();
-            $forms[$form->getName()] = $form;
-        }
-        return $forms;
+        return $this->mainSettings['object_forms'];
     }
 
     public function getServiceForms($serviceName)
     {
-        // add default form for all services
-        $forms = array(ServiceType::class => new ServiceType());
-
-        // read form from config file
-        $object_forms = $this->serviceSettings[$serviceName]['object_forms'];
-        foreach($object_forms as $object_form) {
-            $form = new $object_form();
-            $forms[$form->getName()] = $form;
-        }
-        return $forms;
+        return array_merge([ServiceType::class], $this->serviceSettings[$serviceName]['object_forms']);
     }
 
 }

@@ -2,19 +2,15 @@
 namespace Cloud\LdapBundle\Security;
 
 
-use Cloud\LdapBundle\Entity\AbstractUser;
-use Cloud\LdapBundle\Entity\PosixService;
+use Cloud\LdapBundle\Services\LdapClient;
 use Cloud\LdapBundle\Util\LdapArrayToObjectTransformer;
 use Doctrine\Common\Annotations\Reader;
-use Symfony\Component\Security\Core\User\LdapUserProvider as BaseLdapUserProvider;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Ldap\Exception\ConnectionException;
-use Symfony\Component\Ldap\LdapClientInterface;
 use Cloud\LdapBundle\Entity\User;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
-use Cloud\LdapBundle\Schemas;
 
 class LdapUserProvider implements UserProviderInterface
 {
@@ -27,6 +23,7 @@ class LdapUserProvider implements UserProviderInterface
     protected $uidKey;
     protected $filter;
     protected $services;
+    protected $ldapGroupProvider;
 
     /**
      * @var Reader
@@ -35,7 +32,7 @@ class LdapUserProvider implements UserProviderInterface
 
 
     public function __construct(
-        LdapClientInterface $ldap,
+        LdapClient $ldap,
         $baseDn,
         $searchDn = null,
         $searchPassword = null,
@@ -43,7 +40,8 @@ class LdapUserProvider implements UserProviderInterface
         $uidKey = 'sAMAccountName',
         $filter = '({uid_key}={username})',
         $services,
-        Reader $reader
+        Reader $reader,
+        LdapGroupProvider $ldapGroupProvider
     ) {
         $this->ldap = $ldap;
         $this->baseDn = $baseDn;
@@ -55,8 +53,8 @@ class LdapUserProvider implements UserProviderInterface
 
         $this->services = $services;
         $this->reader = $reader;
+        $this->ldapGroupProvider = $ldapGroupProvider;
 
-        $this->ldap->bind($this->searchDn, $this->searchPassword);
         $this->ldap->bind($this->searchDn, $this->searchPassword);
     }
 
@@ -102,8 +100,14 @@ class LdapUserProvider implements UserProviderInterface
 
         $transformer = new LdapArrayToObjectTransformer($this->reader);
 
-        $user = $transformer->reverseTransform($search[0], new User(null), $dn);
+        $user = $transformer->reverseTransform($search[0], new User(null), $this->uidKey.'='.$username.','.$dn);
 
+        //find security groups
+        foreach ($this->ldapGroupProvider->loadGroupByUser($user) as $group){
+            $user->addGroup($group);
+        }
+
+        // load services
         foreach ($this->getServices() as $serviceName => $service) {
             $class = $service['object_class'];
             $serviceObject = new $class($serviceName);
@@ -137,7 +141,7 @@ class LdapUserProvider implements UserProviderInterface
 
     public function getUsernames()
     {
-        $usernames = $this->ldap->getUsernames("ou=Users,".$this->baseDn);
+        $usernames = $this->ldap->getEntitynames("ou=Users,".$this->baseDn, 'uid');
         sort($usernames);
 
         return $usernames;
@@ -160,17 +164,5 @@ class LdapUserProvider implements UserProviderInterface
     public function getServices()
     {
         return $this->services;
-    }
-
-    public function getGroupNames(AbstractUser $user)
-    {
-        //@TODO this is only a tmp hack
-        switch (get_class($user)) {
-            case PosixService::class:
-                return [$user->getName()];
-                break;
-        }
-
-        return [];
     }
 }

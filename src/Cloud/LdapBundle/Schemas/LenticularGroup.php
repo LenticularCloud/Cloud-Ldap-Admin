@@ -8,7 +8,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * DESC ''
- * SUP top STRUCTURAL
+ * SUP top AUXILIARY
  * MUST cn
  * MAY ( authRole )
  *
@@ -50,9 +50,10 @@ class LenticularGroup
      * @param string $cn
      * @return LenticularUser
      */
-    public function setUid($cn)
+    public function setCn($cn)
     {
         $this->cn->set($cn);
+
         return $this;
     }
 
@@ -73,6 +74,7 @@ class LenticularGroup
     public function addAuthRole($authRole)
     {
         $this->authRoles->add($authRole);
+
         return $this;
     }
 
@@ -82,11 +84,12 @@ class LenticularGroup
      */
     public function removeAuthRole($authRole)
     {
-        foreach($this->authRoles as $authRole) {
-            if($authRole->get() == $authRole) {
+        foreach ($this->authRoles as $authRole) {
+            if ($authRole->get() == $authRole) {
                 $this->authRoles->remove($authRole);
             }
         }
+
         return $this;
     }
 

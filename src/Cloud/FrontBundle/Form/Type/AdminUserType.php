@@ -29,6 +29,7 @@ class AdminUserType extends AbstractType
             ->add('roles', Type\ChoiceType::class, array(
                 'choices' => array('ROLE_ADMIN'=>'ROLE_ADMIN', 'ROLE_ADMIN_REG'=>'ROLE_ADMIN_REG', 'ROLE_USER'=>'ROLE_USER'),
                 'multiple'=>true,
+                'required' => false,
             ))
             ->add('email', Type\EmailType::class, array('required' => false))
             ->add('altEmail', Type\EmailType::class, array('required' => false))

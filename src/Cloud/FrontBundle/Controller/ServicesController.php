@@ -2,16 +2,13 @@
 namespace Cloud\FrontBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\Routing\Annotation\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
-use Cloud\FrontBundle\Form\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Cloud\FrontBundle\Form\Type\ServiceType;
-use Symfony\Component\Form\FormError;
-use InvalidArgumentException;
 
 /**
  * @Route("/services")
@@ -35,7 +32,7 @@ class ServicesController extends Controller
 
             if (!$service->isEnabled()) {
                 //-- service settings --
-                $form = $this->createForm(new ServiceType(), $service, array(
+                $form = $this->createForm(ServiceType::class, $service, array(
                     'action' => $this->generateUrl('services_edit', array(
                         'type' => ServiceType::class,
                         'serviceName' => $service->getName(),
@@ -53,11 +50,11 @@ class ServicesController extends Controller
                 continue;
             }
 
-            foreach ($this->get('cloud.front.formgenerator')->getServiceForms($service->getName()) as $typeName => $type) {
+            foreach ($this->get('cloud.front.formgenerator')->getServiceForms($service->getName())  as $type) {
 
                 $form = $this->createForm($type, $service, array(
                     'action' => $this->generateUrl('services_edit', array(
-                        'type' => $typeName,
+                        'type' => $type,
                         'serviceName' => $service->getName(),
                     )),
                     'method' => 'POST',
@@ -85,8 +82,7 @@ class ServicesController extends Controller
 
 
     /**
-     * @Route("/{serviceName}/{type}/edit",name="services_edit")
-     * @Method("POST")
+     * @Route("/{serviceName}/{type}/edit",name="services_edit",methods={"POST"})
      *
      * @param   Request     $request
      * @param   string      $type
@@ -102,7 +98,11 @@ class ServicesController extends Controller
         //@TODO check if service exist
 
         $formsType = $this->get('cloud.front.formgenerator')->getServiceForms($serviceName);
-        $form = $this->createForm($formsType[$type], $this->getUser()->getServices()[$serviceName]);
+        if(!in_array($type, $formsType)){
+            //error
+            die('error');
+        }
+        $form = $this->createForm($type, $this->getUser()->getServices()[$serviceName]);
 
         // workaround to premit message from symfony 'This form should not contain extra fields.'
         $form->add('save', SubmitType::class, array(
@@ -122,7 +122,8 @@ class ServicesController extends Controller
         } else {
             $errorMsgs = array();
             foreach($errors as $error) {
-                $errorMsgs[] = $error->getMessage();
+                $errorMsgs[] = $error->getMessage() . "<br />in ".
+                    str_replace("children","",$error->getPropertyPath());
             }
             $data = array(
                 'successfully' => false,

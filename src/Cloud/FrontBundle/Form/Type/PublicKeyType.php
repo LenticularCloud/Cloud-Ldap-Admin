@@ -29,7 +29,7 @@ class PublicKeyType extends AbstractType
     {
         $builder
             ->add('ssh_public_key', Type\CollectionType::class, array(
-                'type' => new Type\TextType(),
+                'entry_type' => Type\TextType::class,
                 'allow_add' => true,
                 'allow_delete' => true,
                 'by_reference' => false
